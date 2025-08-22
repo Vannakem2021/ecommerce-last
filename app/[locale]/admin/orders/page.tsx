@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import Link from 'next/link'
 
 import { auth } from '@/auth'
+import { hasPermission } from '@/lib/rbac-utils'
 import DeleteDialog from '@/components/shared/delete-dialog'
 import Pagination from '@/components/shared/pagination'
 import { Button } from '@/components/ui/button'
@@ -29,8 +30,10 @@ export default async function OrdersPage(props: {
   const { page = '1' } = searchParams
 
   const session = await auth()
-  if (session?.user.role !== 'Admin')
-    throw new Error('Admin permission required')
+
+  if (!session?.user?.role || !hasPermission(session.user.role, 'orders.read')) {
+    throw new Error('Insufficient permissions to view orders')
+  }
 
   const orders = await getAllOrders({
     page: Number(page),

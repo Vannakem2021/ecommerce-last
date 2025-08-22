@@ -11,19 +11,29 @@ import {
   SheetContent,
   SheetTrigger,
 } from '@/components/ui/sheet'
+import { auth } from '@/auth'
+import { hasPermission } from '@/lib/rbac-utils'
+import { notFound } from 'next/navigation'
 
 export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const session = await auth()
+
+  // Basic admin access check - more specific checks are done in individual pages
+  if (!session?.user?.role || !hasPermission(session.user.role, 'reports.read')) {
+    notFound()
+  }
+
   const { site } = await getSetting()
   return (
     <>
       <div className='flex h-screen'>
         {/* Sidebar - Hidden on mobile, visible on desktop */}
         <div className='hidden md:flex md:flex-shrink-0'>
-          <AdminNav />
+          <AdminNav userRole={session.user.role} />
         </div>
 
         {/* Main content area */}
@@ -40,7 +50,7 @@ export default async function AdminLayout({
                     </Button>
                   </SheetTrigger>
                   <SheetContent side="left" className="p-0 w-64">
-                    <AdminNav />
+                    <AdminNav userRole={session.user.role} />
                   </SheetContent>
                 </Sheet>
               </div>

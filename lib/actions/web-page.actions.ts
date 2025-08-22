@@ -8,10 +8,14 @@ import { formatError } from '@/lib/utils'
 
 import { WebPageInputSchema, WebPageUpdateSchema } from '../validator'
 import { z } from 'zod'
+import { requirePermission } from '../rbac'
 
 // CREATE
 export async function createWebPage(data: z.infer<typeof WebPageInputSchema>) {
   try {
+    // Check if current user has permission to create pages
+    await requirePermission('pages.create')
+
     const webPage = WebPageInputSchema.parse(data)
     await connectToDatabase()
     await WebPage.create(webPage)
@@ -28,6 +32,9 @@ export async function createWebPage(data: z.infer<typeof WebPageInputSchema>) {
 // UPDATE
 export async function updateWebPage(data: z.infer<typeof WebPageUpdateSchema>) {
   try {
+    // Check if current user has permission to update pages
+    await requirePermission('pages.update')
+
     const webPage = WebPageUpdateSchema.parse(data)
     await connectToDatabase()
     await WebPage.findByIdAndUpdate(webPage._id, webPage)
@@ -43,6 +50,9 @@ export async function updateWebPage(data: z.infer<typeof WebPageUpdateSchema>) {
 // DELETE
 export async function deleteWebPage(id: string) {
   try {
+    // Check if current user has permission to delete pages
+    await requirePermission('pages.delete')
+
     await connectToDatabase()
     const res = await WebPage.findByIdAndDelete(id)
     if (!res) throw new Error('WebPage not found')

@@ -8,10 +8,14 @@ import { BrandInputSchema, BrandUpdateSchema } from '../validator'
 import { IBrandInput } from '@/types'
 import { z } from 'zod'
 import { getSetting } from './setting.actions'
+import { requirePermission } from '../rbac'
 
 // CREATE
 export async function createBrand(data: IBrandInput) {
   try {
+    // Check if current user has permission to create brands
+    await requirePermission('brands.create')
+
     const brand = BrandInputSchema.parse(data)
     await connectToDatabase()
     await Brand.create(brand)
@@ -28,6 +32,9 @@ export async function createBrand(data: IBrandInput) {
 // UPDATE
 export async function updateBrand(data: z.infer<typeof BrandUpdateSchema>) {
   try {
+    // Check if current user has permission to update brands
+    await requirePermission('brands.update')
+
     const brand = BrandUpdateSchema.parse(data)
     await connectToDatabase()
     await Brand.findByIdAndUpdate(brand._id, brand)
@@ -44,6 +51,9 @@ export async function updateBrand(data: z.infer<typeof BrandUpdateSchema>) {
 // DELETE
 export async function deleteBrand(id: string) {
   try {
+    // Check if current user has permission to delete brands
+    await requirePermission('brands.delete')
+
     await connectToDatabase()
     const res = await Brand.findByIdAndDelete(id)
     if (!res) throw new Error('Brand not found')

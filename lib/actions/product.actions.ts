@@ -8,10 +8,14 @@ import { ProductInputSchema, ProductUpdateSchema } from '../validator'
 import { IProductInput } from '@/types'
 import { z } from 'zod'
 import { getSetting } from './setting.actions'
+import { requirePermission } from '../rbac'
 
 // CREATE
 export async function createProduct(data: IProductInput) {
   try {
+    // Check if current user has permission to create products
+    await requirePermission('products.create')
+
     const product = ProductInputSchema.parse(data)
     await connectToDatabase()
     await Product.create(product)
@@ -28,6 +32,9 @@ export async function createProduct(data: IProductInput) {
 // UPDATE
 export async function updateProduct(data: z.infer<typeof ProductUpdateSchema>) {
   try {
+    // Check if current user has permission to update products
+    await requirePermission('products.update')
+
     const product = ProductUpdateSchema.parse(data)
     await connectToDatabase()
     await Product.findByIdAndUpdate(product._id, product)
@@ -43,6 +50,9 @@ export async function updateProduct(data: z.infer<typeof ProductUpdateSchema>) {
 // DELETE
 export async function deleteProduct(id: string) {
   try {
+    // Check if current user has permission to delete products
+    await requirePermission('products.delete')
+
     await connectToDatabase()
     const res = await Product.findByIdAndDelete(id)
     if (!res) throw new Error('Product not found')

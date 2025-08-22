@@ -7,11 +7,14 @@ import { revalidatePath } from 'next/cache'
 import { formatError } from '../utils'
 import { SetStockSchema, AdjustStockSchema, InventoryFiltersSchema } from '../validator'
 import { ISetStock, IAdjustStock, IInventoryFilters, IInventoryProduct } from '@/types'
-import { auth } from '@/auth'
+import { requirePermission, getCurrentUserWithRole } from '../rbac'
 
 // GET ALL PRODUCTS FOR INVENTORY MANAGEMENT
 export async function getAllProductsForInventory(filters: IInventoryFilters) {
   try {
+    // Check if current user has permission to read inventory
+    await requirePermission('inventory.read')
+
     const validatedFilters = InventoryFiltersSchema.parse(filters)
     await connectToDatabase()
 
@@ -122,11 +125,10 @@ export async function getAllProductsForInventory(filters: IInventoryFilters) {
 // SET PRODUCT STOCK (Absolute quantity)
 export async function setProductStock(data: ISetStock) {
   try {
-    const session = await auth()
-    if (!session?.user?.id) {
-      throw new Error('Authentication required')
-    }
+    // Check if current user has permission to update inventory
+    await requirePermission('inventory.update')
 
+    const currentUser = await getCurrentUserWithRole()
     const validatedData = SetStockSchema.parse(data)
     await connectToDatabase()
 
@@ -154,7 +156,7 @@ export async function setProductStock(data: ISetStock) {
       newStock,
       reason: validatedData.reason,
       notes: validatedData.notes,
-      createdBy: session.user.id,
+      createdBy: currentUser.id,
     })
 
     revalidatePath('/admin/inventory')
@@ -172,11 +174,10 @@ export async function setProductStock(data: ISetStock) {
 // ADJUST PRODUCT STOCK (Relative quantity change)
 export async function adjustProductStock(data: IAdjustStock) {
   try {
-    const session = await auth()
-    if (!session?.user?.id) {
-      throw new Error('Authentication required')
-    }
+    // Check if current user has permission to update inventory
+    await requirePermission('inventory.update')
 
+    const currentUser = await getCurrentUserWithRole()
     const validatedData = AdjustStockSchema.parse(data)
     await connectToDatabase()
 
@@ -204,7 +205,7 @@ export async function adjustProductStock(data: IAdjustStock) {
       newStock,
       reason: validatedData.reason,
       notes: validatedData.notes,
-      createdBy: session.user.id,
+      createdBy: currentUser.id,
     })
 
     revalidatePath('/admin/inventory')

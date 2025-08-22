@@ -22,46 +22,53 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Checkbox } from '@/components/ui/checkbox'
 import { useToast } from '@/hooks/use-toast'
-import { updateUser } from '@/lib/actions/user.actions'
-import { IUser } from '@/lib/db/models/user.model'
-import { UserUpdateSchema } from '@/lib/validator'
+import { createUserByAdmin } from '@/lib/actions/user.actions'
+import { AdminUserCreateSchema } from '@/lib/validator'
 import { getAssignableRoles } from '@/lib/rbac-utils'
+import { UserRole } from '@/lib/constants'
 
-interface UserEditFormProps {
-  user: IUser
+interface UserCreateFormProps {
   currentUserRole: string
 }
 
-const UserEditForm = ({ user, currentUserRole }: UserEditFormProps) => {
+const UserCreateForm = ({ currentUserRole }: UserCreateFormProps) => {
   const router = useRouter()
+  const { toast } = useToast()
 
   // Get roles that current user can assign
   const assignableRoles = getAssignableRoles(currentUserRole)
 
-  const form = useForm<z.infer<typeof UserUpdateSchema>>({
-    resolver: zodResolver(UserUpdateSchema),
-    defaultValues: user,
+  const form = useForm<z.infer<typeof AdminUserCreateSchema>>({
+    resolver: zodResolver(AdminUserCreateSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      role: 'user',
+      password: '',
+      sendWelcomeEmail: false,
+    },
   })
 
-  const { toast } = useToast()
-  async function onSubmit(values: z.infer<typeof UserUpdateSchema>) {
+  async function onSubmit(values: z.infer<typeof AdminUserCreateSchema>) {
     try {
-      const res = await updateUser({
-        ...values,
-        _id: user._id,
-      })
-      if (!res.success)
+      const res = await createUserByAdmin(values)
+      
+      if (!res.success) {
         return toast({
           variant: 'destructive',
           description: res.message,
         })
+      }
 
       toast({
         description: res.message,
       })
+      
       form.reset()
-      router.push(`/admin/users`)
+      router.push('/admin/users')
+      
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       toast({
@@ -99,23 +106,45 @@ const UserEditForm = ({ user, currentUserRole }: UserEditFormProps) => {
               <FormItem className='w-full'>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input placeholder='Enter user email' {...field} />
+                  <Input 
+                    type='email' 
+                    placeholder='Enter user email' 
+                    {...field} 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
-        <div>
+        
+        <div className='flex flex-col gap-5 md:flex-row'>
+          <FormField
+            control={form.control}
+            name='password'
+            render={({ field }) => (
+              <FormItem className='w-full'>
+                <FormLabel>Password</FormLabel>
+                <FormControl>
+                  <Input 
+                    type='password' 
+                    placeholder='Enter password' 
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           <FormField
             control={form.control}
             name='role'
             render={({ field }) => (
-              <FormItem className='space-x-2 items-center'>
+              <FormItem className='w-full'>
                 <FormLabel>Role</FormLabel>
                 <Select
                   onValueChange={field.onChange}
-                  value={field.value.toString()}
+                  value={field.value}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -130,22 +159,42 @@ const UserEditForm = ({ user, currentUserRole }: UserEditFormProps) => {
                     ))}
                   </SelectContent>
                 </Select>
-
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
+
+        <FormField
+          control={form.control}
+          name='sendWelcomeEmail'
+          render={({ field }) => (
+            <FormItem className='flex flex-row items-start space-x-3 space-y-0'>
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <div className='space-y-1 leading-none'>
+                <FormLabel>
+                  Send welcome email to user
+                </FormLabel>
+              </div>
+            </FormItem>
+          )}
+        />
+
         <div className='flex-between'>
           <Button type='submit' disabled={form.formState.isSubmitting}>
-            {form.formState.isSubmitting ? 'Submitting...' : `Update User `}
+            {form.formState.isSubmitting ? 'Creating...' : 'Create User'}
           </Button>
           <Button
             variant='outline'
             type='button'
-            onClick={() => router.push(`/admin/users`)}
+            onClick={() => router.push('/admin/users')}
           >
-            Back
+            Cancel
           </Button>
         </div>
       </form>
@@ -153,4 +202,4 @@ const UserEditForm = ({ user, currentUserRole }: UserEditFormProps) => {
   )
 }
 
-export default UserEditForm
+export default UserCreateForm

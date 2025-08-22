@@ -8,10 +8,14 @@ import { CategoryInputSchema, CategoryUpdateSchema } from '../validator'
 import { ICategoryInput } from '@/types'
 import { z } from 'zod'
 import { getSetting } from './setting.actions'
+import { requirePermission } from '../rbac'
 
 // CREATE
 export async function createCategory(data: ICategoryInput) {
   try {
+    // Check if current user has permission to create categories
+    await requirePermission('categories.create')
+
     const category = CategoryInputSchema.parse(data)
     await connectToDatabase()
     await Category.create(category)
@@ -28,6 +32,9 @@ export async function createCategory(data: ICategoryInput) {
 // UPDATE
 export async function updateCategory(data: z.infer<typeof CategoryUpdateSchema>) {
   try {
+    // Check if current user has permission to update categories
+    await requirePermission('categories.update')
+
     const category = CategoryUpdateSchema.parse(data)
     await connectToDatabase()
     await Category.findByIdAndUpdate(category._id, category)
@@ -44,6 +51,9 @@ export async function updateCategory(data: z.infer<typeof CategoryUpdateSchema>)
 // DELETE
 export async function deleteCategory(id: string) {
   try {
+    // Check if current user has permission to delete categories
+    await requirePermission('categories.delete')
+
     await connectToDatabase()
     const res = await Category.findByIdAndDelete(id)
     if (!res) throw new Error('Category not found')

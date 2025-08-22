@@ -27,47 +27,57 @@ import { cn } from '@/lib/utils'
 import { useTranslations } from 'next-intl'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Button } from '@/components/ui/button'
+import { hasPermission } from '@/lib/rbac-utils'
+import { Permission } from '@/lib/constants'
 
 const mainLinks = [
   {
     title: 'Overview',
     href: '/admin/overview',
     icon: BarChart3,
+    permission: 'reports.read' as Permission,
   },
   {
     title: 'Orders',
     href: '/admin/orders',
     icon: ShoppingCart,
+    permission: 'orders.read' as Permission,
   },
   {
     title: 'Products',
     href: '/admin/products',
     icon: Package,
+    permission: 'products.read' as Permission,
   },
   {
     title: 'Inventory',
     href: '/admin/inventory',
     icon: Warehouse,
+    permission: 'inventory.read' as Permission,
   },
   {
     title: 'Categories',
     href: '/admin/categories',
     icon: Layers,
+    permission: 'categories.read' as Permission,
   },
   {
     title: 'Brands',
     href: '/admin/brands',
     icon: Tag,
+    permission: 'brands.read' as Permission,
   },
   {
     title: 'Users',
     href: '/admin/users',
     icon: Users,
+    permission: 'users.read' as Permission,
   },
   {
     title: 'Pages',
     href: '/admin/web-pages',
     icon: FileText,
+    permission: 'pages.read' as Permission,
   },
 ]
 
@@ -81,15 +91,28 @@ const settingsLinks = [
   { name: 'Delivery Dates', hash: 'setting-delivery-dates', icon: PackageIcon },
 ]
 
+interface AdminNavProps extends React.HTMLAttributes<HTMLElement> {
+  userRole: string
+}
+
 export function AdminNav({
   className,
+  userRole,
   ...props
-}: React.HTMLAttributes<HTMLElement>) {
+}: AdminNavProps) {
   const pathname = usePathname()
   const t = useTranslations('Admin')
   const [settingsOpen, setSettingsOpen] = useState(pathname.includes('/admin/settings'))
 
   const isSettingsActive = pathname.includes('/admin/settings')
+
+  // Filter navigation links based on user permissions
+  const visibleMainLinks = mainLinks.filter(link =>
+    hasPermission(userRole, link.permission)
+  )
+
+  // Check if user can access settings
+  const canAccessSettings = hasPermission(userRole, 'settings.read')
 
   return (
     <nav
@@ -101,7 +124,7 @@ export function AdminNav({
     >
       <div className="flex flex-col space-y-1 p-4">
         {/* Main Navigation Links */}
-        {mainLinks.map((item) => {
+        {visibleMainLinks.map((item) => {
           const Icon = item.icon
           const isActive = pathname.includes(item.href)
 
@@ -123,28 +146,29 @@ export function AdminNav({
         })}
 
         {/* Settings Collapsible Section */}
-        <Collapsible open={settingsOpen} onOpenChange={setSettingsOpen}>
-          <CollapsibleTrigger asChild>
-            <Button
-              variant="ghost"
-              className={cn(
-                'admin-sidebar-link justify-between w-full',
-                isSettingsActive
-                  ? 'admin-sidebar-link-active'
-                  : 'admin-sidebar-link-inactive'
-              )}
-            >
-              <div className="flex items-center gap-3">
-                <Settings className="h-4 w-4" />
-                {t('Settings')}
-              </div>
-              {settingsOpen ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )}
-            </Button>
-          </CollapsibleTrigger>
+        {canAccessSettings && (
+          <Collapsible open={settingsOpen} onOpenChange={setSettingsOpen}>
+            <CollapsibleTrigger asChild>
+              <Button
+                variant="ghost"
+                className={cn(
+                  'admin-sidebar-link justify-between w-full',
+                  isSettingsActive
+                    ? 'admin-sidebar-link-active'
+                    : 'admin-sidebar-link-inactive'
+                )}
+              >
+                <div className="flex items-center gap-3">
+                  <Settings className="h-4 w-4" />
+                  {t('Settings')}
+                </div>
+                {settingsOpen ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </Button>
+            </CollapsibleTrigger>
           <CollapsibleContent className="space-y-1 mt-1">
             {settingsLinks.map((item) => {
               const Icon = item.icon
@@ -181,6 +205,7 @@ export function AdminNav({
             })}
           </CollapsibleContent>
         </Collapsible>
+        )}
       </div>
     </nav>
   )

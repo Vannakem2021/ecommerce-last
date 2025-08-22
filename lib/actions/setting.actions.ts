@@ -5,6 +5,7 @@ import Setting from '../db/models/setting.model'
 import { connectToDatabase } from '../db'
 import { formatError } from '../utils'
 import { cookies } from 'next/headers'
+import { requirePermission } from '../rbac'
 
 const globalForSettings = global as unknown as {
   cachedSettings: ISettingInput | null
@@ -29,6 +30,9 @@ export const getSetting = async (): Promise<ISettingInput> => {
 
 export const updateSetting = async (newSetting: ISettingInput) => {
   try {
+    // Check if current user has permission to update settings
+    await requirePermission('settings.update')
+
     await connectToDatabase()
     const updatedSetting = await Setting.findOneAndUpdate({}, newSetting, {
       upsert: true,
