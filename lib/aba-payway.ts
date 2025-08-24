@@ -1,0 +1,270 @@
+import crypto from "crypto";
+import {
+  ABAPayWayConfig,
+  PaymentRequest,
+  PaymentParams,
+  PaymentItem,
+  ABAPayWayCallbackParams,
+  ABA_PAYWAY_TRANSACTION_TYPES,
+} from "@/types/aba-payway";
+import { getSetting } from "@/lib/actions/setting.actions";
+
+class ABAPayWayService {
+  private config: ABAPayWayConfig;
+
+  constructor() {
+    this.config = {
+      merchantId: process.env.PAYWAY_MERCHANT_ID || "",
+      apiKey: process.env.PAYWAY_SECRET_KEY || "",
+      baseUrl:
+        process.env.PAYWAY_BASE_URL || "https://checkout-sandbox.payway.com.kh",
+      enabled: process.env.PAYWAY_ENABLED === "true",
+    };
+  }
+
+  /**
+   * Load configuration from database settings
+   */
+  async loadSettingsConfig(): Promise<void> {
+    try {
+      const settings = await getSetting();
+      if (settings.abaPayWay) {
+        this.config = {
+          merchantId:
+            settings.abaPayWay.merchantId ||
+            process.env.PAYWAY_MERCHANT_ID ||
+            "",
+          apiKey: process.env.PAYWAY_SECRET_KEY || "",
+          baseUrl: settings.abaPayWay.sandboxMode
+            ? "https://checkout-sandbox.payway.com.kh"
+            : "https://checkout.payway.com.kh",
+          enabled:
+            settings.abaPayWay.enabled && !!process.env.PAYWAY_SECRET_KEY,
+        };
+      }
+    } catch (error) {
+      console.error("[ABA PayWay] Failed to load settings:", error);
+    }
+  }
+
+  /**
+   * Check if ABA PayWay is enabled and properly configured
+   */
+  isEnabled(): boolean {
+    return (
+      this.config.enabled &&
+      !!this.config.merchantId &&
+      !!this.config.apiKey &&
+      !!this.config.baseUrl
+    );
+  }
+
+  /**
+   * Generate HMAC SHA-512 hash for ABA PayWay API
+   */
+  generateHash(params: Partial<PaymentParams>): string {
+    const {
+      req_time = "",
+      merchant_id = "",
+      tran_id = "",
+      amount = "",
+      items = "",
+      shipping = "",
+      firstname = "",
+      lastname = "",
+      email = "",
+      phone = "",
+      type = "",
+      payment_option = "",
+      return_url = "",
+      cancel_url = "",
+      continue_success_url = "",
+      return_deeplink = "",
+      currency = "",
+      custom_fields = "",
+      return_params = "",
+      payout = "",
+      lifetime = "",
+      additional_params = "",
+      google_pay_token = "",
+      skip_success_page = "",
+    } = params;
+
+    // Concatenate all parameters in the exact order required by ABA PayWay
+    const dataToHash =
+      req_time +
+      merchant_id +
+      tran_id +
+      amount +
+      items +
+      shipping +
+      firstname +
+      lastname +
+      email +
+      phone +
+      type +
+      payment_option +
+      return_url +
+      cancel_url +
+      continue_success_url +
+      return_deeplink +
+      currency +
+      custom_fields +
+      return_params +
+      payout +
+      lifetime +
+      additional_params +
+      google_pay_token +
+      skip_success_page;
+
+    // Generate HMAC SHA-512 hash and encode in Base64
+    return Buffer.from(
+      crypto
+        .createHmac("sha512", this.config.apiKey)
+        .update(dataToHash)
+        .digest()
+    ).toString("base64");
+  }
+
+  /**
+   * Generate a merchant reference number for ABA PayWay (max 20 characters)
+   * This will be sent as merchant_ref_no to identify our order
+   */
+  private generateMerchantRefNo(orderId: string): string {
+    // Format: ORD-{last8chars}-{timestamp}
+    // This keeps it under 20 characters and human-readable
+    const orderSuffix = orderId.slice(-8); // Last 8 chars of MongoDB ObjectId
+    const timestamp = Date.now().toString(36).slice(-6); // Last 6 chars of base36 timestamp
+    const merchantRefNo = `ORD-${orderSuffix}-${timestamp}`;
+
+    return merchantRefNo.substring(0, 20); // Ensure max 20 chars
+  }
+
+  /**
+   * Get the merchant reference number for an order
+   */
+  getMerchantRefNo(orderId: string): string {
+    return this.generateMerchantRefNo(orderId);
+  }
+
+  /**
+   * Create payment parameters for ABA PayWay API
+   */
+  createPaymentParams(request: PaymentRequest): PaymentParams {
+    if (!this.isEnabled()) {
+      throw new Error("ABA PayWay is not properly configured");
+    }
+
+    // Generate request time in YYYYMMDDHHmmss format
+    const reqTime = new Date()
+      .toISOString()
+      .replace(/[-:T.]/g, "")
+      .slice(0, 14);
+
+    // Generate merchant reference number (ABA PayWay will generate their own tran_id)
+    const merchantRefNo = this.generateMerchantRefNo(request.orderId);
+
+    // Encode items as base64 JSON according to ABA PayWay documentation
+    // Format: [{"name": "product 1", "quantity": 1, "price": 1.00}, ...]
+    const formattedItems = request.items.map((item: PaymentItem) => ({
+      name: item.name,
+      quantity: item.quantity,
+      price: parseFloat(item.price.toFixed(2)),
+    }));
+    const itemsBase64 = Buffer.from(JSON.stringify(formattedItems)).toString(
+      "base64"
+    );
+
+    // Put merchant reference number in custom_fields as base64 encoded JSON
+    const customFields = Buffer.from(
+      JSON.stringify({
+        merchant_ref_no: merchantRefNo,
+        order_id: request.orderId,
+      })
+    ).toString("base64");
+
+    const params: Partial<PaymentParams> = {
+      req_time: reqTime,
+      merchant_id: this.config.merchantId,
+      tran_id: merchantRefNo, // Use merchant ref no as tran_id for now
+      firstname: request.customerInfo.firstname || "",
+      lastname: request.customerInfo.lastname || "",
+      email: request.customerInfo.email || "",
+      phone: request.customerInfo.phone || "",
+      type: ABA_PAYWAY_TRANSACTION_TYPES.PURCHASE,
+      payment_option: "", // Empty means show all available payment methods
+      items: itemsBase64,
+      shipping: "0.00",
+      amount: request.amount.toFixed(2),
+      currency: request.currency,
+      return_url: request.returnUrl,
+      cancel_url: request.cancelUrl,
+      skip_success_page: "1", // Skip ABA PayWay success page
+      continue_success_url: request.continueSuccessUrl,
+      return_deeplink: "",
+      custom_fields: customFields,
+      return_params: merchantRefNo, // Also include in return_params
+      view_type: "hosted_view", // Redirect to new tab
+      payment_gate: "0", // Use checkout service
+      payout: "",
+      lifetime: "", // Use default lifetime
+      additional_params: "",
+      google_pay_token: "",
+    };
+
+    // Generate hash for all parameters
+    const hash = this.generateHash(params);
+
+    return {
+      ...params,
+      hash,
+    } as PaymentParams;
+  }
+
+  /**
+   * Verify callback signature from ABA PayWay
+   */
+  verifyCallback(params: ABAPayWayCallbackParams): boolean {
+    if (!this.isEnabled()) {
+      return false;
+    }
+
+    const { hash, ...otherParams } = params;
+
+    // Convert callback params to payment params format for hash verification
+    const verificationParams: Partial<PaymentParams> = {
+      req_time: String(otherParams.req_time || ""),
+      merchant_id: String(otherParams.merchant_id || this.config.merchantId),
+      tran_id: String(otherParams.tran_id || ""),
+      amount: String(otherParams.amount || ""),
+      // Add other parameters as needed for verification
+    };
+
+    const expectedHash = this.generateHash(verificationParams);
+    return hash === expectedHash;
+  }
+
+  /**
+   * Get ABA PayWay payment URL
+   */
+  getPaymentUrl(): string {
+    return `${this.config.baseUrl}/api/payment-gateway/v1/payments/purchase`;
+  }
+
+  /**
+   * Get configuration for debugging (without sensitive data)
+   */
+  getConfig(): Omit<ABAPayWayConfig, "apiKey"> {
+    return {
+      merchantId: this.config.merchantId,
+      baseUrl: this.config.baseUrl,
+      enabled: this.config.enabled,
+    };
+  }
+}
+
+// Export singleton instance
+export const abaPayWayService = new ABAPayWayService();
+
+// Export class for testing
+export { ABAPayWayService };
