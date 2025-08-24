@@ -63,6 +63,29 @@ export async function GET(request: NextRequest) {
       normalizedVersion: dbUser.email.toLowerCase().trim()
     }
 
+    // Check schema completeness
+    const schemaCheck = {
+      hasPaymentMethod: !!dbUser.paymentMethod,
+      hasAddress: !!dbUser.address,
+      hasAddressFields: dbUser.address ? {
+        fullName: !!dbUser.address.fullName,
+        street: dbUser.address.street !== undefined,
+        city: dbUser.address.city !== undefined,
+        province: dbUser.address.province !== undefined,
+        postalCode: dbUser.address.postalCode !== undefined,
+        country: dbUser.address.country !== undefined,
+        phone: dbUser.address.phone !== undefined
+      } : null,
+      isComplete: !!(dbUser.paymentMethod && dbUser.address &&
+        dbUser.address.fullName !== undefined &&
+        dbUser.address.street !== undefined &&
+        dbUser.address.city !== undefined &&
+        dbUser.address.province !== undefined &&
+        dbUser.address.postalCode !== undefined &&
+        dbUser.address.country !== undefined &&
+        dbUser.address.phone !== undefined)
+    }
+
     return NextResponse.json({
       session: {
         id: session.user.id,
@@ -82,6 +105,7 @@ export async function GET(request: NextRequest) {
       allConsistent,
       adminAccess,
       emailCheck,
+      schemaCheck,
       recommendations: [
         ...(!allConsistent ? [
           !consistent.role && 'Role mismatch detected - this could cause authentication issues',
@@ -90,6 +114,7 @@ export async function GET(request: NextRequest) {
           !consistent.id && 'ID mismatch detected - this is critical'
         ].filter(Boolean) : []),
         !emailCheck.isNormalized && 'Email is not normalized - run email normalization script',
+        !schemaCheck.isComplete && 'User schema is incomplete - run schema migration script',
         adminAccess.shouldHaveAdminAccess && 'User should have admin access',
         !adminAccess.shouldHaveAdminAccess && 'User should NOT have admin access'
       ].filter(Boolean)
