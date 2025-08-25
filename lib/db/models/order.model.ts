@@ -1,24 +1,24 @@
-import { IOrderInput } from '@/types'
-import { Document, Model, model, models, Schema } from 'mongoose'
+import { IOrderInput } from "@/types";
+import { Document, Model, model, models, Schema } from "mongoose";
 
 export interface IOrder extends Document, IOrderInput {
-  _id: string
-  createdAt: Date
-  updatedAt: Date
+  _id: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const orderSchema = new Schema<IOrder>(
   {
     user: {
       type: Schema.Types.ObjectId as unknown as typeof String,
-      ref: 'User',
+      ref: "User",
       required: true,
     },
     items: [
       {
         product: {
           type: Schema.Types.ObjectId,
-          ref: 'Product',
+          ref: "Product",
           required: true,
         },
         clientId: { type: String, required: true },
@@ -54,13 +54,38 @@ const orderSchema = new Schema<IOrder>(
     isDelivered: { type: Boolean, required: true, default: false },
     deliveredAt: { type: Date },
     createdAt: { type: Date, default: Date.now },
+    // ABA PayWay specific fields
+    abaMerchantRefNo: { type: String }, // Merchant reference number for ABA PayWay
+    // Enhanced ABA PayWay status tracking
+    abaPaymentStatus: {
+      type: String,
+      enum: ["pending", "processing", "completed", "failed", "cancelled"],
+      default: "pending",
+    },
+    abaTransactionId: { type: String }, // ABA PayWay transaction ID
+    abaStatusCode: { type: Number }, // Status code from ABA PayWay (0=success, 1=cancelled, etc.)
+    abaLastStatusCheck: { type: Date }, // Last time we checked status via API
+    abaCallbackReceived: { type: Boolean, default: false }, // Whether we received a callback
+    abaStatusHistory: [
+      {
+        status: { type: String, required: true },
+        statusCode: { type: Number, required: true },
+        timestamp: { type: Date, default: Date.now },
+        source: {
+          type: String,
+          enum: ["callback", "api_check", "manual"],
+          required: true,
+        },
+        details: { type: String },
+      },
+    ],
   },
   {
     timestamps: true,
   }
-)
+);
 
 const Order =
-  (models.Order as Model<IOrder>) || model<IOrder>('Order', orderSchema)
+  (models.Order as Model<IOrder>) || model<IOrder>("Order", orderSchema);
 
-export default Order
+export default Order;

@@ -202,6 +202,26 @@ export const OrderInputSchema = z.object({
   deliveredAt: z.date().optional(),
   isPaid: z.boolean().default(false),
   paidAt: z.date().optional(),
+  // ABA PayWay specific fields
+  abaMerchantRefNo: z.string().optional(),
+  abaPaymentStatus: z
+    .enum(["pending", "processing", "completed", "failed", "cancelled"])
+    .optional(),
+  abaTransactionId: z.string().optional(),
+  abaStatusCode: z.number().optional(),
+  abaLastStatusCheck: z.date().optional(),
+  abaCallbackReceived: z.boolean().optional(),
+  abaStatusHistory: z
+    .array(
+      z.object({
+        status: z.string(),
+        statusCode: z.number(),
+        timestamp: z.date(),
+        source: z.enum(["callback", "api_check", "manual"]),
+        details: z.string().optional(),
+      })
+    )
+    .optional(),
 });
 // Cart
 
@@ -473,4 +493,12 @@ export const SettingInputSchema = z.object({
     .array(DeliveryDateSchema)
     .min(1, "At least one delivery date is required"),
   defaultDeliveryDate: z.string().min(1, "Delivery date is required"),
+  // ABA PayWay configuration
+  abaPayWay: z
+    .object({
+      enabled: z.boolean().default(false),
+      merchantId: z.string().optional(),
+      sandboxMode: z.boolean().default(true),
+    })
+    .optional(),
 });
