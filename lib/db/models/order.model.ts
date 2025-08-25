@@ -34,13 +34,25 @@ const orderSchema = new Schema<IOrder>(
       },
     ],
     shippingAddress: {
+      // Common fields
       fullName: { type: String, required: true },
-      street: { type: String, required: true },
-      city: { type: String, required: true },
-      postalCode: { type: String, required: true },
-      country: { type: String, required: true },
-      province: { type: String, required: true },
       phone: { type: String, required: true },
+      postalCode: { type: String, required: true },
+
+      // Cambodia address fields
+      provinceId: { type: Number },
+      districtId: { type: Number },
+      communeCode: { type: String },
+      houseNumber: { type: String },
+      street: { type: String },
+      provinceName: { type: String },
+      districtName: { type: String },
+      communeName: { type: String },
+
+      // Legacy address fields (for backward compatibility)
+      city: { type: String },
+      province: { type: String },
+      country: { type: String },
     },
     expectedDeliveryDate: { type: Date, required: true },
     paymentMethod: { type: String, required: true },

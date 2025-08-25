@@ -14,6 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { IOrder } from "@/lib/db/models/order.model";
+import { AddressDisplay } from "@/components/shared/address/address-display";
 
 // Extended order type with ABA PayWay fields
 interface OrderWithABAPayWay extends IOrder {
@@ -65,14 +66,7 @@ export default function OrderDetailsForm({
         <Card>
           <CardContent className="p-4 gap-4">
             <h2 className="text-xl pb-4">Shipping Address</h2>
-            <p>
-              {shippingAddress.fullName} {shippingAddress.phone}
-            </p>
-            <p>
-              {shippingAddress.street}, {shippingAddress.city},{" "}
-              {shippingAddress.province}, {shippingAddress.postalCode},{" "}
-              {shippingAddress.country}{" "}
-            </p>
+            <AddressDisplay address={shippingAddress} />
 
             {isDelivered ? (
               <Badge>

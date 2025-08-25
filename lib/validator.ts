@@ -156,7 +156,24 @@ export const OrderItemSchema = z.object({
   size: z.string().optional(),
   color: z.string().optional(),
 });
-export const ShippingAddressSchema = z.object({
+// Cambodia Address Schema
+export const CambodiaAddressSchema = z.object({
+  fullName: z.string().min(1, "Full name is required"),
+  phone: z.string().min(1, "Phone number is required"),
+  provinceId: z.number().min(1, "Province is required"),
+  districtId: z.number().min(1, "District is required"),
+  communeCode: z.string().min(1, "Commune is required"),
+  houseNumber: z.string().min(1, "House number is required"),
+  street: z.string().optional(),
+  postalCode: z.string().min(1, "Postal code is required"),
+  // For display purposes - these will be populated from IDs
+  provinceName: z.string().optional(),
+  districtName: z.string().optional(),
+  communeName: z.string().optional(),
+});
+
+// Legacy address schema for backward compatibility
+export const LegacyAddressSchema = z.object({
   fullName: z.string().min(1, "Full name is required"),
   street: z.string().min(1, "Address is required"),
   city: z.string().min(1, "City is required"),
@@ -165,6 +182,12 @@ export const ShippingAddressSchema = z.object({
   phone: z.string().min(1, "Phone number is required"),
   country: z.string().min(1, "Country is required"),
 });
+
+// Main shipping address schema - supports both formats
+export const ShippingAddressSchema = z.union([
+  CambodiaAddressSchema,
+  LegacyAddressSchema
+]);
 
 // Order
 export const OrderInputSchema = z.object({
@@ -273,8 +296,23 @@ export const UserInputSchema = z
     role: UserRole,
     password: Password,
     paymentMethod: z.string().optional(),
-    address: z
-      .object({
+    address: z.union([
+      // Cambodia address format
+      z.object({
+        fullName: z.string().optional(),
+        phone: z.string().optional(),
+        provinceId: z.number().optional(),
+        districtId: z.number().optional(),
+        communeCode: z.string().optional(),
+        houseNumber: z.string().optional(),
+        street: z.string().optional(),
+        postalCode: z.string().optional(),
+        provinceName: z.string().optional(),
+        districtName: z.string().optional(),
+        communeName: z.string().optional(),
+      }),
+      // Legacy address format for backward compatibility
+      z.object({
         fullName: z.string().optional(),
         street: z.string().optional(),
         city: z.string().optional(),
@@ -282,8 +320,8 @@ export const UserInputSchema = z
         postalCode: z.string().optional(),
         country: z.string().optional(),
         phone: z.string().optional(),
-      })
-      .optional(),
+      }),
+    ]).optional(),
   })
   .refine(
     (data) => {

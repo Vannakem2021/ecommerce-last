@@ -13,6 +13,8 @@ import {
   ReviewInputSchema,
   SettingInputSchema,
   ShippingAddressSchema,
+  CambodiaAddressSchema,
+  LegacyAddressSchema,
   SiteCurrencySchema,
   SiteLanguageSchema,
   UserInputSchema,
@@ -79,6 +81,8 @@ export type IOrderList = IOrderInput & {
 export type OrderItem = z.infer<typeof OrderItemSchema>
 export type Cart = z.infer<typeof CartSchema>
 export type ShippingAddress = z.infer<typeof ShippingAddressSchema>
+export type CambodiaAddress = z.infer<typeof CambodiaAddressSchema>
+export type LegacyAddress = z.infer<typeof LegacyAddressSchema>
 
 // user
 export type IUserInput = z.infer<typeof UserInputSchema>

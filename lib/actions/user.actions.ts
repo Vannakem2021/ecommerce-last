@@ -264,12 +264,22 @@ export async function getAllUsers({
 }
 
 export async function getUserById(userId: string) {
-  // Check if current user has permission to read users
-  await requirePermission("users.read");
+  const session = await auth();
+  if (!session?.user?.id) {
+    throw new Error('Authentication required');
+  }
 
   await connectToDatabase();
   const user = await User.findById(userId);
   if (!user) throw new Error("User not found");
+
+  // Allow users to access their own data without permission check
+  if (session.user.id === userId) {
+    return JSON.parse(JSON.stringify(user)) as IUser;
+  }
+
+  // For accessing other users' data, check permissions
+  await requirePermission("users.read");
 
   // Check if current user can view this user (hierarchy check)
   const canManage = await canManageUser(user.role);
@@ -278,4 +288,36 @@ export async function getUserById(userId: string) {
   }
 
   return JSON.parse(JSON.stringify(user)) as IUser;
+}
+
+// UPDATE USER ADDRESS
+export async function updateUserAddress(userId: string, address: any) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      throw new Error("Authentication required");
+    }
+
+    // Users can only update their own address, or admins can update any address
+    if (session.user.id !== userId && session.user.role !== "admin") {
+      throw new Error("Unauthorized");
+    }
+
+    await connectToDatabase();
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { address },
+      { new: true }
+    );
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    revalidatePath("/account/addresses");
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: formatError(error) };
+  }
 }

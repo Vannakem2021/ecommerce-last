@@ -26,7 +26,9 @@ import {
   formatDateTime,
   timeUntilMidnight,
 } from "@/lib/utils";
-import { ShippingAddressSchema } from "@/lib/validator";
+import { CambodiaAddressSchema } from "@/lib/validator";
+import { CambodiaAddressForm } from "@/components/shared/address/cambodia-address-form";
+import { AddressDisplay } from "@/components/shared/address/address-display";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -43,22 +45,30 @@ import ProductPrice from "@/components/shared/product/product-price";
 const shippingAddressDefaultValues =
   process.env.NODE_ENV === "development"
     ? {
-        fullName: "Basir",
-        street: "1911, 65 Sherbrooke Est",
-        city: "Montreal",
-        province: "Quebec",
-        phone: "4181234567",
-        postalCode: "H2X 1C4",
-        country: "Canada",
+        fullName: "Sok Dara",
+        phone: "012345678",
+        provinceId: 12, // Phnom Penh
+        districtId: 3, // Khan Chamkar Mon
+        communeCode: "120101", // Sangkat Tonle Basak
+        houseNumber: "123",
+        street: "Street 271",
+        postalCode: "120101",
+        provinceName: "Phnom Penh Capital",
+        districtName: "Khan Chamkar Mon",
+        communeName: "Sangkat Tonle Basak",
       }
     : {
         fullName: "",
-        street: "",
-        city: "",
-        province: "",
         phone: "",
+        provinceId: undefined,
+        districtId: undefined,
+        communeCode: "",
+        houseNumber: "",
+        street: "",
         postalCode: "",
-        country: "",
+        provinceName: "",
+        districtName: "",
+        communeName: "",
       };
 
 const CheckoutForm = () => {
@@ -104,7 +114,7 @@ const CheckoutForm = () => {
   const isMounted = useIsMounted();
 
   const shippingAddressForm = useForm<ShippingAddress>({
-    resolver: zodResolver(ShippingAddressSchema),
+    resolver: zodResolver(CambodiaAddressSchema),
     defaultValues: shippingAddress || shippingAddressDefaultValues,
   });
   const onSubmitShippingAddress: SubmitHandler<ShippingAddress> = (values) => {
@@ -266,11 +276,7 @@ const CheckoutForm = () => {
                   <span>Shipping address</span>
                 </div>
                 <div className="col-span-5 ">
-                  <p>
-                    {shippingAddress.fullName} <br />
-                    {shippingAddress.street} <br />
-                    {`${shippingAddress.city}, ${shippingAddress.province}, ${shippingAddress.postalCode}, ${shippingAddress.country}`}
-                  </p>
+                  <AddressDisplay address={shippingAddress} />
                 </div>
                 <div className="col-span-2">
                   <Button
@@ -305,123 +311,7 @@ const CheckoutForm = () => {
                           Your address
                         </div>
 
-                        <div className="flex flex-col gap-5 md:flex-row">
-                          <FormField
-                            control={shippingAddressForm.control}
-                            name="fullName"
-                            render={({ field }) => (
-                              <FormItem className="w-full">
-                                <FormLabel>Full Name</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    placeholder="Enter full name"
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                        <div>
-                          <FormField
-                            control={shippingAddressForm.control}
-                            name="street"
-                            render={({ field }) => (
-                              <FormItem className="w-full">
-                                <FormLabel>Address</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    placeholder="Enter address"
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                        <div className="flex flex-col gap-5 md:flex-row">
-                          <FormField
-                            control={shippingAddressForm.control}
-                            name="city"
-                            render={({ field }) => (
-                              <FormItem className="w-full">
-                                <FormLabel>City</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="Enter city" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={shippingAddressForm.control}
-                            name="province"
-                            render={({ field }) => (
-                              <FormItem className="w-full">
-                                <FormLabel>Province</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    placeholder="Enter province"
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={shippingAddressForm.control}
-                            name="country"
-                            render={({ field }) => (
-                              <FormItem className="w-full">
-                                <FormLabel>Country</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    placeholder="Enter country"
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                        <div className="flex flex-col gap-5 md:flex-row">
-                          <FormField
-                            control={shippingAddressForm.control}
-                            name="postalCode"
-                            render={({ field }) => (
-                              <FormItem className="w-full">
-                                <FormLabel>Postal Code</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    placeholder="Enter postal code"
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={shippingAddressForm.control}
-                            name="phone"
-                            render={({ field }) => (
-                              <FormItem className="w-full">
-                                <FormLabel>Phone number</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    placeholder="Enter phone number"
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
+                        <CambodiaAddressForm control={shippingAddressForm.control} setValue={shippingAddressForm.setValue} />
                       </CardContent>
                       <CardFooter className="  p-4">
                         <Button

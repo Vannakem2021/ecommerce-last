@@ -28,52 +28,8 @@ const userSchema = new Schema<IUser>(
       },
     },
     address: {
+      // Common fields
       fullName: {
-        type: String,
-        required: function (this: IUser) {
-          return this.role === "user";
-        },
-        default: function (this: IUser) {
-          return this.role === "user" ? "" : undefined;
-        },
-      },
-      street: {
-        type: String,
-        required: function (this: IUser) {
-          return this.role === "user";
-        },
-        default: function (this: IUser) {
-          return this.role === "user" ? "" : undefined;
-        },
-      },
-      city: {
-        type: String,
-        required: function (this: IUser) {
-          return this.role === "user";
-        },
-        default: function (this: IUser) {
-          return this.role === "user" ? "" : undefined;
-        },
-      },
-      province: {
-        type: String,
-        required: function (this: IUser) {
-          return this.role === "user";
-        },
-        default: function (this: IUser) {
-          return this.role === "user" ? "" : undefined;
-        },
-      },
-      postalCode: {
-        type: String,
-        required: function (this: IUser) {
-          return this.role === "user";
-        },
-        default: function (this: IUser) {
-          return this.role === "user" ? "" : undefined;
-        },
-      },
-      country: {
         type: String,
         required: function (this: IUser) {
           return this.role === "user";
@@ -91,6 +47,30 @@ const userSchema = new Schema<IUser>(
           return this.role === "user" ? "" : undefined;
         },
       },
+      postalCode: {
+        type: String,
+        required: function (this: IUser) {
+          return this.role === "user";
+        },
+        default: function (this: IUser) {
+          return this.role === "user" ? "" : undefined;
+        },
+      },
+
+      // Cambodia address fields
+      provinceId: { type: Number },
+      districtId: { type: Number },
+      communeCode: { type: String },
+      houseNumber: { type: String },
+      street: { type: String },
+      provinceName: { type: String },
+      districtName: { type: String },
+      communeName: { type: String },
+
+      // Legacy address fields (for backward compatibility)
+      city: { type: String },
+      province: { type: String },
+      country: { type: String },
     },
   },
   {

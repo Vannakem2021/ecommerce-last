@@ -13,6 +13,7 @@ import {
 } from "@/lib/actions/order.actions";
 import { IOrder } from "@/lib/db/models/order.model";
 import { formatDateTime } from "@/lib/utils";
+import { AddressDisplay } from "@/components/shared/address/address-display";
 
 import CheckoutFooter from "../checkout-footer";
 import { redirect, useRouter } from "next/navigation";
@@ -177,11 +178,7 @@ export default function OrderDetailsForm({
                 <span>Shipping Address</span>
               </div>
               <div className="col-span-2">
-                <p>
-                  {shippingAddress.fullName} <br />
-                  {shippingAddress.street} <br />
-                  {`${shippingAddress.city}, ${shippingAddress.province}, ${shippingAddress.postalCode}, ${shippingAddress.country}`}
-                </p>
+                <AddressDisplay address={shippingAddress} />
               </div>
             </div>
           </div>
