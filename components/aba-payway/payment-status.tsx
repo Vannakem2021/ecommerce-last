@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +13,6 @@ import {
   Clock,
   AlertTriangle,
   History,
-  Zap,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -23,7 +22,6 @@ interface PaymentStatusProps {
   initialStatusCode?: number;
   initialLastChecked?: string;
   showRefresh?: boolean;
-  autoPolling?: boolean; // New prop to enable/disable auto-polling
   className?: string;
 }
 
@@ -46,7 +44,6 @@ export function PaymentStatus({
   initialStatusCode,
   initialLastChecked,
   showRefresh = true,
-  autoPolling = true, // Enable auto-polling by default
   className = "",
 }: PaymentStatusProps) {
   const [status, setStatus] = useState(initialStatus);
@@ -57,13 +54,7 @@ export function PaymentStatus({
   );
   const [error, setError] = useState<string | null>(null);
   const [isPaid, setIsPaid] = useState(false);
-  const [isAutoPolling, setIsAutoPolling] = useState(false);
-  const [pollCount, setPollCount] = useState(0);
   const { toast } = useToast();
-
-  // Refs for cleanup
-  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const mountedRef = useRef(true);
 
   const checkStatus = useCallback(
     async (silent = false) => {
@@ -129,76 +120,16 @@ export function PaymentStatus({
     [orderId, toast]
   );
 
-  // Auto-polling functions
-  const startAutoPolling = useCallback(() => {
-    if (
-      !autoPolling ||
-      isAutoPolling ||
-      isPaid ||
-      status === "failed" ||
-      status === "cancelled"
-    ) {
-      return;
-    }
-
-    console.log(`[Payment Status] Starting auto-polling for order ${orderId}`);
-    setIsAutoPolling(true);
-    setPollCount(0);
-
-    const poll = async () => {
-      if (!mountedRef.current) return;
-
-      try {
-        setPollCount((prev) => prev + 1);
-        await checkStatus(true); // Silent check
-
-        // Check if we should continue polling
-        if (isPaid || status === "failed" || status === "cancelled") {
-          stopAutoPolling();
-        }
-      } catch (error) {
-        console.error("[Payment Status] Auto-polling error:", error);
-      }
-    };
-
-    // Start polling immediately, then every 10 seconds
-    poll();
-    pollingIntervalRef.current = setInterval(poll, 10000);
-  }, [autoPolling, isAutoPolling, isPaid, status, orderId, checkStatus]);
-
-  const stopAutoPolling = useCallback(() => {
-    if (!isAutoPolling) return;
-
-    console.log(`[Payment Status] Stopping auto-polling for order ${orderId}`);
-    setIsAutoPolling(false);
-
-    if (pollingIntervalRef.current) {
-      clearInterval(pollingIntervalRef.current);
-      pollingIntervalRef.current = null;
-    }
-  }, [isAutoPolling, orderId]);
-
-  // Auto-polling lifecycle management
+  // Simple auto-refresh for pending payments (basic polling every 30 seconds)
   useEffect(() => {
-    // Start auto-polling for pending payments
-    if (
-      (status === "pending" || status === "processing") &&
-      autoPolling &&
-      !isPaid
-    ) {
-      startAutoPolling();
-    } else {
-      stopAutoPolling();
-    }
-  }, [status, autoPolling, isPaid, startAutoPolling, stopAutoPolling]);
+    if (status === "pending" || status === "processing") {
+      const interval = setInterval(() => {
+        checkStatus(true); // Silent check
+      }, 30000); // Check every 30 seconds
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      mountedRef.current = false;
-      stopAutoPolling();
-    };
-  }, [stopAutoPolling]);
+      return () => clearInterval(interval);
+    }
+  }, [status, checkStatus]);
 
   const getStatusIcon = () => {
     switch (status) {
@@ -268,32 +199,21 @@ export function PaymentStatus({
               {statusCode !== undefined && ` (${statusCode})`}
             </Badge>
 
-            <div className="flex items-center gap-2">
-              {/* Auto-polling indicator */}
-              {isAutoPolling && (
-                <div className="flex items-center gap-1 text-sm text-blue-600">
-                  <Zap className="h-3 w-3 animate-pulse" />
-                  <span>Auto-updating ({pollCount})</span>
-                </div>
-              )}
-
-              {/* Manual refresh button (only show if not auto-polling or if showRefresh is true) */}
-              {showRefresh && (!autoPolling || !isAutoPolling) && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => checkStatus()}
-                  disabled={isChecking}
-                >
-                  {isChecking ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <RefreshCw className="h-4 w-4" />
-                  )}
-                  {isChecking ? "Checking..." : "Refresh"}
-                </Button>
-              )}
-            </div>
+            {showRefresh && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => checkStatus()}
+                disabled={isChecking}
+              >
+                {isChecking ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-4 w-4" />
+                )}
+                {isChecking ? "Checking..." : "Refresh"}
+              </Button>
+            )}
           </div>
 
           <p className="text-sm text-gray-600">{getStatusDescription()}</p>

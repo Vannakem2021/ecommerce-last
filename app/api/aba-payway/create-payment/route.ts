@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getOrderById } from "@/lib/actions/order.actions";
 import { abaPayWayService } from "@/lib/aba-payway";
-import { abaPayWayAutoStatusService } from "@/lib/aba-payway-auto-status";
 import { connectToDatabase } from "@/lib/db";
 import Order from "@/lib/db/models/order.model";
 
@@ -94,45 +93,52 @@ export async function POST(req: NextRequest) {
       continueSuccessUrl: `${baseUrl}/account/orders/${order._id}`,
     };
 
-    // Generate payment parameters
-    const paymentParams = abaPayWayService.createPaymentParams(paymentRequest);
-    const paymentUrl = abaPayWayService.getPaymentUrl();
+    // Generate merchant reference number ONCE and use it consistently
+    const abaMerchantRefNo = abaPayWayService.getMerchantRefNo(order._id);
 
     // Store the merchant reference number in the order for callback matching
-    const abaMerchantRefNo = abaPayWayService.getMerchantRefNo(order._id);
     await Order.findByIdAndUpdate(orderId, {
       abaMerchantRefNo: abaMerchantRefNo,
     });
 
-    // Log payment initiation for debugging
+    // Generate payment parameters using the same merchant reference number
+    const paymentParams = abaPayWayService.createPaymentParams({
+      ...paymentRequest,
+      merchantRefNo: abaMerchantRefNo, // Pass the merchant ref explicitly
+    });
+    const paymentUrl = abaPayWayService.getPaymentUrl();
+
+    // Enhanced logging for debugging
     console.log(`[ABA PayWay] Payment initiated for order ${orderId}`, {
       amount: order.totalPrice,
       customer: firstname + " " + lastname,
       abaMerchantRefNo: abaMerchantRefNo,
+      returnUrl: paymentRequest.returnUrl,
+      cancelUrl: paymentRequest.cancelUrl,
+      continueSuccessUrl: paymentRequest.continueSuccessUrl,
+      baseUrl: baseUrl,
       timestamp: new Date().toISOString(),
     });
 
-    // Start automatic status polling for this payment
-    try {
-      await abaPayWayAutoStatusService.startPollingForOrder(
-        orderId,
-        abaMerchantRefNo
-      );
-      console.log(`[ABA PayWay] Auto-polling started for order ${orderId}`);
-    } catch (error) {
-      console.error(
-        `[ABA PayWay] Failed to start auto-polling for order ${orderId}:`,
-        error
-      );
-      // Don't fail the payment creation if polling fails to start
-    }
+    // Log the exact payment parameters being sent to ABA PayWay
+    console.log(`[ABA PayWay] Payment parameters for order ${orderId}:`, {
+      merchant_id: paymentParams.merchant_id,
+      req_time: paymentParams.req_time,
+      tran_id: paymentParams.tran_id,
+      amount: paymentParams.amount,
+      return_url: paymentParams.return_url,
+      cancel_url: paymentParams.cancel_url,
+      continue_success_url: paymentParams.continue_success_url,
+      hash: paymentParams.hash
+        ? paymentParams.hash.substring(0, 20) + "..."
+        : "undefined",
+    });
 
     return NextResponse.json({
       success: true,
       paymentUrl,
       paymentParams,
       orderId: order._id,
-      autoPollingStarted: true,
     });
   } catch (error) {
     console.error("ABA PayWay payment creation error:", error);

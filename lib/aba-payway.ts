@@ -161,8 +161,15 @@ class ABAPayWayService {
       .replace(/[-:T.]/g, "")
       .slice(0, 14);
 
-    // Generate merchant reference number (ABA PayWay will generate their own tran_id)
-    const merchantRefNo = this.generateMerchantRefNo(request.orderId);
+    // Use provided merchant reference number or generate new one
+    const merchantRefNo =
+      request.merchantRefNo || this.generateMerchantRefNo(request.orderId);
+
+    console.log("[ABA PayWay] Using merchant reference number:", {
+      orderId: request.orderId,
+      merchantRefNo: merchantRefNo,
+      wasProvided: !!request.merchantRefNo,
+    });
 
     // Encode items as base64 JSON according to ABA PayWay documentation
     // Format: [{"name": "product 1", "quantity": 1, "price": 1.00}, ...]
@@ -231,16 +238,36 @@ class ABAPayWayService {
 
     const { hash, ...otherParams } = params;
 
-    // Convert callback params to payment params format for hash verification
-    const verificationParams: Partial<PaymentParams> = {
-      req_time: String(otherParams.req_time || ""),
-      merchant_id: String(otherParams.merchant_id || this.config.merchantId),
-      tran_id: String(otherParams.tran_id || ""),
-      amount: String(otherParams.amount || ""),
-      // Add other parameters as needed for verification
-    };
+    // According to ABA PayWay documentation, callback hash format is:
+    // tran_id + status + apv + merchant_id
+    const dataToHash =
+      String(otherParams.tran_id || "") +
+      String(otherParams.status || "") +
+      String(otherParams.apv || "") +
+      String(otherParams.merchant_id || this.config.merchantId);
 
-    const expectedHash = this.generateHash(verificationParams);
+    console.log("[ABA PayWay] Callback verification data:", {
+      tran_id: otherParams.tran_id,
+      status: otherParams.status,
+      apv: otherParams.apv,
+      merchant_id: otherParams.merchant_id || this.config.merchantId,
+      dataToHash: dataToHash,
+      receivedHash: hash,
+    });
+
+    const expectedHash = Buffer.from(
+      crypto
+        .createHmac("sha512", this.config.apiKey)
+        .update(dataToHash)
+        .digest()
+    ).toString("base64");
+
+    console.log("[ABA PayWay] Hash verification:", {
+      expectedHash: expectedHash,
+      receivedHash: hash,
+      matches: hash === expectedHash,
+    });
+
     return hash === expectedHash;
   }
 

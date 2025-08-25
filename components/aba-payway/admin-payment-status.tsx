@@ -209,7 +209,6 @@ export function AdminPaymentStatus({
         initialStatusCode={order.abaStatusCode}
         initialLastChecked={order.abaLastStatusCheck}
         showRefresh={true} // Keep manual refresh for admin
-        autoPolling={true} // Enable auto-polling for admin too
       />
 
       {/* Payment Status History */}

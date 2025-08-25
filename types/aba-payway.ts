@@ -29,6 +29,7 @@ export interface PaymentRequest {
   returnUrl: string;
   cancelUrl: string;
   continueSuccessUrl: string;
+  merchantRefNo?: string; // Optional: if provided, use this instead of generating new one
 }
 
 export interface PaymentParams {

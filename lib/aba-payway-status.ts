@@ -136,14 +136,19 @@ export class ABAPayWayStatusService {
   private generateStatusCheckHash(
     data: Omit<ABAPayWayStatusCheckRequest, "hash">
   ): string {
-    // According to ABA PayWay documentation, hash for status check is:
-    // tran_id + merchant_id
-    const dataToHash = data.tran_id + data.merchant_id;
-
     console.log("[ABA PayWay Status] Generating hash for:", {
       tran_id: data.tran_id,
       merchant_id: data.merchant_id,
+    });
+
+    // Try the alternative format: merchant_id + tran_id
+    // This is a common variation that some payment gateways use
+    const dataToHash = data.merchant_id + data.tran_id;
+
+    console.log("[ABA PayWay Status] Hash generation details:", {
+      format: "merchant_id + tran_id (trying alternative)",
       dataToHash: dataToHash,
+      secretKeyLength: this.config.apiKey ? this.config.apiKey.length : 0,
     });
 
     const hash = Buffer.from(
@@ -152,6 +157,8 @@ export class ABAPayWayStatusService {
         .update(dataToHash)
         .digest()
     ).toString("base64");
+
+    console.log("[ABA PayWay Status] Generated hash:", hash);
 
     return hash;
   }

@@ -118,8 +118,7 @@ export default function OrderDetailsForm({
                   initialStatus={order.abaPaymentStatus}
                   initialStatusCode={order.abaStatusCode}
                   initialLastChecked={order.abaLastStatusCheck}
-                  showRefresh={false} // Disable manual refresh since we have auto-polling
-                  autoPolling={true} // Enable automatic status updates
+                  showRefresh={true} // Enable manual refresh
                   className="mb-4"
                 />
                 <PaymentStatusHistory
