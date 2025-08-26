@@ -8,6 +8,7 @@ import { OrderInputSchema } from '../validator'
 import Order, { IOrder } from '../db/models/order.model'
 import { revalidatePath } from 'next/cache'
 import { sendAskReviewOrderItems, sendPurchaseReceipt } from '@/emails'
+import { sendOrderPaidNotification, sendOrderDeliveredNotification } from '../telegram'
 import { paypal } from '../paypal'
 import { DateRange } from 'react-day-picker'
 import Product from '../db/models/product.model'
@@ -27,6 +28,7 @@ export const createOrder = async (clientSideCart: Cart) => {
       clientSideCart,
       session.user.id!
     )
+
     return {
       success: true,
       message: 'Order placed successfully',
@@ -77,6 +79,14 @@ export async function updateOrderToPaid(orderId: string) {
     if (!process.env.MONGODB_URI?.startsWith('mongodb://localhost'))
       await updateProductStock(order._id)
     if (order.user.email) await sendPurchaseReceipt({ order })
+
+    // Send Telegram notification for paid order (non-blocking)
+    try {
+      await sendOrderPaidNotification(order)
+    } catch (telegramError) {
+      // Don't fail the payment confirmation if Telegram fails
+    }
+
     revalidatePath(`/account/orders/${orderId}`)
     return { success: true, message: 'Order paid successfully' }
   } catch (err) {
@@ -152,6 +162,14 @@ export async function deliverOrder(orderId: string) {
     order.deliveredAt = new Date()
     await order.save()
     if (order.user.email) await sendAskReviewOrderItems({ order })
+
+    // Send Telegram notification for delivered order (non-blocking)
+    try {
+      await sendOrderDeliveredNotification(order)
+    } catch (telegramError) {
+      // Don't fail the delivery confirmation if Telegram fails
+    }
+
     revalidatePath(`/account/orders/${orderId}`)
     return { success: true, message: 'Order delivered successfully' }
   } catch (err) {

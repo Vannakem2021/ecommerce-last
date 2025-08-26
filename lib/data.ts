@@ -892,6 +892,16 @@ We also provide helpful resources such as order tracking, product guides, and FA
         merchantId: "",
         sandboxMode: true,
       },
+      // Telegram notification configuration
+      telegram: {
+        enabled: false,
+        botToken: "",
+        chatId: "",
+        notificationTypes: {
+          orderPaid: true,
+          orderDelivered: false,
+        },
+      },
     },
   ],
 };

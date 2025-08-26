@@ -9,6 +9,7 @@ import {
   Package,
   SettingsIcon,
   Banknote,
+  MessageSquare,
 } from "lucide-react";
 
 import { useEffect, useState } from "react";
@@ -71,6 +72,11 @@ const SettingNav = () => {
             name: "ABA PayWay",
             hash: "setting-aba-payway",
             icon: <Banknote />,
+          },
+          {
+            name: "Telegram Notifications",
+            hash: "setting-telegram",
+            icon: <MessageSquare />,
           },
           {
             name: "Delivery Dates",
