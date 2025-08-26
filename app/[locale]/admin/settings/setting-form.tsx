@@ -9,10 +9,11 @@ import { SettingInputSchema } from "@/lib/validator";
 import { ClientSetting, ISettingInput } from "@/types";
 import { updateSetting } from "@/lib/actions/setting.actions";
 import useSetting from "@/hooks/use-setting-store";
+import { useEffect } from "react";
 import LanguageForm from "./language-form";
 import CurrencyForm from "./currency-form";
 import PaymentMethodForm from "./payment-method-form";
-import ABAPayWayForm from "./aba-payway-form";
+
 import TelegramForm from "./telegram-form";
 import DeliveryDateForm from "./delivery-date-form";
 import SiteInfoForm from "./site-info-form";
@@ -31,6 +32,30 @@ const SettingForm = ({ setting }: { setting: ISettingInput }) => {
   } = form;
 
   const { toast } = useToast();
+
+  // Handle initial hash navigation on page load
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash) {
+      setTimeout(() => {
+        const section = document.getElementById(hash.substring(1));
+        const mainContent = document.querySelector('[data-main-content]') as HTMLElement;
+
+        if (section && mainContent) {
+          // Get the section's position relative to the main content container
+          const mainContentRect = mainContent.getBoundingClientRect();
+          const sectionRect = section.getBoundingClientRect();
+          const relativeTop = sectionRect.top - mainContentRect.top + mainContent.scrollTop;
+
+          mainContent.scrollTo({
+            top: relativeTop - 16,
+            behavior: "smooth"
+          });
+        }
+      }, 100);
+    }
+  }, []);
+
   async function onSubmit(values: ISettingInput) {
     const res = await updateSetting({ ...values });
     if (!res.success) {
@@ -49,7 +74,7 @@ const SettingForm = ({ setting }: { setting: ISettingInput }) => {
   return (
     <Form {...form}>
       <form
-        className="space-y-4"
+        className="space-y-6"
         method="post"
         onSubmit={form.handleSubmit(onSubmit)}
       >
@@ -62,8 +87,6 @@ const SettingForm = ({ setting }: { setting: ISettingInput }) => {
         <CurrencyForm id="setting-currencies" form={form} />
 
         <PaymentMethodForm id="setting-payment-methods" form={form} />
-
-        <ABAPayWayForm id="setting-aba-payway" form={form} />
 
         <TelegramForm id="setting-telegram" form={form} />
 

@@ -43,9 +43,9 @@ async function migrateUserSchema() {
     for (const user of usersToUpdate) {
       const updateFields = {};
       
-      // Add missing paymentMethod
-      if (!user.paymentMethod) {
-        updateFields.paymentMethod = 'PayPal';
+      // Add missing paymentMethod or migrate from Stripe/PayPal
+      if (!user.paymentMethod || user.paymentMethod === 'Stripe' || user.paymentMethod === 'PayPal') {
+        updateFields.paymentMethod = 'ABA PayWay';
       }
       
       // Add missing address fields

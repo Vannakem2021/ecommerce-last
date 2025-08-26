@@ -14,6 +14,7 @@ import {
 import { auth } from '@/auth'
 import { hasPermission } from '@/lib/rbac-utils'
 import { notFound } from 'next/navigation'
+import Script from 'next/script'
 
 export default async function AdminLayout({
   children,
@@ -30,6 +31,9 @@ export default async function AdminLayout({
   const { site } = await getSetting()
   return (
     <>
+      <Script id="admin-layout-class" strategy="beforeInteractive">
+        {`document.documentElement.classList.add('admin-layout');`}
+      </Script>
       <div className='flex h-screen'>
         {/* Sidebar - Hidden on mobile, visible on desktop */}
         <div className='hidden md:flex md:flex-shrink-0'>
@@ -71,7 +75,7 @@ export default async function AdminLayout({
           </div>
 
           {/* Page content */}
-          <div className='flex-1 overflow-auto p-4'>{children}</div>
+          <div className='flex-1 overflow-auto p-4' data-main-content>{children}</div>
         </div>
       </div>
     </>

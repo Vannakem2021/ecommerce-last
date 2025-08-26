@@ -70,6 +70,12 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+  /* Prevent double scrollbars in admin layout */
+  html.admin-layout,
+  html.admin-layout body {
+    overflow: hidden;
+    height: 100vh;
+  }
 }
 
 @layer utilities {

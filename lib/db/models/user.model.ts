@@ -24,7 +24,7 @@ const userSchema = new Schema<IUser>(
         return this.role === "user";
       },
       default: function (this: IUser) {
-        return this.role === "user" ? "PayPal" : undefined;
+        return this.role === "user" ? "ABA PayWay" : undefined;
       },
     },
     address: {
