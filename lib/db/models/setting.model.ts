@@ -100,6 +100,16 @@ const settingSchema = new Schema<ISetting>(
       merchantId: { type: String },
       sandboxMode: { type: Boolean, default: true },
     },
+    // Telegram notification configuration
+    telegram: {
+      enabled: { type: Boolean, default: false },
+      botToken: { type: String },
+      chatId: { type: String },
+      notificationTypes: {
+        orderPaid: { type: Boolean, default: true },
+        orderDelivered: { type: Boolean, default: false },
+      },
+    },
   },
   {
     timestamps: true,

@@ -539,4 +539,18 @@ export const SettingInputSchema = z.object({
       sandboxMode: z.boolean().default(true),
     })
     .optional(),
+  // Telegram notification configuration
+  telegram: z
+    .object({
+      enabled: z.boolean().default(false),
+      botToken: z.string().optional(),
+      chatId: z.string().optional(),
+      notificationTypes: z
+        .object({
+          orderPaid: z.boolean().default(true),
+          orderDelivered: z.boolean().default(false),
+        })
+        .optional(),
+    })
+    .optional(),
 });

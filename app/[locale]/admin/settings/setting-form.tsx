@@ -13,6 +13,7 @@ import LanguageForm from "./language-form";
 import CurrencyForm from "./currency-form";
 import PaymentMethodForm from "./payment-method-form";
 import ABAPayWayForm from "./aba-payway-form";
+import TelegramForm from "./telegram-form";
 import DeliveryDateForm from "./delivery-date-form";
 import SiteInfoForm from "./site-info-form";
 import CommonForm from "./common-form";
@@ -63,6 +64,8 @@ const SettingForm = ({ setting }: { setting: ISettingInput }) => {
         <PaymentMethodForm id="setting-payment-methods" form={form} />
 
         <ABAPayWayForm id="setting-aba-payway" form={form} />
+
+        <TelegramForm id="setting-telegram" form={form} />
 
         <DeliveryDateForm id="setting-delivery-dates" form={form} />
 
