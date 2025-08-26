@@ -37,6 +37,8 @@ import { deliverOrder, updateOrderToPaid } from "@/lib/actions/order.actions";
 import { PaymentStatus } from "@/components/aba-payway/payment-status";
 import { PaymentStatusHistory } from "@/components/aba-payway/payment-status-history";
 import { AdminPaymentStatus } from "@/components/aba-payway/admin-payment-status";
+import InvoiceActions from "@/components/shared/invoice/invoice-actions";
+import { generateInvoiceNumber } from "@/lib/utils/invoice-utils";
 
 export default function OrderDetailsForm({
   order,
@@ -215,6 +217,25 @@ export default function OrderDetailsForm({
                 caption="Mark as delivered"
                 action={() => deliverOrder(order._id)}
               />
+            )}
+
+            {/* Invoice Section - Show for paid orders */}
+            {isPaid && (
+              <div className="border-t pt-4">
+                <h3 className="text-lg font-semibold mb-3">Invoice</h3>
+                <p className="text-sm text-gray-600 mb-3">
+                  Download or print your invoice for this order.
+                </p>
+                <InvoiceActions
+                  invoiceNumber={generateInvoiceNumber(order)}
+                  orderId={order._id}
+                  variant="outline"
+                  size="sm"
+                  showLabels={true}
+                  className="justify-start"
+                  isAdmin={isAdmin}
+                />
+              </div>
             )}
           </CardContent>
         </Card>

@@ -4,6 +4,8 @@ import React from 'react'
 import { auth } from '@/auth'
 import { getOrderById } from '@/lib/actions/order.actions'
 import OrderDetailsForm from '@/components/shared/order/order-details-form'
+import AdminInvoiceControls from '@/components/shared/invoice/admin-invoice-controls'
+import { generateInvoiceNumber } from '@/lib/utils/invoice-utils'
 import Link from 'next/link'
 
 export const metadata = {
@@ -33,6 +35,12 @@ const AdminOrderDetailsPage = async (props: {
       <OrderDetailsForm
         order={order}
         isAdmin={session?.user?.role === 'Admin' || false}
+      />
+
+      {/* Admin Invoice Controls */}
+      <AdminInvoiceControls
+        order={order}
+        invoiceNumber={generateInvoiceNumber(order)}
       />
     </main>
   )
