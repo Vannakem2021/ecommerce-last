@@ -21,6 +21,7 @@ import { formatDateTime, formatId } from "@/lib/utils";
 import BrowsingHistoryList from "@/components/shared/browsing-history-list";
 import ProductPrice from "@/components/shared/product/product-price";
 import { Badge } from "@/components/ui/badge";
+import { ViewInvoiceButton } from "@/components/shared/invoice/invoice-actions";
 
 const PAGE_TITLE = "Your Orders";
 export const metadata: Metadata = {
@@ -98,9 +99,19 @@ export default async function OrdersPage(props: {
                     : "No"}
                 </TableCell>
                 <TableCell>
-                  <Link href={`/account/orders/${order._id}`}>
-                    <span className="px-2">Details</span>
-                  </Link>
+                  <div className="flex gap-2">
+                    <Link href={`/account/orders/${order._id}`}>
+                      <span className="px-2 text-blue-600 hover:text-blue-800 underline">Details</span>
+                    </Link>
+                    {order.isPaid && (
+                      <ViewInvoiceButton
+                        orderId={order._id}
+                        variant="ghost"
+                        size="sm"
+                        className="text-xs"
+                      />
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

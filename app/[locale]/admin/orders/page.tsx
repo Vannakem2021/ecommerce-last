@@ -18,6 +18,8 @@ import { deleteOrder, getAllOrders } from '@/lib/actions/order.actions'
 import { formatDateTime, formatId } from '@/lib/utils'
 import { IOrderList } from '@/types'
 import ProductPrice from '@/components/shared/product/product-price'
+import { ViewInvoiceButton } from '@/components/shared/invoice/invoice-actions'
+import BulkInvoiceActions from '@/components/shared/invoice/bulk-invoice-actions'
 
 export const metadata: Metadata = {
   title: 'Admin Orders',
@@ -38,9 +40,19 @@ export default async function OrdersPage(props: {
   const orders = await getAllOrders({
     page: Number(page),
   })
+
+  // Calculate invoice statistics
+  const paidOrdersCount = orders.data.filter(order => order.isPaid).length
+
   return (
-    <div className='space-y-2'>
+    <div className='space-y-4'>
       <h1 className='h1-bold'>Orders</h1>
+
+      {/* Bulk Invoice Management */}
+      <BulkInvoiceActions
+        totalOrders={orders.data.length}
+        paidOrders={paidOrdersCount}
+      />
       <div className='overflow-x-auto'>
         <Table>
           <TableHeader>
@@ -82,6 +94,14 @@ export default async function OrdersPage(props: {
                   <Button asChild variant='outline' size='sm'>
                     <Link href={`/admin/orders/${order._id}`}>Details</Link>
                   </Button>
+                  {order.isPaid && (
+                    <ViewInvoiceButton
+                      orderId={order._id}
+                      variant="outline"
+                      size="sm"
+                      isAdmin={true}
+                    />
+                  )}
                   <DeleteDialog id={order._id} action={deleteOrder} />
                 </TableCell>
               </TableRow>
