@@ -21,6 +21,7 @@ import {
   Tag,
   Layers,
   Warehouse,
+  MessageSquare,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -96,7 +97,7 @@ const settingsLinks = [
     hash: "setting-payment-methods",
     icon: CreditCard,
   },
-  { name: "ABA PayWay", hash: "setting-aba-payway", icon: CreditCard },
+  { name: "Telegram", hash: "setting-telegram", icon: MessageSquare },
   { name: "Delivery Dates", hash: "setting-delivery-dates", icon: PackageIcon },
 ];
 
@@ -186,12 +187,24 @@ export function AdminNav({ className, userRole, ...props }: AdminNavProps) {
                   if (!pathname.includes("/admin/settings")) {
                     window.location.href = `/admin/settings#${item.hash}`;
                   } else {
-                    // If already on settings page, just scroll to section
-                    const section = document.getElementById(item.hash);
-                    if (section) {
-                      const top = section.offsetTop - 16;
-                      window.scrollTo({ top, behavior: "smooth" });
-                    }
+                    // If already on settings page, scroll to section within main content area
+                    setTimeout(() => {
+                      const section = document.getElementById(item.hash);
+                      const mainContent = document.querySelector('[data-main-content]') as HTMLElement;
+
+                      if (section && mainContent) {
+                        // Get the section's position relative to the main content container
+                        const mainContentRect = mainContent.getBoundingClientRect();
+                        const sectionRect = section.getBoundingClientRect();
+                        const relativeTop = sectionRect.top - mainContentRect.top + mainContent.scrollTop;
+
+                        // Scroll the main content container to the section
+                        mainContent.scrollTo({
+                          top: relativeTop - 16, // 16px offset for spacing
+                          behavior: "smooth"
+                        });
+                      }
+                    }, 100); // Small delay to ensure DOM is ready
                   }
                 };
 

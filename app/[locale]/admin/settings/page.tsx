@@ -17,12 +17,8 @@ const SettingPage = async () => {
   }
 
   return (
-    <div className='max-w-6xl mx-auto'>
-      <main>
-        <div className='my-8'>
-          <SettingForm setting={await getNoCachedSetting()} />
-        </div>
-      </main>
+    <div className='space-y-2'>
+      <SettingForm setting={await getNoCachedSetting()} />
     </div>
   )
 }

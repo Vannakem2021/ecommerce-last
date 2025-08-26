@@ -18,7 +18,7 @@ import { ISettingInput } from "@/types";
 import { UseFormReturn } from "react-hook-form";
 import { testTelegramBot } from "@/lib/actions/telegram.actions";
 import { useToast } from "@/hooks/use-toast";
-import { MessageSquare, TestTube, ExternalLink } from "lucide-react";
+import { MessageSquare, TestTube, ExternalLink, HelpCircle } from "lucide-react";
 
 export default function TelegramForm({
   form,
@@ -212,28 +212,35 @@ export default function TelegramForm({
             </div>
 
             {/* Setup Instructions */}
-            <div className="rounded-lg border p-4 bg-blue-50 border-blue-200">
-              <h4 className="font-semibold text-blue-800 mb-2 flex items-center gap-2">
-                <ExternalLink className="h-4 w-4" />
+            <div className="rounded-lg border p-4 bg-muted/50">
+              <h4 className="font-semibold mb-2 flex items-center gap-2">
+                <HelpCircle className="h-4 w-4" />
                 Setup Instructions
               </h4>
-              <div className="text-sm text-blue-700 space-y-2">
-                <p><strong>Step 1:</strong> Create a Telegram bot</p>
-                <ul className="list-disc list-inside ml-4 space-y-1">
-                  <li>Message @BotFather on Telegram</li>
-                  <li>Send /newbot and follow the instructions</li>
-                  <li>Copy the bot token provided</li>
-                </ul>
-                
-                <p><strong>Step 2:</strong> Get your chat ID</p>
-                <ul className="list-disc list-inside ml-4 space-y-1">
-                  <li>Add your bot to a group or start a chat</li>
-                  <li>Send a message to the bot</li>
-                  <li>Visit: https://api.telegram.org/bot[BOT_TOKEN]/getUpdates</li>
-                  <li>Find the "chat" → "id" value in the response</li>
-                </ul>
+              <div className="text-sm space-y-2">
+                <div>
+                  <p className="font-medium">Step 1: Create a Telegram bot</p>
+                  <ul className="list-disc list-inside ml-4 space-y-1 text-muted-foreground">
+                    <li>Message @BotFather on Telegram</li>
+                    <li>Send /newbot and follow the instructions</li>
+                    <li>Copy the bot token provided</li>
+                  </ul>
+                </div>
 
-                <p><strong>Step 3:</strong> Test the configuration using the button above</p>
+                <div>
+                  <p className="font-medium">Step 2: Get your chat ID</p>
+                  <ul className="list-disc list-inside ml-4 space-y-1 text-muted-foreground">
+                    <li>Add your bot to a group or start a chat</li>
+                    <li>Send a message to the bot</li>
+                    <li>Visit: https://api.telegram.org/bot[BOT_TOKEN]/getUpdates</li>
+                    <li>Find the "chat" → "id" value in the response</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <p className="font-medium">Step 3: Test the configuration</p>
+                  <p className="ml-4 text-muted-foreground">Use the test button above to verify your setup</p>
+                </div>
               </div>
             </div>
           </>
