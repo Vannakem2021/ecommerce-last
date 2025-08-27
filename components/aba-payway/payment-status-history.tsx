@@ -17,7 +17,6 @@ import {
   XCircle,
   AlertTriangle,
   Smartphone,
-  Globe,
   User,
 } from "lucide-react";
 
@@ -25,7 +24,7 @@ interface PaymentStatusHistoryEntry {
   status: string;
   statusCode: number;
   timestamp: string;
-  source: "callback" | "api_check" | "manual";
+  source: "callback" | "manual";
   details?: string;
 }
 
@@ -44,8 +43,6 @@ export function PaymentStatusHistory({
     switch (source) {
       case "callback":
         return <Smartphone className="h-4 w-4 text-blue-500" />;
-      case "api_check":
-        return <Globe className="h-4 w-4 text-green-500" />;
       case "manual":
         return <User className="h-4 w-4 text-purple-500" />;
       default:
@@ -57,8 +54,6 @@ export function PaymentStatusHistory({
     switch (source) {
       case "callback":
         return "ABA PayWay Callback";
-      case "api_check":
-        return "Status Check API";
       case "manual":
         return "Manual Update";
       default:

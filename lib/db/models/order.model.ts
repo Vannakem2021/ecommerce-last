@@ -85,7 +85,7 @@ const orderSchema = new Schema<IOrder>(
         timestamp: { type: Date, default: Date.now },
         source: {
           type: String,
-          enum: ["callback", "api_check", "manual"],
+          enum: ["callback", "manual"],
           required: true,
         },
         details: { type: String },
