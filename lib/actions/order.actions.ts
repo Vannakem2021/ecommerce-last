@@ -15,6 +15,7 @@ import User from '../db/models/user.model'
 import mongoose from 'mongoose'
 import { getSetting } from './setting.actions'
 import { createSaleStockMovement } from './inventory.actions'
+import { recordPromotionUsage } from './promotion.actions'
 
 // CREATE
 export const createOrder = async (clientSideCart: Cart) => {
@@ -60,8 +61,30 @@ export const createOrderFromCart = async (
     taxPrice: cart.taxPrice,
     totalPrice: cart.totalPrice,
     expectedDeliveryDate: cart.expectedDeliveryDate,
+    appliedPromotion: cart.appliedPromotion,
+    discountAmount: cart.discountAmount || 0,
   })
-  return await Order.create(order)
+
+  const createdOrder = await Order.create(order)
+
+  // Record promotion usage if a promotion was applied
+  if (cart.appliedPromotion) {
+    try {
+      await recordPromotionUsage({
+        promotion: cart.appliedPromotion.promotionId,
+        user: userId,
+        order: createdOrder._id,
+        discountAmount: cart.appliedPromotion.discountAmount,
+        originalTotal: cart.itemsPrice + (cart.shippingPrice || 0) + (cart.taxPrice || 0),
+        finalTotal: cart.totalPrice,
+      })
+    } catch (error) {
+      console.error('Failed to record promotion usage:', error)
+      // Don't fail order creation if promotion recording fails
+    }
+  }
+
+  return createdOrder
 }
 
 export async function updateOrderToPaid(orderId: string) {

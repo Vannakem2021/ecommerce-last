@@ -2,6 +2,7 @@ import BrowsingHistoryList from '@/components/shared/browsing-history-list'
 import { HomeCard } from '@/components/shared/home/home-card'
 import { HomeCarousel } from '@/components/shared/home/home-carousel'
 import ProductSlider from '@/components/shared/product/product-slider'
+import PromotionBanner from '@/components/shared/promotion/promotion-banner'
 import { Card, CardContent } from '@/components/ui/card'
 
 import {
@@ -71,6 +72,12 @@ export default async function HomePage() {
   return (
     <>
       <HomeCarousel items={carousels} />
+
+      {/* Promotion Banners */}
+      <div className='p-4 bg-background'>
+        <PromotionBanner limit={2} />
+      </div>
+
       <div className='md:p-4 md:space-y-4 bg-border'>
         <HomeCard cards={cards} />
         <Card className='w-full rounded-none'>

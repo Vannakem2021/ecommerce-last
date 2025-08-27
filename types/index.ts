@@ -31,6 +31,10 @@ import {
   SetStockSchema,
   AdjustStockSchema,
   InventoryFiltersSchema,
+  PromotionInputSchema,
+  PromotionUpdateSchema,
+  PromotionUsageInputSchema,
+  PromotionValidationSchema,
 } from '@/lib/validator'
 import { z } from 'zod'
 
@@ -133,4 +137,42 @@ export type IInventoryProduct = {
   images: string[]
   createdAt: Date
   updatedAt: Date
+}
+
+// Promotion types
+export type IPromotionInput = z.infer<typeof PromotionInputSchema>
+export type IPromotionUpdate = z.infer<typeof PromotionUpdateSchema>
+export type IPromotionUsageInput = z.infer<typeof PromotionUsageInputSchema>
+export type IPromotionValidation = z.infer<typeof PromotionValidationSchema>
+
+// Extended types for promotion details
+export type IPromotionDetails = IPromotionInput & {
+  _id: string
+  usedCount: number
+  createdAt: Date
+  updatedAt: Date
+  createdBy: {
+    _id: string
+    name: string
+  }
+}
+
+// Promotion validation result
+export type PromotionValidationResult = {
+  success: boolean
+  error?: string
+  discount?: number
+  promotion?: IPromotionDetails
+  freeShipping?: boolean
+}
+
+// Cart with promotion support
+export type CartWithPromotion = Cart & {
+  appliedPromotion?: {
+    code: string
+    discountAmount: number
+    promotionId: string
+    freeShipping?: boolean
+  }
+  discountAmount?: number
 }
