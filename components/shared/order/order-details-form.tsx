@@ -34,9 +34,7 @@ import { buttonVariants } from "@/components/ui/button";
 import ProductPrice from "../product/product-price";
 import ActionButton from "../action-button";
 import { deliverOrder, updateOrderToPaid } from "@/lib/actions/order.actions";
-import { PaymentStatus } from "@/components/aba-payway/payment-status";
 import { PaymentStatusHistory } from "@/components/aba-payway/payment-status-history";
-import { AdminPaymentStatus } from "@/components/aba-payway/admin-payment-status";
 import InvoiceActions from "@/components/shared/invoice/invoice-actions";
 import { generateInvoiceNumber } from "@/lib/utils/invoice-utils";
 
@@ -98,32 +96,12 @@ export default function OrderDetailsForm({
           </CardContent>
         </Card>
 
-        {/* ABA PayWay Payment Status */}
+        {/* ABA PayWay Payment Status History */}
         {paymentMethod === "ABA PayWay" && (
-          <>
-            {isAdmin ? (
-              <AdminPaymentStatus
-                orderId={order._id}
-                order={order}
-                className="mb-4"
-              />
-            ) : (
-              <>
-                <PaymentStatus
-                  orderId={order._id}
-                  initialStatus={order.abaPaymentStatus}
-                  initialStatusCode={order.abaStatusCode}
-                  initialLastChecked={order.abaLastStatusCheck}
-                  showRefresh={true} // Enable manual refresh
-                  className="mb-4"
-                />
-                <PaymentStatusHistory
-                  history={order.abaStatusHistory || []}
-                  className="mb-4"
-                />
-              </>
-            )}
-          </>
+          <PaymentStatusHistory
+            history={(order.abaStatusHistory || []).filter(entry => entry.source !== "api_check")}
+            className="mb-4"
+          />
         )}
         <Card>
           <CardContent className="p-4   gap-4">

@@ -183,10 +183,14 @@ const useCartStore = create(
           const result = await validatePromotionCode(code, currentCart, userId)
 
           if (result.success && result.discount !== undefined && result.promotion) {
+            // Calculate original total before discount
+            const originalTotal = currentCart.itemsPrice + (currentCart.shippingPrice || 0) + (currentCart.taxPrice || 0)
+
             const appliedPromotion = {
               code: code.toUpperCase(),
               discountAmount: result.discount,
               promotionId: result.promotion._id,
+              originalTotal: originalTotal,
               freeShipping: result.freeShipping || false,
             }
 

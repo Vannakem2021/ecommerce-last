@@ -137,41 +137,10 @@ export interface PaymentStatusHistoryEntry {
   status: string;
   statusCode: number;
   timestamp: Date;
-  source: "callback" | "api_check" | "manual";
+  source: "callback" | "manual";
   details?: string;
 }
 
-export interface ABAPayWayStatusCheckRequest {
-  tran_id: string;
-  merchant_id: string;
-  hash: string;
-}
 
-export interface ABAPayWayStatusCheckResponse {
-  tran_id: string;
-  status: number;
-  amount: string;
-  currency: string;
-  payment_date?: string;
-  description?: string;
-}
 
-export interface PayWayCheckTransactionResponse {
-  status: number;
-  description: string;
-  amount?: number;
-  totalAmount?: number;
-  apv?: string;
-  datetime?: string;
-  original_currency?: string;
-  payout?: { acc: string; amt: string }[];
-  tran_id?: string;
-  firstname?: string;
-  lastname?: string;
-  email?: string;
-  bank_ref?: string;
-  payer_account?: string;
-  phone?: string;
-  payment_type?: string;
-  [key: string]: any; // catch-all for other fields
-}
+

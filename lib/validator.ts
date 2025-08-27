@@ -277,7 +277,7 @@ export const OrderInputSchema = z.object({
         status: z.string(),
         statusCode: z.number(),
         timestamp: z.date(),
-        source: z.enum(["callback", "api_check", "manual"]),
+        source: z.enum(["callback", "manual"]),
         details: z.string().optional(),
       })
     )
