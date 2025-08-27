@@ -42,7 +42,7 @@ export async function testInventoryIntegration() {
         name: testProduct.name,
         slug: testProduct.slug,
         image: testProduct.images[0] || '/placeholder.jpg',
-        category: testProduct.category,
+        category: typeof testProduct.category === 'object' ? testProduct.category.name : testProduct.category,
         price: testProduct.price,
         countInStock: testProduct.countInStock,
         quantity: 2, // Test with 2 units

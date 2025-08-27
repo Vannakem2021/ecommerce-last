@@ -86,8 +86,19 @@ export default function AddToCart({
         type='button'
         onClick={async () => {
           try {
-            const itemId = await addItem(item, quantity)
-            router.push(`/cart/${itemId}`)
+            await addItem(item, quantity)
+            toast({
+              description: t('Product.Added to Cart'),
+              action: (
+                <Button
+                  onClick={() => {
+                    router.push('/cart')
+                  }}
+                >
+                  {t('Product.Go to Cart')}
+                </Button>
+              ),
+            })
           } catch (error: any) {
             toast({
               variant: 'destructive',
@@ -100,9 +111,9 @@ export default function AddToCart({
       </Button>
       <Button
         variant='secondary'
-        onClick={() => {
+        onClick={async () => {
           try {
-            addItem(item, quantity)
+            await addItem(item, quantity)
             router.push(`/checkout`)
           } catch (error: any) {
             toast({
