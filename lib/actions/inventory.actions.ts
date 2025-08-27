@@ -2,6 +2,8 @@
 
 import { connectToDatabase } from '@/lib/db'
 import Product from '@/lib/db/models/product.model'
+import Brand from '@/lib/db/models/brand.model'
+import Category from '@/lib/db/models/category.model'
 import StockMovement from '@/lib/db/models/stock-movement.model'
 import { revalidatePath } from 'next/cache'
 import { formatError } from '../utils'
@@ -23,22 +25,41 @@ export async function getAllProductsForInventory(filters: IInventoryFilters) {
 
     // Build search query
     const searchQuery: Record<string, unknown> = {}
-    
+
     if (query) {
+      // For text search, we'll need to populate and search in the aggregation pipeline
       searchQuery.$or = [
         { name: { $regex: query, $options: 'i' } },
-        { sku: { $regex: query, $options: 'i' } },
-        { brand: { $regex: query, $options: 'i' } },
-        { category: { $regex: query, $options: 'i' } }
+        { sku: { $regex: query, $options: 'i' } }
       ]
     }
-    
+
+    // Handle brand filtering with ObjectId support
     if (brand && brand !== 'all') {
-      searchQuery.brand = brand
+      if (typeof brand === 'string' && brand.length === 24) {
+        // Assume it's an ObjectId
+        searchQuery.brand = brand
+      } else {
+        // Find brand by name
+        const brandDoc = await Brand.findOne({ name: brand })
+        if (brandDoc) {
+          searchQuery.brand = brandDoc._id
+        }
+      }
     }
 
+    // Handle category filtering with ObjectId support
     if (category && category !== 'all') {
-      searchQuery.category = category
+      if (typeof category === 'string' && category.length === 24) {
+        // Assume it's an ObjectId
+        searchQuery.category = category
+      } else {
+        // Find category by name
+        const categoryDoc = await Category.findOne({ name: category })
+        if (categoryDoc) {
+          searchQuery.category = categoryDoc._id
+        }
+      }
     }
 
     // Build sort query
@@ -73,15 +94,17 @@ export async function getAllProductsForInventory(filters: IInventoryFilters) {
     // Get products with pagination
     const products = await Product.find(searchQuery)
       .select('name sku brand category countInStock price isPublished images createdAt updatedAt')
+      .populate('brand', 'name')
+      .populate('category', 'name')
       .sort(sortQuery)
       .skip((page - 1) * pageSize)
       .limit(pageSize)
       .lean()
 
-    // Get unique brands and categories for filters
+    // Get unique brands and categories for filters from their respective collections
     const [brands, categories] = await Promise.all([
-      Product.distinct('brand'),
-      Product.distinct('category')
+      Brand.find({ active: true }).select('name').lean(),
+      Category.find({ active: true }).select('name').lean()
     ])
 
     // Serialize products to plain objects
@@ -89,8 +112,8 @@ export async function getAllProductsForInventory(filters: IInventoryFilters) {
       _id: product._id.toString(),
       name: product.name,
       sku: product.sku,
-      brand: product.brand,
-      category: product.category,
+      brand: typeof product.brand === 'object' ? product.brand.name : product.brand,
+      category: typeof product.category === 'object' ? product.category.name : product.category,
       countInStock: product.countInStock,
       price: product.price,
       isPublished: product.isPublished,
@@ -105,8 +128,8 @@ export async function getAllProductsForInventory(filters: IInventoryFilters) {
       totalProducts,
       totalPages,
       currentPage: page,
-      brands: brands.sort(),
-      categories: categories.sort()
+      brands: brands.map((b: any) => b.name).sort(),
+      categories: categories.map((c: any) => c.name).sort()
     }
   } catch (error) {
     return { 

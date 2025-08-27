@@ -80,3 +80,15 @@ export type Permission =
 
 export const COLORS = ['Gold', 'Green', 'Red']
 export const THEMES = ['Light', 'Dark', 'System']
+
+// Predefined product tags
+export const PRODUCT_TAGS = [
+  'Featured Product',
+  'Best Seller',
+  'New Arrival',
+  'On Sale',
+  'Limited Edition',
+  'Top Rated',
+  'Staff Pick',
+  'Trending',
+] as const

@@ -33,10 +33,11 @@ import { IProduct } from '@/lib/db/models/product.model'
 import { IBrand } from '@/lib/db/models/brand.model'
 import { ICategory } from '@/lib/db/models/category.model'
 import { UploadButton } from '@/lib/uploadthing'
-import { ProductInputSchema, ProductUpdateSchema } from '@/lib/validator'
+import { ProductInputSchema, ProductUpdateSchema, ProductInputLegacySchema } from '@/lib/validator'
 import { Checkbox } from '@/components/ui/checkbox'
 import { toSlug } from '@/lib/utils'
 import { IProductInput } from '@/types'
+import { PRODUCT_TAGS } from '@/lib/constants'
 
 const productDefaultValues: IProductInput =
   process.env.NODE_ENV === 'development'
@@ -44,9 +45,9 @@ const productDefaultValues: IProductInput =
         name: 'Sample Product',
         slug: 'sample-product',
         sku: 'SAMPLE-CATEGORY-001',
-        category: 'Sample Category',
+        category: '', // Will be set to ObjectId
         images: ['/images/p11-1.jpg'],
-        brand: 'Sample Brand',
+        brand: '', // Will be set to ObjectId
         description: 'This is a sample description of the product.',
         price: 99.99,
         listPrice: 0,
@@ -118,6 +119,40 @@ const ProductForm = ({
         ])
         setBrands(brandsData)
         setCategories(categoriesData)
+
+        // Handle existing product data conversion from string to ObjectId
+        if (product && type === 'Update') {
+          const updates: Partial<IProductInput> = {}
+
+          // Convert brand from string to ObjectId if needed
+          if (typeof product.brand === 'string') {
+            const brandDoc = brandsData.find(b => b.name === product.brand)
+            if (brandDoc) {
+              updates.brand = brandDoc._id
+            }
+          } else if (typeof product.brand === 'object' && product.brand._id) {
+            // Handle populated brand object
+            updates.brand = product.brand._id
+          }
+
+          // Convert category from string to ObjectId if needed
+          if (typeof product.category === 'string') {
+            const categoryDoc = categoriesData.find(c => c.name === product.category)
+            if (categoryDoc) {
+              updates.category = categoryDoc._id
+            }
+          } else if (typeof product.category === 'object' && product.category._id) {
+            // Handle populated category object
+            updates.category = product.category._id
+          }
+
+          // Update form values if any conversions were made
+          if (Object.keys(updates).length > 0) {
+            Object.entries(updates).forEach(([key, value]) => {
+              form.setValue(key as keyof IProductInput, value)
+            })
+          }
+        }
       } catch (error) {
         toast({
           variant: 'destructive',
@@ -231,7 +266,7 @@ const ProductForm = ({
                   </FormControl>
                   <SelectContent>
                     {categories.map((category) => (
-                      <SelectItem key={category._id} value={category.name}>
+                      <SelectItem key={category._id} value={category._id}>
                         {category.name}
                       </SelectItem>
                     ))}
@@ -256,7 +291,7 @@ const ProductForm = ({
                   </FormControl>
                   <SelectContent>
                     {brands.map((brand) => (
-                      <SelectItem key={brand._id} value={brand.name}>
+                      <SelectItem key={brand._id} value={brand._id}>
                         {brand.name}
                       </SelectItem>
                     ))}
@@ -380,6 +415,48 @@ const ProductForm = ({
             )}
           />
         </div>
+
+        <div>
+          <FormField
+            control={form.control}
+            name='tags'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Product Tags</FormLabel>
+                <FormDescription>
+                  Select tags that apply to this product
+                </FormDescription>
+                <div className='grid grid-cols-2 md:grid-cols-3 gap-4 mt-2'>
+                  {PRODUCT_TAGS.map((tag) => (
+                    <FormItem
+                      key={tag}
+                      className='flex flex-row items-start space-x-3 space-y-0'
+                    >
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value?.includes(tag) || false}
+                          onCheckedChange={(checked) => {
+                            const currentTags = field.value || []
+                            if (checked) {
+                              field.onChange([...currentTags, tag])
+                            } else {
+                              field.onChange(currentTags.filter((t) => t !== tag))
+                            }
+                          }}
+                        />
+                      </FormControl>
+                      <FormLabel className='text-sm font-normal'>
+                        {tag}
+                      </FormLabel>
+                    </FormItem>
+                  ))}
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
         <div>
           <FormField
             control={form.control}

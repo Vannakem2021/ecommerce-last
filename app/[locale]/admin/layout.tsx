@@ -34,22 +34,22 @@ export default async function AdminLayout({
       <Script id="admin-layout-class" strategy="beforeInteractive">
         {`document.documentElement.classList.add('admin-layout');`}
       </Script>
-      <div className='flex h-screen'>
+      <div className='flex h-screen overflow-hidden'>
         {/* Sidebar - Hidden on mobile, visible on desktop */}
-        <div className='hidden md:flex md:flex-shrink-0'>
+        <div className='hidden md:flex md:flex-shrink-0 fixed left-0 top-0 h-full z-10'>
           <AdminNav userRole={session.user.role} />
         </div>
 
         {/* Main content area */}
-        <div className='flex flex-col flex-1 overflow-hidden'>
+        <div className='flex flex-col flex-1 overflow-hidden md:ml-64'>
           {/* Header */}
-          <div className='bg-black text-white'>
+          <div className='bg-background text-foreground border-b border-border'>
             <div className='flex h-16 items-center px-4'>
               {/* Mobile sidebar trigger */}
               <div className='md:hidden mr-3'>
                 <Sheet>
                   <SheetTrigger asChild>
-                    <Button variant="ghost" size="icon" className="text-white hover:bg-muted/10">
+                    <Button variant="ghost" size="icon" className="hover:bg-muted/10">
                       <MenuIcon className="h-5 w-5" />
                     </Button>
                   </SheetTrigger>

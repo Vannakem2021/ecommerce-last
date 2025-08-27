@@ -52,9 +52,9 @@ export const ProductInputSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters"),
   slug: z.string().min(3, "Slug must be at least 3 characters"),
   sku: z.string().min(3, "SKU must be at least 3 characters").toUpperCase(),
-  category: z.string().min(1, "Category is required"),
+  category: MongoId,
   images: z.array(z.string()).min(1, "Product must have at least one image"),
-  brand: z.string().min(1, "Brand is required"),
+  brand: MongoId,
   description: z.string().min(1, "Description is required"),
   isPublished: z.boolean(),
   price: Price("Price"),
@@ -86,6 +86,43 @@ export const ProductInputSchema = z.object({
 
 export const ProductUpdateSchema = ProductInputSchema.extend({
   _id: z.string(),
+});
+
+// Temporary schema for migration period - supports both string and ObjectId
+export const ProductInputLegacySchema = z.object({
+  name: z.string().min(3, "Name must be at least 3 characters"),
+  slug: z.string().min(3, "Slug must be at least 3 characters"),
+  sku: z.string().min(3, "SKU must be at least 3 characters").toUpperCase(),
+  category: z.union([z.string().min(1, "Category is required"), MongoId]),
+  images: z.array(z.string()).min(1, "Product must have at least one image"),
+  brand: z.union([z.string().min(1, "Brand is required"), MongoId]),
+  description: z.string().min(1, "Description is required"),
+  isPublished: z.boolean(),
+  price: Price("Price"),
+  listPrice: Price("List price"),
+  countInStock: z.coerce
+    .number()
+    .int()
+    .nonnegative("count in stock must be a non-negative number"),
+  tags: z.array(z.string()).default([]),
+  sizes: z.array(z.string()).default([]),
+  colors: z.array(z.string()).default([]),
+  avgRating: z.coerce
+    .number()
+    .min(0, "Average rating must be at least 0")
+    .max(5, "Average rating must be at most 5"),
+  numReviews: z.coerce
+    .number()
+    .int()
+    .nonnegative("Number of reviews must be a non-negative number"),
+  ratingDistribution: z
+    .array(z.object({ rating: z.number(), count: z.number() }))
+    .max(5),
+  reviews: z.array(ReviewInputSchema).default([]),
+  numSales: z.coerce
+    .number()
+    .int()
+    .nonnegative("Number of sales must be a non-negative number"),
 });
 
 // STOCK MOVEMENT
@@ -121,8 +158,8 @@ export const AdjustStockSchema = z.object({
 
 export const InventoryFiltersSchema = z.object({
   query: z.string().optional(),
-  brand: z.string().optional(),
-  category: z.string().optional(),
+  brand: z.union([z.string(), MongoId]).optional(),
+  category: z.union([z.string(), MongoId]).optional(),
   page: z.number().int().positive().default(1),
   sort: z
     .enum([
@@ -142,7 +179,7 @@ export const OrderItemSchema = z.object({
   product: z.string().min(1, "Product is required"),
   name: z.string().min(1, "Name is required"),
   slug: z.string().min(1, "Slug is required"),
-  category: z.string().min(1, "Category is required"),
+  category: z.union([z.string(), MongoId]),
   quantity: z
     .number()
     .int()

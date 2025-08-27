@@ -50,7 +50,7 @@ export default async function ProductDetails(props: {
   const product = await getProductBySlug(slug)
 
   const relatedProducts = await getRelatedProductsByCategory({
-    category: product.category,
+    category: typeof product.category === 'object' ? product.category._id : product.category,
     productId: product._id,
     page: Number(page || '1'),
   })
@@ -58,7 +58,7 @@ export default async function ProductDetails(props: {
   const t = await getTranslations()
   return (
     <div>
-      <AddToBrowsingHistory id={product._id} category={product.category} />
+      <AddToBrowsingHistory id={product._id} category={typeof product.category === 'object' ? product.category.name : product.category} />
       <section>
         <div className='grid grid-cols-1 md:grid-cols-5  '>
           <div className='col-span-2'>
@@ -68,7 +68,7 @@ export default async function ProductDetails(props: {
           <div className='flex w-full flex-col gap-2 md:p-5 col-span-2'>
             <div className='flex flex-col gap-3'>
               <p className='p-medium-16 rounded-full bg-grey-500/10   text-grey-500'>
-                {t('Product.Brand')} {product.brand} {product.category}
+                {t('Product.Brand')} {typeof product.brand === 'object' ? product.brand.name : product.brand} {typeof product.category === 'object' ? product.category.name : product.category}
               </p>
               <h1 className='font-bold text-lg lg:text-xl'>{product.name}</h1>
 
@@ -162,7 +162,7 @@ export default async function ProductDetails(props: {
       <section className='mt-10'>
         <ProductSlider
           products={relatedProducts.data}
-          title={t('Product.Best Sellers in', { name: product.category })}
+          title={t('Product.Best Sellers in', { name: typeof product.category === 'object' ? product.category.name : product.category })}
         />
       </section>
       <section>

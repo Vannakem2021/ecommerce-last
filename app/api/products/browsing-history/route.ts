@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import Product from '@/lib/db/models/product.model'
+import Category from '@/lib/db/models/category.model'
 import { connectToDatabase } from '@/lib/db'
 
 export const GET = async (request: NextRequest) => {
@@ -14,15 +15,23 @@ export const GET = async (request: NextRequest) => {
 
   const productIds = productIdsParam.split(',')
   const categories = categoriesParam.split(',')
-  const filter =
-    listType === 'history'
-      ? {
-          _id: { $in: productIds },
-        }
-      : { category: { $in: categories }, _id: { $nin: productIds } }
 
   await connectToDatabase()
+
+  let filter
+  if (listType === 'history') {
+    filter = { _id: { $in: productIds } }
+  } else {
+    // Convert category names to ObjectIds for related products
+    const categoryDocs = await Category.find({ name: { $in: categories } }).select('_id').lean()
+    const categoryIds = categoryDocs.map(cat => cat._id)
+    filter = { category: { $in: categoryIds }, _id: { $nin: productIds } }
+  }
+
   const products = await Product.find(filter)
+    .populate('brand', 'name')
+    .populate('category', 'name')
+
   if (listType === 'history')
     return NextResponse.json(
       products.sort(
