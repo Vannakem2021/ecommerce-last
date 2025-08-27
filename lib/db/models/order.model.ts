@@ -91,6 +91,15 @@ const orderSchema = new Schema<IOrder>(
         details: { type: String },
       },
     ],
+    // Promotion fields
+    appliedPromotion: {
+      code: { type: String },
+      promotionId: { type: Schema.Types.ObjectId, ref: 'Promotion' },
+      discountAmount: { type: Number, min: 0 },
+      originalTotal: { type: Number, min: 0 },
+      freeShipping: { type: Boolean, default: false },
+    },
+    discountAmount: { type: Number, min: 0, default: 0 },
   },
   {
     timestamps: true,

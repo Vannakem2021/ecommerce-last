@@ -33,6 +33,8 @@ import Link from "next/link";
 import useCartStore from "@/hooks/use-cart-store";
 import useSettingStore from "@/hooks/use-setting-store";
 import ProductPrice from "@/components/shared/product/product-price";
+import CouponInput from "@/components/shared/promotion/coupon-input";
+import DiscountSummary from "@/components/shared/promotion/discount-summary";
 
 const shippingAddressDefaultValues =
   process.env.NODE_ENV === "development"
@@ -95,6 +97,8 @@ const CheckoutForm = () => {
       shippingAddress,
       deliveryDateIndex,
       paymentMethod = defaultPaymentMethod,
+      appliedPromotion,
+      discountAmount,
     },
     setShippingAddress,
     setPaymentMethod,
@@ -144,6 +148,8 @@ const CheckoutForm = () => {
       shippingPrice,
       taxPrice,
       totalPrice,
+      appliedPromotion,
+      discountAmount,
     });
     if (!res.success) {
       toast({
@@ -212,6 +218,9 @@ const CheckoutForm = () => {
           </div>
         )}
 
+        {/* Coupon Input */}
+        <CouponInput />
+
         <div>
           <div className="text-lg font-bold">Order Summary</div>
           <div className="space-y-2">
@@ -243,6 +252,10 @@ const CheckoutForm = () => {
                 )}
               </span>
             </div>
+
+            {/* Discount Summary */}
+            <DiscountSummary />
+
             <div className="flex justify-between  pt-4 font-bold text-lg">
               <span> Order Total:</span>
               <span>

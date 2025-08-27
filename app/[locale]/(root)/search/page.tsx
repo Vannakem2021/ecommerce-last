@@ -2,6 +2,7 @@ import Link from 'next/link'
 
 import Pagination from '@/components/shared/pagination'
 import ProductCard from '@/components/shared/product/product-card'
+import PromotionBanner from '@/components/shared/promotion/promotion-banner'
 import { Button } from '@/components/ui/button'
 import {
   getAllCategories,
@@ -272,6 +273,11 @@ export default async function SearchPage(props: {
               {t('Search.Check each product page for other buying options')}
             </div>
           </div>
+
+          {/* Category-specific promotions */}
+          {category !== 'all' && category !== '' && (
+            <PromotionBanner limit={1} showDismiss={false} />
+          )}
 
           <div className='grid grid-cols-1 gap-4 md:grid-cols-2  lg:grid-cols-3  '>
             {data.products.length === 0 && (

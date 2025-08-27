@@ -39,6 +39,8 @@ export const ROLE_PERMISSIONS = {
     'settings.read', 'settings.update',
     // Page management
     'pages.create', 'pages.read', 'pages.update', 'pages.delete',
+    // Promotion management
+    'promotions.create', 'promotions.read', 'promotions.update', 'promotions.delete',
     // Reports access
     'reports.read'
   ],
@@ -51,6 +53,8 @@ export const ROLE_PERMISSIONS = {
     'categories.read', 'brands.read',
     // Inventory management
     'inventory.read', 'inventory.update',
+    // Promotion management (read and update only)
+    'promotions.read', 'promotions.update',
     // Reports access
     'reports.read'
   ],
@@ -61,6 +65,8 @@ export const ROLE_PERMISSIONS = {
     'orders.read', 'orders.update',
     // Inventory read access
     'inventory.read',
+    // Promotion read access
+    'promotions.read',
     // Reports access
     'reports.read'
   ],

@@ -10,6 +10,7 @@ import { formatNumber, generateId, round2 } from '@/lib/utils'
 import ProductPrice from './product-price'
 import ImageHover from './image-hover'
 import AddToCart from './add-to-cart'
+import PromotionBadge from '../promotion/promotion-badge'
 
 const ProductCard = ({
   product,
@@ -42,6 +43,15 @@ const ProductCard = ({
             />
           </div>
         )}
+
+        {/* Promotion Badge */}
+        <div className='absolute top-2 left-2 z-10'>
+          <PromotionBadge
+            productId={product._id}
+            categoryId={typeof product.category === 'object' ? product.category._id : product.category}
+            size='sm'
+          />
+        </div>
       </div>
     </Link>
   )

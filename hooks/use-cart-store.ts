@@ -1,8 +1,9 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-import { Cart, OrderItem, ShippingAddress } from '@/types'
+import { Cart, OrderItem, ShippingAddress, PromotionValidationResult } from '@/types'
 import { calcDeliveryDateAndPrice } from '@/lib/actions/order.actions'
+import { validatePromotionCode } from '@/lib/actions/promotion.actions'
 
 const initialState: Cart = {
   items: [],
@@ -13,6 +14,8 @@ const initialState: Cart = {
   paymentMethod: undefined,
   shippingAddress: undefined,
   deliveryDateIndex: undefined,
+  appliedPromotion: undefined,
+  discountAmount: undefined,
 }
 
 interface CartState {
@@ -24,6 +27,8 @@ interface CartState {
   setShippingAddress: (shippingAddress: ShippingAddress) => Promise<void>
   setPaymentMethod: (paymentMethod: string) => void
   setDeliveryDateIndex: (index: number) => Promise<void>
+  applyPromotion: (code: string, userId?: string) => Promise<PromotionValidationResult>
+  removePromotion: () => Promise<void>
 }
 
 const useCartStore = create(
@@ -170,6 +175,90 @@ const useCartStore = create(
           },
         })
       },
+
+      applyPromotion: async (code: string, userId?: string) => {
+        const currentCart = get().cart
+
+        try {
+          const result = await validatePromotionCode(code, currentCart, userId)
+
+          if (result.success && result.discount !== undefined && result.promotion) {
+            const appliedPromotion = {
+              code: code.toUpperCase(),
+              discountAmount: result.discount,
+              promotionId: result.promotion._id,
+              freeShipping: result.freeShipping || false,
+            }
+
+            // Recalculate cart with promotion
+            const updatedCart = {
+              ...currentCart,
+              appliedPromotion,
+              discountAmount: result.discount,
+            }
+
+            // Recalculate delivery and prices
+            const priceCalculation = await calcDeliveryDateAndPrice({
+              items: updatedCart.items,
+              shippingAddress: updatedCart.shippingAddress,
+              deliveryDateIndex: updatedCart.deliveryDateIndex,
+            })
+
+            // Apply free shipping if promotion includes it
+            let finalShippingPrice = priceCalculation.shippingPrice
+            if (result.freeShipping) {
+              finalShippingPrice = 0
+            }
+
+            // Calculate final total: use calculated total with adjusted shipping minus discount
+            const baseTotal = priceCalculation.itemsPrice +
+              (finalShippingPrice || 0) +
+              (priceCalculation.taxPrice || 0)
+            const finalTotalPrice = baseTotal - result.discount
+
+            set({
+              cart: {
+                ...updatedCart,
+                ...priceCalculation,
+                shippingPrice: finalShippingPrice,
+                totalPrice: Math.max(0, finalTotalPrice), // Ensure total is not negative
+              },
+            })
+          }
+
+          return result
+        } catch (error) {
+          return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Failed to apply promotion'
+          }
+        }
+      },
+
+      removePromotion: async () => {
+        const currentCart = get().cart
+
+        // Remove promotion and recalculate
+        const updatedCart = {
+          ...currentCart,
+          appliedPromotion: undefined,
+          discountAmount: undefined,
+        }
+
+        const priceCalculation = await calcDeliveryDateAndPrice({
+          items: updatedCart.items,
+          shippingAddress: updatedCart.shippingAddress,
+          deliveryDateIndex: updatedCart.deliveryDateIndex,
+        })
+
+        set({
+          cart: {
+            ...updatedCart,
+            ...priceCalculation,
+          },
+        })
+      },
+
       init: () => set({ cart: initialState }),
     }),
 

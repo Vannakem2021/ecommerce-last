@@ -16,6 +16,7 @@ import { Separator } from '@/components/ui/separator'
 import BrowsingHistoryList from '@/components/shared/browsing-history-list'
 import RatingSummary from '@/components/shared/product/rating-summary'
 import ProductSlider from '@/components/shared/product/product-slider'
+import PromotionBadge from '@/components/shared/promotion/promotion-badge'
 import { getTranslations } from 'next-intl/server'
 
 export async function generateMetadata(props: {
@@ -79,6 +80,14 @@ export default async function ProductDetails(props: {
                 ratingDistribution={product.ratingDistribution}
               />
               <Separator />
+              {/* Promotion Badges */}
+              <PromotionBadge
+                productId={product._id}
+                categoryId={typeof product.category === 'object' ? product.category._id : product.category}
+                size='lg'
+                className='mb-2'
+              />
+
               <div className='flex flex-col gap-3 sm:flex-row sm:items-center'>
                 <div className='flex gap-3'>
                   <ProductPrice

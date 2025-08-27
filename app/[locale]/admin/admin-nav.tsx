@@ -22,6 +22,7 @@ import {
   Layers,
   Warehouse,
   MessageSquare,
+  Percent,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -83,6 +84,12 @@ const mainLinks = [
     href: "/admin/web-pages",
     icon: FileText,
     permission: "pages.read" as Permission,
+  },
+  {
+    title: "Promotions",
+    href: "/admin/promotions",
+    icon: Percent,
+    permission: "promotions.read" as Permission,
   },
 ];
 

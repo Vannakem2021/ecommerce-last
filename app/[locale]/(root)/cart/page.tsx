@@ -1,6 +1,8 @@
 'use client'
 import BrowsingHistoryList from '@/components/shared/browsing-history-list'
 import ProductPrice from '@/components/shared/product/product-price'
+import CouponInput from '@/components/shared/promotion/coupon-input'
+import DiscountSummary from '@/components/shared/promotion/discount-summary'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import {
@@ -20,7 +22,7 @@ import React from 'react'
 
 export default function CartPage() {
   const {
-    cart: { items, itemsPrice },
+    cart: { items, itemsPrice, totalPrice, discountAmount },
     updateItem,
     removeItem,
   } = useCartStore()
@@ -164,7 +166,10 @@ export default function CartPage() {
                 </CardContent>
               </Card>
             </div>
-            <div>
+            <div className='space-y-4'>
+              {/* Coupon Input */}
+              <CouponInput />
+
               <Card className='rounded-none'>
                 <CardContent className='py-4 space-y-4'>
                   {itemsPrice < freeShippingMinPrice ? (
@@ -196,6 +201,15 @@ export default function CartPage() {
                       <ProductPrice price={itemsPrice} plain />
                     </span>{' '}
                   </div>
+
+                  {/* Discount Summary */}
+                  <DiscountSummary showDetails={false} />
+
+                  {discountAmount && (
+                    <div className='text-lg font-bold border-t pt-2'>
+                      {t('Cart.Total')}: <ProductPrice price={totalPrice || itemsPrice} plain />
+                    </div>
+                  )}
                   <Button
                     onClick={() => router.push('/checkout')}
                     className='rounded-full w-full'
