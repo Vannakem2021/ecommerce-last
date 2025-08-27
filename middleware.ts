@@ -15,7 +15,6 @@ const publicPages = [
   '/cart/(.*)',
   '/product/(.*)',
   '/page/(.*)',
-  // (/secret requires auth)
 ]
 
 const intlMiddleware = createMiddleware(routing)
@@ -31,7 +30,6 @@ export default auth((req) => {
   const isPublicPage = publicPathnameRegex.test(req.nextUrl.pathname)
 
   if (isPublicPage) {
-    // return NextResponse.next()
     return intlMiddleware(req)
   } else {
     if (!req.auth) {
