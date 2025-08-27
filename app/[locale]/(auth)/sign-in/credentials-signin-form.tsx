@@ -106,6 +106,16 @@ export default function CredentialsSignInForm() {
           <div>
             <Button type='submit'>Sign In</Button>
           </div>
+
+          <div className='text-center'>
+            <Link
+              href='/forgot-password'
+              className='text-sm text-blue-600 hover:underline'
+            >
+              Forgot your password?
+            </Link>
+          </div>
+
           <div className='text-sm'>
             By signing in, you agree to {site.name}&apos;s{' '}
             <Link href='/page/conditions-of-use'>Conditions of Use</Link> and{' '}

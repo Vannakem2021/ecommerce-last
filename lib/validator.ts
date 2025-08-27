@@ -272,7 +272,14 @@ const Email = z
   .min(1, "Email is required")
   .email("Email is invalid")
   .transform((email) => email.toLowerCase().trim());
-const Password = z.string().min(3, "Password must be at least 3 characters");
+const Password = z
+  .string()
+  .min(8, "Password must be at least 8 characters")
+  .max(1000, "Password must be at most 1000 characters")
+  .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+  .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+  .regex(/[0-9]/, "Password must contain at least one number")
+  .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character");
 const UserRole = z.enum(["admin", "manager", "seller", "user"], {
   errorMap: () => ({
     message: "Invalid role. Must be admin, manager, seller, or user",
@@ -286,77 +293,73 @@ export const UserUpdateSchema = z.object({
   role: UserRole,
 });
 
-// Base user schema with optional customer-specific fields
-export const UserInputSchema = z
-  .object({
-    name: UserName,
-    email: Email,
-    image: z.string().optional(),
-    emailVerified: z.boolean(),
-    role: UserRole,
-    password: Password,
-    paymentMethod: z.string().optional(),
-    address: z.union([
-      // Cambodia address format
-      z.object({
-        fullName: z.string().optional(),
-        phone: z.string().optional(),
-        provinceId: z.number().optional(),
-        districtId: z.number().optional(),
-        communeCode: z.string().optional(),
-        houseNumber: z.string().optional(),
-        street: z.string().optional(),
-        postalCode: z.string().optional(),
-        provinceName: z.string().optional(),
-        districtName: z.string().optional(),
-        communeName: z.string().optional(),
-      }),
-      // Legacy address format for backward compatibility
-      z.object({
-        fullName: z.string().optional(),
-        street: z.string().optional(),
-        city: z.string().optional(),
-        province: z.string().optional(),
-        postalCode: z.string().optional(),
-        country: z.string().optional(),
-        phone: z.string().optional(),
-      }),
-    ]).optional(),
-  })
-  .refine(
-    (data) => {
-      // Customer users (role: 'user') must have payment method and complete address
-      if (data.role === "user") {
-        const hasPaymentMethod =
-          data.paymentMethod && data.paymentMethod.trim().length > 0;
-        const hasCompleteAddress =
-          data.address &&
-          data.address.fullName &&
-          data.address.fullName.trim().length > 0 &&
-          data.address.street &&
-          data.address.street.trim().length > 0 &&
-          data.address.city &&
-          data.address.city.trim().length > 0 &&
-          data.address.province &&
-          data.address.province.trim().length > 0 &&
-          data.address.postalCode &&
-          data.address.postalCode.trim().length > 0 &&
-          data.address.country &&
-          data.address.country.trim().length > 0 &&
-          data.address.phone &&
-          data.address.phone.trim().length > 0;
+// Base user schema with optional customer-specific fields (for registration)
+export const UserInputSchema = z.object({
+  name: UserName,
+  email: Email,
+  image: z.string().optional(),
+  emailVerified: z.boolean(),
+  role: UserRole,
+  password: Password,
+  paymentMethod: z.string().optional(),
+  address: z.union([
+    // Cambodia address format
+    z.object({
+      fullName: z.string().optional(),
+      phone: z.string().optional(),
+      provinceId: z.number().optional(),
+      districtId: z.number().optional(),
+      communeCode: z.string().optional(),
+      houseNumber: z.string().optional(),
+      street: z.string().optional(),
+      postalCode: z.string().optional(),
+      provinceName: z.string().optional(),
+      districtName: z.string().optional(),
+      communeName: z.string().optional(),
+    }),
+    // Legacy address format for backward compatibility
+    z.object({
+      fullName: z.string().optional(),
+      street: z.string().optional(),
+      city: z.string().optional(),
+      province: z.string().optional(),
+      postalCode: z.string().optional(),
+      country: z.string().optional(),
+      phone: z.string().optional(),
+    }),
+  ]).optional(),
+});
 
-        return hasPaymentMethod && hasCompleteAddress;
-      }
-      // System users (admin, manager, seller) don't require these fields
-      return true;
-    },
-    {
-      message:
-        "Customer users must provide payment method and complete address information",
-      path: ["role"],
+// Schema for complete user profile (required for checkout/orders)
+export const UserProfileCompleteSchema = UserInputSchema.refine(
+  (data) => {
+    // Customer users (role: 'user') must have payment method and complete address for checkout
+    if (data.role === "user") {
+      const hasPaymentMethod =
+        data.paymentMethod && data.paymentMethod.trim().length > 0;
+      const hasCompleteAddress =
+        data.address &&
+        data.address.fullName &&
+        data.address.fullName.trim().length > 0 &&
+        data.address.phone &&
+        data.address.phone.trim().length > 0 &&
+        data.address.postalCode &&
+        data.address.postalCode.trim().length > 0 &&
+        // Check for either Cambodia format or legacy format
+        ((data.address.provinceName && data.address.districtName) ||
+         (data.address.city && data.address.province && data.address.country));
+
+      return hasPaymentMethod && hasCompleteAddress;
     }
-  );
+    // System users (admin, manager, seller) don't require these fields
+    return true;
+  },
+  {
+    message:
+      "Complete profile required: payment method and address information must be provided for checkout",
+    path: ["role"],
+  }
+);
 
 export const UserSignInSchema = z.object({
   email: Email,
@@ -371,6 +374,20 @@ export const UserSignUpSchema = UserSignInSchema.extend({
 });
 export const UserNameSchema = z.object({
   name: UserName,
+});
+
+// Password reset schemas
+export const ForgotPasswordSchema = z.object({
+  email: Email,
+});
+
+export const ResetPasswordSchema = z.object({
+  token: z.string().min(1, "Reset token is required"),
+  password: Password,
+  confirmPassword: Password,
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
 });
 
 // Enhanced admin user creation schema with role-based validation

@@ -17,44 +17,28 @@ const userSchema = new Schema<IUser>(
     image: { type: String },
     emailVerified: { type: Boolean, default: false },
 
-    // Customer-specific fields (conditionally required based on role)
+    // Customer-specific fields (optional during registration, required for checkout)
     paymentMethod: {
       type: String,
-      required: function (this: IUser) {
-        return this.role === "user";
-      },
-      default: function (this: IUser) {
-        return this.role === "user" ? "ABA PayWay" : undefined;
-      },
+      required: false, // Made optional to allow registration without payment method
+      default: undefined,
     },
     address: {
-      // Common fields
+      // Common fields - made optional for registration
       fullName: {
         type: String,
-        required: function (this: IUser) {
-          return this.role === "user";
-        },
-        default: function (this: IUser) {
-          return this.role === "user" ? "" : undefined;
-        },
+        required: false,
+        default: undefined,
       },
       phone: {
         type: String,
-        required: function (this: IUser) {
-          return this.role === "user";
-        },
-        default: function (this: IUser) {
-          return this.role === "user" ? "" : undefined;
-        },
+        required: false,
+        default: undefined,
       },
       postalCode: {
         type: String,
-        required: function (this: IUser) {
-          return this.role === "user";
-        },
-        default: function (this: IUser) {
-          return this.role === "user" ? "" : undefined;
-        },
+        required: false,
+        default: undefined,
       },
 
       // Cambodia address fields
