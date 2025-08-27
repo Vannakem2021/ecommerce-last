@@ -1,15 +1,19 @@
 "use server";
 
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { auth, signIn, signOut } from "@/auth";
-import { IUserName, IUserSignIn, IUserSignUp, IAdminUserCreate } from "@/types";
+import { IUserName, IUserSignIn, IUserSignUp, IAdminUserCreate, IForgotPassword, IResetPassword } from "@/types";
 import {
   UserSignUpSchema,
   UserUpdateSchema,
   AdminUserCreateSchema,
+  ForgotPasswordSchema,
+  ResetPasswordSchema,
 } from "../validator";
 import { connectToDatabase } from "../db";
 import User, { IUser } from "../db/models/user.model";
+import PasswordResetToken from "../db/models/password-reset-token.model";
 import { formatError } from "../utils";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -22,6 +26,7 @@ import {
   getCurrentUserWithRole,
 } from "../rbac";
 import { normalizeRole } from "../rbac-utils";
+import { sendPasswordResetEmail } from "../../emails";
 
 // CREATE
 export async function registerUser(userSignUp: IUserSignUp) {
@@ -34,9 +39,15 @@ export async function registerUser(userSignUp: IUserSignUp) {
     });
 
     await connectToDatabase();
+
+    // Create user with minimal required data for registration
     await User.create({
-      ...user,
+      name: user.name,
+      email: user.email,
       password: await bcrypt.hash(user.password, 5),
+      role: "user", // Default role for new registrations
+      emailVerified: false,
+      // paymentMethod and address are optional during registration
     });
     return { success: true, message: "User created successfully" };
   } catch (error) {
@@ -233,6 +244,121 @@ export const SignOut = async () => {
   const redirectTo = await signOut({ redirect: false });
   redirect(redirectTo.redirect);
 };
+
+// PASSWORD RESET FUNCTIONS
+export async function requestPasswordReset(forgotPasswordData: IForgotPassword) {
+  try {
+    const { email } = await ForgotPasswordSchema.parseAsync(forgotPasswordData);
+
+    await connectToDatabase();
+
+    // Find user by email
+    const user = await User.findOne({ email });
+    if (!user) {
+      // Don't reveal if email exists or not for security
+      return {
+        success: true,
+        message: "If an account with that email exists, a password reset link has been sent."
+      };
+    }
+
+    // Generate secure random token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+
+    // Set expiration time (15 minutes from now)
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+    // Delete any existing reset tokens for this user
+    await PasswordResetToken.deleteMany({ userId: user._id });
+
+    // Create new reset token
+    await PasswordResetToken.create({
+      userId: user._id,
+      token: resetToken,
+      expiresAt,
+      used: false,
+    });
+
+    // Send password reset email
+    const emailResult = await sendPasswordResetEmail({
+      resetToken,
+      userEmail: user.email,
+      userName: user.name,
+    });
+
+    if (!emailResult.success) {
+      console.error('Failed to send password reset email:', emailResult.error);
+      // Don't fail the request if email sending fails
+    }
+
+    return {
+      success: true,
+      message: "If an account with that email exists, a password reset link has been sent."
+    };
+  } catch (error) {
+    return { success: false, error: formatError(error) };
+  }
+}
+
+export async function validateResetToken(token: string) {
+  try {
+    await connectToDatabase();
+
+    const resetToken = await PasswordResetToken.findOne({
+      token,
+      used: false,
+      expiresAt: { $gt: new Date() },
+    });
+
+    if (!resetToken) {
+      return { success: false, error: "Invalid or expired reset token" };
+    }
+
+    return { success: true, userId: resetToken.userId };
+  } catch (error) {
+    return { success: false, error: formatError(error) };
+  }
+}
+
+export async function resetPassword(resetPasswordData: IResetPassword) {
+  try {
+    const { token, password } = await ResetPasswordSchema.parseAsync(resetPasswordData);
+
+    await connectToDatabase();
+
+    // Find and validate the reset token
+    const resetToken = await PasswordResetToken.findOne({
+      token,
+      used: false,
+      expiresAt: { $gt: new Date() },
+    });
+
+    if (!resetToken) {
+      return { success: false, error: "Invalid or expired reset token" };
+    }
+
+    // Find the user
+    const user = await User.findById(resetToken.userId);
+    if (!user) {
+      return { success: false, error: "User not found" };
+    }
+
+    // Update user password
+    user.password = await bcrypt.hash(password, 5);
+    await user.save();
+
+    // Mark token as used
+    resetToken.used = true;
+    await resetToken.save();
+
+    return {
+      success: true,
+      message: "Password has been reset successfully. You can now sign in with your new password."
+    };
+  } catch (error) {
+    return { success: false, error: formatError(error) };
+  }
+}
 
 // GET
 export async function getAllUsers({

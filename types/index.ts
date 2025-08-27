@@ -18,10 +18,13 @@ import {
   SiteCurrencySchema,
   SiteLanguageSchema,
   UserInputSchema,
+  UserProfileCompleteSchema,
   UserNameSchema,
   UserSignInSchema,
   UserSignUpSchema,
   AdminUserCreateSchema,
+  ForgotPasswordSchema,
+  ResetPasswordSchema,
   WebPageInputSchema,
   StockMovementInputSchema,
   SetStockSchema,
@@ -86,10 +89,13 @@ export type LegacyAddress = z.infer<typeof LegacyAddressSchema>
 
 // user
 export type IUserInput = z.infer<typeof UserInputSchema>
+export type IUserProfileComplete = z.infer<typeof UserProfileCompleteSchema>
 export type IUserSignIn = z.infer<typeof UserSignInSchema>
 export type IUserSignUp = z.infer<typeof UserSignUpSchema>
 export type IUserName = z.infer<typeof UserNameSchema>
 export type IAdminUserCreate = z.infer<typeof AdminUserCreateSchema>
+export type IForgotPassword = z.infer<typeof ForgotPasswordSchema>
+export type IResetPassword = z.infer<typeof ResetPasswordSchema>
 
 // webpage
 export type IWebPageInput = z.infer<typeof WebPageInputSchema>
