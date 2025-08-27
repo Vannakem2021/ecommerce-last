@@ -10,6 +10,7 @@ import {
   OrderItemSchema,
   PaymentMethodSchema,
   ProductInputSchema,
+  ProductInputLegacySchema,
   ReviewInputSchema,
   SettingInputSchema,
   ShippingAddressSchema,
@@ -48,6 +49,7 @@ export type IReviewDetails = IReviewInput & {
   }
 }
 export type IProductInput = z.infer<typeof ProductInputSchema>
+export type IProductInputLegacy = z.infer<typeof ProductInputLegacySchema>
 
 export type Data = {
   settings: ISettingInput[]

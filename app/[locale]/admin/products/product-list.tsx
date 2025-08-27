@@ -22,6 +22,7 @@ import React, { useEffect, useState, useTransition } from 'react'
 import { Input } from '@/components/ui/input'
 import { formatDateTime, formatId } from '@/lib/utils'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 
 type ProductListDataProps = {
   products: IProduct[]
@@ -117,6 +118,7 @@ const ProductList = () => {
                 <TableHead>Name</TableHead>
                 <TableHead className='text-right'>Price</TableHead>
                 <TableHead>Category</TableHead>
+                <TableHead>Tags</TableHead>
                 <TableHead>Stock</TableHead>
                 <TableHead>Rating</TableHead>
                 <TableHead>Published</TableHead>
@@ -134,7 +136,25 @@ const ProductList = () => {
                     </Link>
                   </TableCell>
                   <TableCell className='text-right'>${product.price}</TableCell>
-                  <TableCell>{product.category}</TableCell>
+                  <TableCell>{typeof product.category === 'object' ? product.category.name : product.category}</TableCell>
+                  <TableCell>
+                    <div className='flex flex-wrap gap-1'>
+                      {product.tags && product.tags.length > 0 ? (
+                        product.tags.slice(0, 2).map((tag) => (
+                          <Badge key={tag} variant='secondary' className='text-xs'>
+                            {tag}
+                          </Badge>
+                        ))
+                      ) : (
+                        <span className='text-muted-foreground text-sm'>No tags</span>
+                      )}
+                      {product.tags && product.tags.length > 2 && (
+                        <Badge variant='outline' className='text-xs'>
+                          +{product.tags.length - 2}
+                        </Badge>
+                      )}
+                    </div>
+                  </TableCell>
                   <TableCell>{product.countInStock}</TableCell>
                   <TableCell>{product.avgRating}</TableCell>
                   <TableCell>{product.isPublished ? 'Yes' : 'No'}</TableCell>

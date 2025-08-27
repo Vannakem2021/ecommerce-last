@@ -47,8 +47,15 @@ const SettingForm = ({ setting }: { setting: ISettingInput }) => {
           const sectionRect = section.getBoundingClientRect();
           const relativeTop = sectionRect.top - mainContentRect.top + mainContent.scrollTop;
 
+          // Calculate the desired scroll position with offset
+          let scrollTop = relativeTop - 16; // 16px offset for spacing
+
+          // Ensure we don't scroll past the bottom of the content
+          const maxScrollTop = mainContent.scrollHeight - mainContent.clientHeight;
+          scrollTop = Math.min(scrollTop, maxScrollTop);
+
           mainContent.scrollTo({
-            top: relativeTop - 16,
+            top: scrollTop,
             behavior: "smooth"
           });
         }
@@ -92,7 +99,7 @@ const SettingForm = ({ setting }: { setting: ISettingInput }) => {
 
         <DeliveryDateForm id="setting-delivery-dates" form={form} />
 
-        <div>
+        <div className="pb-[50vh]">
           <Button
             type="submit"
             size="lg"

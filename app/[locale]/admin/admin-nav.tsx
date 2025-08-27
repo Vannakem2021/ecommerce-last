@@ -125,12 +125,12 @@ export function AdminNav({ className, userRole, ...props }: AdminNavProps) {
   return (
     <nav
       className={cn(
-        "flex flex-col w-64 h-full bg-black text-white border-r border-border",
+        "flex flex-col w-64 h-full bg-background text-foreground border-r border-border",
         className
       )}
       {...props}
     >
-      <div className="flex flex-col space-y-1 p-4">
+      <div className="flex flex-col space-y-1 p-4 overflow-y-auto h-full">
         {/* Main Navigation Links */}
         {visibleMainLinks.map((item) => {
           const Icon = item.icon;
@@ -187,7 +187,9 @@ export function AdminNav({ className, userRole, ...props }: AdminNavProps) {
                   if (!pathname.includes("/admin/settings")) {
                     window.location.href = `/admin/settings#${item.hash}`;
                   } else {
-                    // If already on settings page, scroll to section within main content area
+                    // If already on settings page, update URL hash and scroll to section
+                    window.history.replaceState(null, '', `/admin/settings#${item.hash}`);
+
                     setTimeout(() => {
                       const section = document.getElementById(item.hash);
                       const mainContent = document.querySelector('[data-main-content]') as HTMLElement;
@@ -198,9 +200,16 @@ export function AdminNav({ className, userRole, ...props }: AdminNavProps) {
                         const sectionRect = section.getBoundingClientRect();
                         const relativeTop = sectionRect.top - mainContentRect.top + mainContent.scrollTop;
 
+                        // Calculate the desired scroll position with offset
+                        let scrollTop = relativeTop - 16; // 16px offset for spacing
+
+                        // Ensure we don't scroll past the bottom of the content
+                        const maxScrollTop = mainContent.scrollHeight - mainContent.clientHeight;
+                        scrollTop = Math.min(scrollTop, maxScrollTop);
+
                         // Scroll the main content container to the section
                         mainContent.scrollTo({
-                          top: relativeTop - 16, // 16px offset for spacing
+                          top: scrollTop,
                           behavior: "smooth"
                         });
                       }
@@ -215,7 +224,7 @@ export function AdminNav({ className, userRole, ...props }: AdminNavProps) {
                     onClick={handleSettingsClick}
                     className={cn(
                       "flex items-center gap-3 px-6 py-2 rounded-md text-sm transition-colors cursor-pointer",
-                      "hover:bg-muted/10 hover:text-white text-muted-foreground"
+                      "hover:bg-muted hover:text-foreground text-muted-foreground"
                     )}
                   >
                     <Icon className="h-3 w-3" />

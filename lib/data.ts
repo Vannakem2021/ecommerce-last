@@ -3,6 +3,7 @@ import { toSlug } from "./utils";
 import bcrypt from "bcryptjs";
 import { i18n } from "@/i18n-config";
 
+// User data
 const users: IUserInput[] = [
   {
     name: "John",
@@ -260,7 +261,7 @@ const users: IUserInput[] = [
     emailVerified: false,
   },
 ];
-
+// Product data
 const products: IProductInput[] = [
   // iPhone Series
   {
@@ -806,7 +807,7 @@ const products: IProductInput[] = [
     reviews: [],
   }
 ];
-
+// Review data
 const reviews = [
   {
     rating: 1,
@@ -899,7 +900,7 @@ const reviews = [
       "Love this product! It's durable, stylish, and works great. Would buy again without hesitation.",
   },
 ];
-
+// Web page data
 const data: Data = {
   users,
   products,

@@ -1,8 +1,26 @@
 import { Document, Model, model, models, Schema } from 'mongoose'
-import { IProductInput } from '@/types'
 
-export interface IProduct extends Document, IProductInput {
+export interface IProduct extends Document {
   _id: string
+  name: string
+  slug: string
+  sku: string
+  category: Schema.Types.ObjectId
+  images: string[]
+  brand: Schema.Types.ObjectId
+  description: string
+  price: number
+  listPrice: number
+  countInStock: number
+  tags: string[]
+  colors: string[]
+  sizes: string[]
+  avgRating: number
+  numReviews: number
+  ratingDistribution: { rating: number; count: number }[]
+  numSales: number
+  isPublished: boolean
+  reviews: Schema.Types.ObjectId[]
   createdAt: Date
   updatedAt: Date
 }
@@ -25,12 +43,14 @@ const productSchema = new Schema<IProduct>(
       uppercase: true,
     },
     category: {
-      type: String,
+      type: Schema.Types.ObjectId,
+      ref: 'Category',
       required: true,
     },
     images: [String],
     brand: {
-      type: String,
+      type: Schema.Types.ObjectId,
+      ref: 'Brand',
       required: true,
     },
     description: {

@@ -4,6 +4,8 @@ import { connectToDatabase } from '.'
 import User from './models/user.model'
 import Product from './models/product.model'
 import Review from './models/review.model'
+import Brand from './models/brand.model'
+import Category from './models/category.model'
 import { cwd } from 'process'
 import { loadEnvConfig } from '@next/env'
 import Order from './models/order.model'
@@ -34,13 +36,48 @@ const main = async () => {
     await WebPage.deleteMany()
     await WebPage.insertMany(webPages)
 
+    // Create brands and categories first
+    await Brand.deleteMany()
+    await Category.deleteMany()
+
+    // Get unique brands and categories from products
+    const uniqueBrands = [...new Set(products.map(p => p.brand))]
+    const uniqueCategories = [...new Set(products.map(p => p.category))]
+
+    // Create brand documents
+    const brandDocs = uniqueBrands.map(name => ({ name, active: true }))
+    const createdBrands = await Brand.insertMany(brandDocs)
+
+    // Create category documents
+    const categoryDocs = uniqueCategories.map(name => ({ name, active: true }))
+    const createdCategories = await Category.insertMany(categoryDocs)
+
+    // Create brand and category maps for lookup
+    const brandMap = new Map(createdBrands.map(b => [b.name, b._id]))
+    const categoryMap = new Map(createdCategories.map(c => [c.name, c._id]))
+
     await Product.deleteMany()
 
     // Generate SKUs for products and insert one by one to avoid duplicates
     const createdProducts = []
     for (const product of products) {
       const sku = await generateUniqueSKU(product.brand, product.category)
-      const createdProduct = await Product.create({ ...product, sku, _id: undefined })
+
+      // Convert brand and category names to ObjectIds
+      const brandId = brandMap.get(product.brand)
+      const categoryId = categoryMap.get(product.category)
+
+      if (!brandId || !categoryId) {
+        throw new Error(`Brand or category not found for product: ${product.name}`)
+      }
+
+      const createdProduct = await Product.create({
+        ...product,
+        sku,
+        brand: brandId,
+        category: categoryId,
+        _id: undefined
+      })
       createdProducts.push(createdProduct)
     }
 
@@ -81,6 +118,8 @@ const main = async () => {
     const createdOrders = await Order.insertMany(orders)
     console.log({
       createdUser,
+      createdBrands,
+      createdCategories,
       createdProducts,
       createdReviews,
       createdOrders,

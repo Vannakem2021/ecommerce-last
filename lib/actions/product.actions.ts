@@ -2,6 +2,8 @@
 
 import { connectToDatabase } from '@/lib/db'
 import Product, { IProduct } from '@/lib/db/models/product.model'
+import Brand from '@/lib/db/models/brand.model'
+import Category from '@/lib/db/models/category.model'
 import { revalidatePath } from 'next/cache'
 import { formatError } from '../utils'
 import { ProductInputSchema, ProductUpdateSchema } from '../validator'
@@ -69,6 +71,8 @@ export async function deleteProduct(id: string) {
 export async function getProductById(productId: string) {
   await connectToDatabase()
   const product = await Product.findById(productId)
+    .populate('brand', 'name')
+    .populate('category', 'name')
   return JSON.parse(JSON.stringify(product)) as IProduct
 }
 
@@ -113,6 +117,8 @@ export async function getAllProductsForAdmin({
   const products = await Product.find({
     ...queryFilter,
   })
+    .populate('brand', 'name')
+    .populate('category', 'name')
     .sort(order)
     .skip(limit * (Number(page) - 1))
     .limit(limit)
@@ -132,10 +138,8 @@ export async function getAllProductsForAdmin({
 
 export async function getAllCategories() {
   await connectToDatabase()
-  const categories = await Product.find({ isPublished: true }).distinct(
-    'category'
-  )
-  return categories
+  const categories = await Category.find({ active: true }).select('name').lean()
+  return categories.map((cat: any) => cat.name)
 }
 export async function getProductsForCard({
   tag,
@@ -174,6 +178,8 @@ export async function getProductsByTag({
     tags: { $in: [tag] },
     isPublished: true,
   })
+    .populate('brand', 'name')
+    .populate('category', 'name')
     .sort({ createdAt: 'desc' })
     .limit(limit)
   return JSON.parse(JSON.stringify(products)) as IProduct[]
@@ -183,6 +189,8 @@ export async function getProductsByTag({
 export async function getProductBySlug(slug: string) {
   await connectToDatabase()
   const product = await Product.findOne({ slug, isPublished: true })
+    .populate('brand', 'name')
+    .populate('category', 'name')
   if (!product) throw new Error('Product not found')
   return JSON.parse(JSON.stringify(product)) as IProduct
 }
@@ -204,12 +212,23 @@ export async function getRelatedProductsByCategory({
   limit = limit || pageSize
   await connectToDatabase()
   const skipAmount = (Number(page) - 1) * limit
+  // Handle both string and ObjectId category references
+  let categoryCondition = category
+  if (typeof category === 'string') {
+    const categoryDoc = await Category.findOne({ name: category })
+    if (categoryDoc) {
+      categoryCondition = categoryDoc._id
+    }
+  }
+
   const conditions = {
     isPublished: true,
-    category,
+    category: categoryCondition,
     _id: { $ne: productId },
   }
   const products = await Product.find(conditions)
+    .populate('brand', 'name')
+    .populate('category', 'name')
     .sort({ numSales: 'desc' })
     .skip(skipAmount)
     .limit(limit)
@@ -255,7 +274,18 @@ export async function getAllProducts({
           },
         }
       : {}
-  const categoryFilter = category && category !== 'all' ? { category } : {}
+  // Handle both string and ObjectId category filtering during transition
+  let categoryFilter = {}
+  if (category && category !== 'all') {
+    // Try to find category by name first (for backward compatibility)
+    const categoryDoc = await Category.findOne({ name: category })
+    if (categoryDoc) {
+      categoryFilter = { category: categoryDoc._id }
+    } else {
+      // Fallback to string matching for legacy data
+      categoryFilter = { category }
+    }
+  }
   const tagFilter = tag && tag !== 'all' ? { tags: tag } : {}
 
   const ratingFilter =
@@ -295,6 +325,8 @@ export async function getAllProducts({
     ...priceFilter,
     ...ratingFilter,
   })
+    .populate('brand', 'name')
+    .populate('category', 'name')
     .sort(order)
     .skip(limit * (Number(page) - 1))
     .limit(limit)

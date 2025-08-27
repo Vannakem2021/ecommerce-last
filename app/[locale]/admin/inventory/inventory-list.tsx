@@ -111,8 +111,8 @@ export default function InventoryList({
                           {product.sku}
                         </code>
                       </TableCell>
-                      <TableCell>{product.brand}</TableCell>
-                      <TableCell>{product.category}</TableCell>
+                      <TableCell>{typeof product.brand === 'object' ? product.brand.name : product.brand}</TableCell>
+                      <TableCell>{typeof product.category === 'object' ? product.category.name : product.category}</TableCell>
                       <TableCell>
                         <div className='flex items-center gap-2'>
                           <span className='font-medium'>{product.countInStock}</span>
