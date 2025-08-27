@@ -1138,8 +1138,6 @@ We also provide helpful resources such as order tracking, product guides, and FA
           symbol: "$",
           convertRate: 1,
         },
-        { name: "Euro", code: "EUR", symbol: "€", convertRate: 0.96 },
-        { name: "UAE Dirham", code: "AED", symbol: "AED", convertRate: 3.67 },
       ],
       defaultCurrency: "USD",
       availablePaymentMethods: [
