@@ -76,20 +76,6 @@ export default function ABAPayWayForm({ orderId, amount }: ABAPayWayFormProps) {
 
   return (
     <div className="space-y-4">
-      <div className="p-4 border rounded-lg bg-blue-50 border-blue-200">
-        <h3 className="font-semibold text-blue-900 mb-2">ABA PayWay Payment</h3>
-        <p className="text-sm text-blue-700 mb-3">
-          You will be redirected to ABA PayWay to complete your payment securely. 
-          Supported payment methods include:
-        </p>
-        <ul className="text-sm text-blue-700 space-y-1">
-          <li>• ABA PAY & KHQR (QR Code)</li>
-          <li>• Credit/Debit Cards</li>
-          <li>• WeChat Pay</li>
-          <li>• Alipay</li>
-        </ul>
-      </div>
-
       <Button
         onClick={handlePayment}
         disabled={isLoading}

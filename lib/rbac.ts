@@ -8,11 +8,12 @@ import { hasPermission, canAssignRole, isAdmin, isManagerOrHigher } from './rbac
  * Server action wrapper that requires a specific permission
  * Throws an error if the current user doesn't have the required permission
  */
-export async function requirePermission(permission: Permission): Promise<void> {
+export async function requirePermission(permission: Permission, redirectPath?: string): Promise<void> {
   const session = await auth()
   
   if (!session?.user?.id) {
-    throw new Error('Authentication required')
+    const { redirectAuthenticationRequired } = await import('./unauthorized-redirect')
+    redirectAuthenticationRequired(redirectPath)
   }
   
   if (!session.user.role) {
@@ -20,37 +21,42 @@ export async function requirePermission(permission: Permission): Promise<void> {
   }
   
   if (!hasPermission(session.user.role, permission)) {
-    throw new Error(`Insufficient permissions. Required: ${permission}`)
+    const { redirectInsufficientRole } = await import('./unauthorized-redirect')
+    redirectInsufficientRole(redirectPath)
   }
 }
 
 /**
  * Server action wrapper that requires admin role
  */
-export async function requireAdmin(): Promise<void> {
+export async function requireAdmin(redirectPath?: string): Promise<void> {
   const session = await auth()
   
   if (!session?.user?.id) {
-    throw new Error('Authentication required')
+    const { redirectAuthenticationRequired } = await import('./unauthorized-redirect')
+    redirectAuthenticationRequired(redirectPath)
   }
   
   if (!isAdmin(session.user.role)) {
-    throw new Error('Admin privileges required')
+    const { redirectInsufficientRole } = await import('./unauthorized-redirect')
+    redirectInsufficientRole(redirectPath)
   }
 }
 
 /**
  * Server action wrapper that requires manager or higher role
  */
-export async function requireManagerOrHigher(): Promise<void> {
+export async function requireManagerOrHigher(redirectPath?: string): Promise<void> {
   const session = await auth()
   
   if (!session?.user?.id) {
-    throw new Error('Authentication required')
+    const { redirectAuthenticationRequired } = await import('./unauthorized-redirect')
+    redirectAuthenticationRequired(redirectPath)
   }
   
   if (!isManagerOrHigher(session.user.role)) {
-    throw new Error('Manager privileges or higher required')
+    const { redirectInsufficientRole } = await import('./unauthorized-redirect')
+    redirectInsufficientRole(redirectPath)
   }
 }
 

@@ -8,6 +8,7 @@ import User from "./lib/db/models/user.model";
 
 import NextAuth, { type DefaultSession } from "next-auth";
 import authConfig from "./auth.config";
+import { isSellerOrHigher } from "./lib/rbac-utils";
 
 declare module "next-auth" {
   interface Session {
@@ -15,6 +16,21 @@ declare module "next-auth" {
       role: string;
     } & DefaultSession["user"];
   }
+}
+
+// Helper function to determine redirect URL based on user role
+function getRoleBasedRedirectUrl(role: string, callbackUrl?: string): string {
+  // If there's a specific callback URL, use it
+  if (callbackUrl && callbackUrl !== "/") {
+    return callbackUrl;
+  }
+  
+  // Role-based default redirects
+  if (isSellerOrHigher(role)) {
+    return "/admin";
+  }
+  
+  return "/"; // Regular users go to home page
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
@@ -124,6 +140,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       session.user.id = token.sub as string;
       session.user.role = token.role as string;
       session.user.name = token.name as string;
+      
+      // Add role-based redirect URL for client-side use
+      (session as any).redirectUrl = getRoleBasedRedirectUrl(token.role as string);
+      
       return session;
     },
   },

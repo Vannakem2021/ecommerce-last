@@ -10,6 +10,7 @@ import CredentialsSignInForm from './credentials-signin-form'
 import { GoogleSignInForm } from './google-signin-form'
 import { Button } from '@/components/ui/button'
 import { getSetting } from '@/lib/actions/setting.actions'
+import { getRoleBasedRedirectUrl } from '@/lib/auth-redirect'
 
 export const metadata: Metadata = {
   title: 'Sign In',
@@ -27,7 +28,9 @@ export default async function SignInPage(props: {
 
   const session = await auth()
   if (session) {
-    return redirect(callbackUrl)
+    // Use role-based redirect if user is already authenticated
+    const redirectUrl = getRoleBasedRedirectUrl(session.user.role, callbackUrl)
+    return redirect(redirectUrl)
   }
 
   return (

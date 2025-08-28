@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/sheet'
 import { auth } from '@/auth'
 import { hasPermission } from '@/lib/rbac-utils'
-import { notFound } from 'next/navigation'
+import { redirectInsufficientRole, redirectAuthenticationRequired } from '@/lib/unauthorized-redirect'
 import Script from 'next/script'
 
 export default async function AdminLayout({
@@ -23,9 +23,14 @@ export default async function AdminLayout({
 }) {
   const session = await auth()
 
+  // Check if user is authenticated
+  if (!session?.user?.id) {
+    redirectAuthenticationRequired('/admin')
+  }
+
   // Basic admin access check - more specific checks are done in individual pages
-  if (!session?.user?.role || !hasPermission(session.user.role, 'reports.read')) {
-    notFound()
+  if (!session.user.role || !hasPermission(session.user.role, 'reports.read')) {
+    redirectInsufficientRole('/admin')
   }
 
   const { site } = await getSetting()

@@ -42,7 +42,7 @@ const users: IUserInput[] = [
   {
     name: "Jack",
     email: "jack@example.com",
-    password: bcrypt.hashSync("123456", 5),
+    password: bcrypt.hashSync("123456NN@#s", 5),
     role: "seller",
     address: {
       fullName: "Jack Ryan",
