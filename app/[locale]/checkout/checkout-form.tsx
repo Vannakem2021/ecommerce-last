@@ -30,7 +30,7 @@ import CheckoutFooter from "./checkout-footer";
 import { ShippingAddress } from "@/types";
 import useIsMounted from "@/hooks/use-is-mounted";
 import Link from "next/link";
-import useCartStore from "@/hooks/use-cart-store";
+import useUserCart from "@/hooks/use-user-cart";
 import useSettingStore from "@/hooks/use-setting-store";
 import ProductPrice from "@/components/shared/product/product-price";
 import CouponInput from "@/components/shared/promotion/coupon-input";
@@ -106,7 +106,7 @@ const CheckoutForm = () => {
     removeItem,
     clearCart,
     setDeliveryDateIndex,
-  } = useCartStore();
+  } = useUserCart();
   const isMounted = useIsMounted();
 
   const shippingAddressForm = useForm<ShippingAddress>({

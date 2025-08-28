@@ -1,4 +1,4 @@
-import useCartStore from '@/hooks/use-cart-store'
+import useUserCart from '@/hooks/use-user-cart'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import React from 'react'
@@ -24,7 +24,7 @@ export default function CartSidebar() {
     cart: { items, itemsPrice },
     updateItem,
     removeItem,
-  } = useCartStore()
+  } = useUserCart()
   const {
     setting: {
       common: { freeShippingMinPrice },

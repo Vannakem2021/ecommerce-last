@@ -3,7 +3,7 @@
 import { Tag, Truck } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import useCartStore from '@/hooks/use-cart-store'
+import useUserCart from '@/hooks/use-user-cart'
 
 interface DiscountSummaryProps {
   showDetails?: boolean
@@ -14,7 +14,7 @@ export default function DiscountSummary({
   showDetails = true, 
   className = '' 
 }: DiscountSummaryProps) {
-  const { cart } = useCartStore()
+  const { cart } = useUserCart()
 
   if (!cart.appliedPromotion || !cart.discountAmount) {
     return null

@@ -5,7 +5,7 @@ import Link from 'next/link'
 import useIsMounted from '@/hooks/use-is-mounted'
 import useShowSidebar from '@/hooks/use-cart-sidebar'
 import { cn } from '@/lib/utils'
-import useCartStore from '@/hooks/use-cart-store'
+import useUserCart from '@/hooks/use-user-cart'
 import { useLocale, useTranslations } from 'next-intl'
 import { getDirection } from '@/i18n-config'
 
@@ -13,7 +13,7 @@ export default function CartButton() {
   const isMounted = useIsMounted()
   const {
     cart: { items },
-  } = useCartStore()
+  } = useUserCart()
   const cartItemsCount = items.reduce((a, c) => a + c.quantity, 0)
   const showSidebar = useShowSidebar()
   const t = useTranslations()

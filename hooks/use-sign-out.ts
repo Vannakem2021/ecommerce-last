@@ -37,6 +37,9 @@ export function useSignOut() {
         localStorage.removeItem('nextauth.session-token')
         sessionStorage.clear()
         
+        // Clear cart data from localStorage to prevent cross-session persistence
+        localStorage.removeItem('cart-store')
+        
         // Force cookies to be cleared by setting them with past expiration
         const cookieName = process.env.NODE_ENV === 'production' 
           ? '__Secure-authjs.session-token' 

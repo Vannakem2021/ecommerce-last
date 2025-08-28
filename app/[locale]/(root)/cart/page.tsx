@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import useCartStore from '@/hooks/use-cart-store'
+import useUserCart from '@/hooks/use-user-cart'
 import useSettingStore from '@/hooks/use-setting-store'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
@@ -25,7 +25,7 @@ export default function CartPage() {
     cart: { items, itemsPrice, totalPrice, discountAmount },
     updateItem,
     removeItem,
-  } = useCartStore()
+  } = useUserCart()
   const router = useRouter()
   const {
     setting: {

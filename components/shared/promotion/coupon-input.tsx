@@ -8,12 +8,12 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/hooks/use-toast'
-import useCartStore from '@/hooks/use-cart-store'
+import useUserCart from '@/hooks/use-user-cart'
 import { useSession } from 'next-auth/react'
 
 export default function CouponInput() {
   const { data: session } = useSession()
-  const { cart, applyPromotion, removePromotion } = useCartStore()
+  const { cart, applyPromotion, removePromotion } = useUserCart()
   const { toast } = useToast()
   const [couponCode, setCouponCode] = useState('')
   const [isPending, startTransition] = useTransition()

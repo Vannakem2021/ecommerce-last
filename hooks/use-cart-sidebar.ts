@@ -1,6 +1,6 @@
 import { usePathname } from 'next/navigation'
 import useDeviceType from './use-device-type'
-import useCartStore from './use-cart-store'
+import useUserCart from './use-user-cart'
 import { i18n } from '@/i18n-config'
 
 const locales = i18n.locales
@@ -16,7 +16,7 @@ const isNotInPaths = (s: string) => {
 function useCartSidebar() {
   const {
     cart: { items },
-  } = useCartStore()
+  } = useUserCart()
   const deviceType = useDeviceType()
   const currentPath = usePathname()
 

@@ -20,6 +20,7 @@ const initialState: Cart = {
 
 interface CartState {
   cart: Cart
+  currentUserId: string | null
   addItem: (item: OrderItem, quantity: number) => Promise<string>
   updateItem: (item: OrderItem, quantity: number) => Promise<void>
   removeItem: (item: OrderItem) => void
@@ -29,12 +30,14 @@ interface CartState {
   setDeliveryDateIndex: (index: number) => Promise<void>
   applyPromotion: (code: string, userId?: string) => Promise<PromotionValidationResult>
   removePromotion: () => Promise<void>
+  initializeForUser: (userId: string | null) => void
 }
 
 const useCartStore = create(
   persist<CartState>(
     (set, get) => ({
       cart: initialState,
+      currentUserId: null,
 
       addItem: async (item: OrderItem, quantity: number) => {
         const { items, shippingAddress } = get().cart
@@ -261,6 +264,18 @@ const useCartStore = create(
             ...priceCalculation,
           },
         })
+      },
+
+      initializeForUser: (userId: string | null) => {
+        const currentUserId = get().currentUserId
+        
+        // If user changed or signed out, clear cart and reset to initial state
+        if (currentUserId !== userId) {
+          set({ 
+            cart: initialState,
+            currentUserId: userId
+          })
+        }
       },
 
       init: () => set({ cart: initialState }),
