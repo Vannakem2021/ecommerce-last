@@ -19,13 +19,19 @@ export default function useBrowsingHistory() {
     products,
     addItem: (product: { id: string; category: string }) => {
       const index = products.findIndex((p) => p.id === product.id)
-      if (index !== -1) products.splice(index, 1) // Remove duplicate if it exists
-      products.unshift(product) // Add id to the start
+      
+      // If product is already at the top, don't update
+      if (index === 0) return
+      
+      const newProducts = [...products]
+      
+      if (index !== -1) newProducts.splice(index, 1) // Remove duplicate if it exists
+      newProducts.unshift(product) // Add id to the start
 
-      if (products.length > 10) products.pop() // Remove excess items if length exceeds 10
+      if (newProducts.length > 10) newProducts.pop() // Remove excess items if length exceeds 10
 
       browsingHistoryStore.setState({
-        products,
+        products: newProducts,
       })
     },
 

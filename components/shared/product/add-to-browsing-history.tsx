@@ -12,7 +12,6 @@ export default function AddToBrowsingHistory({
   const { addItem } = useBrowsingHistory()
   useEffect(() => {
     addItem({ id, category })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [id, category, addItem])
   return null
 }

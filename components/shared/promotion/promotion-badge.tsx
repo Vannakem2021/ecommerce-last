@@ -6,6 +6,14 @@ import { Badge } from '@/components/ui/badge'
 import { getActivePromotions } from '@/lib/actions/promotion.actions'
 import { IPromotionDetails } from '@/types'
 
+// Global cache for promotions with expiry
+let promotionCache: {
+  data: IPromotionDetails[]
+  timestamp: number
+} | null = null
+
+const CACHE_DURATION = 60000 // 1 minute cache
+
 interface PromotionBadgeProps {
   productId?: string
   categoryId?: string
@@ -28,7 +36,20 @@ export default function PromotionBadge({
 
   const loadApplicablePromotions = async () => {
     try {
-      const activePromotions = await getActivePromotions()
+      let activePromotions: IPromotionDetails[]
+
+      // Check cache first
+      const now = Date.now()
+      if (promotionCache && (now - promotionCache.timestamp) < CACHE_DURATION) {
+        activePromotions = promotionCache.data
+      } else {
+        // Fetch from server and cache
+        activePromotions = await getActivePromotions()
+        promotionCache = {
+          data: activePromotions,
+          timestamp: now
+        }
+      }
       
       const applicable = activePromotions.filter(promotion => {
         // Site-wide promotions

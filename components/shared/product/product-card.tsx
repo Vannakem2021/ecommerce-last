@@ -44,14 +44,14 @@ const ProductCard = ({
           </div>
         )}
 
-        {/* Promotion Badge */}
-        <div className='absolute top-2 left-2 z-10'>
+        {/* Promotion Badge - Disabled in product cards to reduce server action calls */}
+        {/* <div className='absolute top-2 left-2 z-10'>
           <PromotionBadge
             productId={product._id}
             categoryId={typeof product.category === 'object' ? product.category._id : product.category}
             size='sm'
           />
-        </div>
+        </div> */}
       </div>
     </Link>
   )
