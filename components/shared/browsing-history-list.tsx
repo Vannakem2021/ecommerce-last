@@ -45,18 +45,38 @@ function ProductList({
 }) {
   const { products } = useBrowsingHistory()
   const [data, setData] = React.useState([])
+  const [loading, setLoading] = React.useState(false)
+  const [lastFetchKey, setLastFetchKey] = React.useState('')
+
   useEffect(() => {
+    if (products.length === 0) {
+      setData([])
+      return
+    }
+
+    const categories = products.map((product) => product.category).join(',')
+    const ids = products.map((product) => product.id).join(',')
+    const fetchKey = `${type}-${excludeId}-${categories}-${ids}`
+    
+    if (fetchKey === lastFetchKey || loading) return
+
     const fetchProducts = async () => {
-      const res = await fetch(
-        `/api/products/browsing-history?type=${type}&excludeId=${excludeId}&categories=${products
-          .map((product) => product.category)
-          .join(',')}&ids=${products.map((product) => product.id).join(',')}`
-      )
-      const data = await res.json()
-      setData(data)
+      setLoading(true)
+      try {
+        const res = await fetch(
+          `/api/products/browsing-history?type=${type}&excludeId=${excludeId}&categories=${categories}&ids=${ids}`
+        )
+        const data = await res.json()
+        setData(data)
+        setLastFetchKey(fetchKey)
+      } catch (error) {
+        console.error('Failed to fetch browsing history:', error)
+      } finally {
+        setLoading(false)
+      }
     }
     fetchProducts()
-  }, [excludeId, products, type])
+  }, [excludeId, products, type, lastFetchKey, loading])
 
   return (
     data.length > 0 && (

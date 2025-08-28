@@ -77,6 +77,7 @@ export default function ReviewList({
       const res = await getReviews({ productId: product._id, page: 1 })
       setReviews([...res.data])
       setTotalPages(res.totalPages)
+      setPage(2)
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       toast({
@@ -97,20 +98,23 @@ export default function ReviewList({
   }
 
   const [loadingReviews, setLoadingReviews] = useState(false)
+  const [hasLoadedInitialReviews, setHasLoadedInitialReviews] = useState(false)
+  
   useEffect(() => {
     const loadReviews = async () => {
+      if (hasLoadedInitialReviews) return
       setLoadingReviews(true)
+      setHasLoadedInitialReviews(true)
       const res = await getReviews({ productId: product._id, page: 1 })
       setReviews([...res.data])
       setTotalPages(res.totalPages)
       setLoadingReviews(false)
     }
 
-    if (inView) {
+    if (inView && !hasLoadedInitialReviews) {
       loadReviews()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inView])
+  }, [inView, product._id, hasLoadedInitialReviews])
 
   type CustomerReview = z.infer<typeof ReviewInputSchema>
   const form = useForm<CustomerReview>({
