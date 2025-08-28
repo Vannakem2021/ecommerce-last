@@ -9,11 +9,11 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { SignOut } from '@/lib/actions/user.actions'
 import { cn } from '@/lib/utils'
 import { ChevronDownIcon } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
+import UserSignOutButton from './user-sign-out-button'
 
 export default async function UserButton() {
   const t = await getTranslations()
@@ -60,14 +60,9 @@ export default async function UserButton() {
               )}
             </DropdownMenuGroup>
             <DropdownMenuItem className='p-0 mb-1'>
-              <form action={SignOut} className='w-full'>
-                <Button
-                  className='w-full py-4 px-2 h-4 justify-start'
-                  variant='ghost'
-                >
-                  {t('Header.Sign out')}
-                </Button>
-              </form>
+              <UserSignOutButton className='w-full py-4 px-2 h-4 justify-start'>
+                {t('Header.Sign out')}
+              </UserSignOutButton>
             </DropdownMenuItem>
           </DropdownMenuContent>
         ) : (
