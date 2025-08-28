@@ -69,7 +69,7 @@ const productSchema = new Schema<IProduct>(
       type: Number,
       required: true,
     },
-    tags: { type: [String], default: ['new arrival'] },
+    tags: { type: [String], default: ['new-arrival'] },
     colors: { type: [String], default: ['White', 'Red', 'Black'] },
     sizes: { type: [String], default: ['S', 'M', 'L'] },
     avgRating: {
