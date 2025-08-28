@@ -1,4 +1,4 @@
-import { Manrope } from "next/font/google";
+import { Albert_Sans } from "next/font/google";
 import "../globals.css";
 import ClientProviders from "@/components/shared/client-providers";
 import { getDirection } from "@/i18n-config";
@@ -11,7 +11,7 @@ import { cookies } from "next/headers";
 import { SessionProvider } from "next-auth/react";
 import { auth } from "@/auth";
 
-const manrope = Manrope({
+const albertsans = Albert_Sans({
   variable: "--font-manrope",
   subsets: ["latin"],
   display: "swap",
@@ -60,7 +60,7 @@ export default async function AppLayout({
       suppressHydrationWarning
     >
       <body
-        className={`min-h-screen ${manrope.variable} antialiased font-manrope`}
+        className={`min-h-screen ${albertsans.variable} antialiased font-manrope`}
       >
         <NextIntlClientProvider locale={locale} messages={messages}>
           <SessionProvider session={session}>

@@ -81,6 +81,25 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
+    // Handle role-based redirects after sign-in
+    redirect: async ({ url, baseUrl }) => {
+      // If the URL is already absolute and not from our domain, allow it
+      if (url.startsWith("http") && !url.startsWith(baseUrl)) {
+        return url;
+      }
+
+      // Parse the callback URL from query parameters
+      const urlObj = new URL(url.startsWith("http") ? url : `${baseUrl}${url}`);
+      const callbackUrl = urlObj.searchParams.get("callbackUrl");
+
+      // If there's a specific callback URL, use it
+      if (callbackUrl && callbackUrl !== "/") {
+        return callbackUrl.startsWith("http") ? callbackUrl : `${baseUrl}${callbackUrl}`;
+      }
+
+      // Default redirect to home page
+      return baseUrl;
+    },
     jwt: async ({ token, user, trigger, session }) => {
       // Handle new user sign-in
       if (user) {

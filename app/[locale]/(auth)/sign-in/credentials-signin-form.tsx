@@ -16,11 +16,13 @@ import {
 import { useForm } from 'react-hook-form'
 import { IUserSignIn } from '@/types'
 import { signInWithCredentials } from '@/lib/actions/user.actions'
+import { getPostLoginRedirectUrl } from '@/lib/auth-utils'
 
 import { toast } from '@/hooks/use-toast'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { UserSignInSchema } from '@/lib/validator'
 import { isRedirectError } from 'next/dist/client/components/redirect-error'
+import { signIn } from 'next-auth/react'
 
 const signInDefaultValues = {
   email: '',
@@ -43,11 +45,32 @@ export default function CredentialsSignInForm() {
 
   const onSubmit = async (data: IUserSignIn) => {
     try {
-      await signInWithCredentials({
+      const result = await signIn('credentials', {
         email: data.email,
         password: data.password,
+        redirect: false,
       })
-      redirect(callbackUrl)
+
+      if (result?.error) {
+        toast({
+          title: 'Error',
+          description: 'Invalid email or password',
+          variant: 'destructive',
+        })
+        return
+      }
+
+      // Wait a moment for session to be updated, then get user session to determine role-based redirect
+      await new Promise(resolve => setTimeout(resolve, 100))
+      const response = await fetch('/api/auth/session')
+      const session = await response.json()
+
+      if (session?.user?.role) {
+        const redirectUrl = getPostLoginRedirectUrl(session.user.role, callbackUrl)
+        redirect(redirectUrl)
+      } else {
+        redirect(callbackUrl)
+      }
     } catch (error) {
       if (isRedirectError(error)) {
         throw error

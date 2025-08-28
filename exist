@@ -1,0 +1,21 @@
+  cleanup[m
+  feature/dialy-monthly-report[m
+  feature/order-invoice[m
+  feature/promotion[m
+  feature/telegram-noti[m
+  improvement/authentication[m
+* [32mmain[m
+  refactor/brand-category[m
+  refactor/fix-improve-ui[m
+  refactor/remove-stripe-paypal[m
+  [31mremotes/origin/HEAD[m -> origin/main
+  [31mremotes/origin/cleanup[m
+  [31mremotes/origin/feature/aba-pay[m
+  [31mremotes/origin/feature/order-invoice[m
+  [31mremotes/origin/feature/promotion[m
+  [31mremotes/origin/feature/telegram-noti[m
+  [31mremotes/origin/improvement/authentication[m
+  [31mremotes/origin/main[m
+  [31mremotes/origin/refactor/brand-category[m
+  [31mremotes/origin/refactor/fix-improve-ui[m
+  [31mremotes/origin/refactor/remove-stripe-paypal[m

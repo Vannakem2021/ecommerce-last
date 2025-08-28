@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 
 import { auth } from '@/auth'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { getPostLoginRedirectUrl } from '@/lib/auth-utils'
 
 import SignUpForm from './signup-form'
 
@@ -21,7 +22,9 @@ export default async function SignUpPage(props: {
 
   const session = await auth()
   if (session) {
-    return redirect(callbackUrl || '/')
+    // Use role-based redirect for existing sessions
+    const redirectUrl = getPostLoginRedirectUrl(session.user.role, callbackUrl || '/')
+    return redirect(redirectUrl)
   }
 
   return (

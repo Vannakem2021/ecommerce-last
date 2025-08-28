@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { auth } from '@/auth'
 import SeparatorWithOr from '@/components/shared/separator-or'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { getPostLoginRedirectUrl } from '@/lib/auth-utils'
 
 import CredentialsSignInForm from './credentials-signin-form'
 import { GoogleSignInForm } from './google-signin-form'
@@ -27,7 +28,9 @@ export default async function SignInPage(props: {
 
   const session = await auth()
   if (session) {
-    return redirect(callbackUrl)
+    // Use role-based redirect for existing sessions
+    const redirectUrl = getPostLoginRedirectUrl(session.user.role, callbackUrl)
+    return redirect(redirectUrl)
   }
 
   return (

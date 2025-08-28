@@ -15,12 +15,14 @@ import {
 } from '@/components/ui/form'
 import { useForm } from 'react-hook-form'
 import { IUserSignUp } from '@/types'
-import { registerUser, signInWithCredentials } from '@/lib/actions/user.actions'
+import { registerUser } from '@/lib/actions/user.actions'
+import { getPostLoginRedirectUrl } from '@/lib/auth-utils'
 import { toast } from '@/hooks/use-toast'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { UserSignUpSchema } from '@/lib/validator'
 import { Separator } from '@/components/ui/separator'
 import { isRedirectError } from 'next/dist/client/components/redirect-error'
+import { signIn } from 'next-auth/react'
 
 const signUpDefaultValues =
   process.env.NODE_ENV === 'development'
@@ -62,18 +64,40 @@ export default function CredentialsSignInForm() {
         })
         return
       }
-      await signInWithCredentials({
+
+      // Sign in the newly registered user
+      const result = await signIn('credentials', {
         email: data.email,
         password: data.password,
+        redirect: false,
       })
-      redirect(callbackUrl)
+
+      if (result?.error) {
+        toast({
+          title: 'Error',
+          description: 'Registration successful but sign-in failed. Please try signing in manually.',
+          variant: 'destructive',
+        })
+        return
+      }
+
+      // Get user session to determine role-based redirect
+      const response = await fetch('/api/auth/session')
+      const session = await response.json()
+
+      if (session?.user?.role) {
+        const redirectUrl = getPostLoginRedirectUrl(session.user.role, callbackUrl)
+        redirect(redirectUrl)
+      } else {
+        redirect(callbackUrl)
+      }
     } catch (error) {
       if (isRedirectError(error)) {
         throw error
       }
       toast({
         title: 'Error',
-        description: 'Invalid email or password',
+        description: 'Registration failed. Please try again.',
         variant: 'destructive',
       })
     }

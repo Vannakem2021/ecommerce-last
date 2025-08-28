@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/sheet'
 import { auth } from '@/auth'
 import { hasPermission } from '@/lib/rbac-utils'
-import { notFound } from 'next/navigation'
+import { redirect } from 'next/navigation'
 import Script from 'next/script'
 
 export default async function AdminLayout({
@@ -24,8 +24,10 @@ export default async function AdminLayout({
   const session = await auth()
 
   // Basic admin access check - more specific checks are done in individual pages
-  if (!session?.user?.role || !hasPermission(session.user.role, 'reports.read')) {
-    notFound()
+  // Allow admin, manager, and seller roles to access admin area
+  const allowedRoles = ['admin', 'manager', 'seller']
+  if (!session?.user?.role || !allowedRoles.includes(session.user.role.toLowerCase())) {
+    redirect('/unauthorized')
   }
 
   const { site } = await getSetting()

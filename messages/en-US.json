@@ -183,6 +183,13 @@
     "Try again": "Try again",
     "Back To Home": "Back To Home"
   },
+  "Unauthorized": {
+    "Access Denied": "Access Denied",
+    "Insufficient Permissions": "You don't have permission to access this resource.",
+    "Contact Admin": "If you believe this is an error, please contact your administrator.",
+    "Back To Home": "Back To Home",
+    "Sign In": "Sign In"
+  },
   "Admin": {
     "Deleted User": "Deleted User",
     "Overview": "Overview",

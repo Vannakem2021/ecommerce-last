@@ -15,6 +15,7 @@ const publicPages = [
   '/cart/(.*)',
   '/product/(.*)',
   '/page/(.*)',
+  '/unauthorized',
 ]
 
 const intlMiddleware = createMiddleware(routing)
@@ -41,6 +42,17 @@ export default auth((req) => {
       )
       return Response.redirect(newUrl)
     } else {
+      // Check permissions for admin routes - simplified check for edge runtime compatibility
+      if (req.nextUrl.pathname.includes('/admin')) {
+        const userRole = req.auth.user?.role
+        // Allow admin, manager, and seller roles to access admin area
+        const allowedRoles = ['admin', 'manager', 'seller']
+        if (!userRole || !allowedRoles.includes(userRole.toLowerCase())) {
+          const newUrl = new URL('/unauthorized', req.nextUrl.origin)
+          return Response.redirect(newUrl)
+        }
+      }
+
       return intlMiddleware(req)
     }
   }
