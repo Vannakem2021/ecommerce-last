@@ -241,8 +241,14 @@ export const SignInWithGoogle = async () => {
   await signIn("google");
 };
 export const SignOut = async () => {
-  const redirectTo = await signOut({ redirect: false });
-  redirect(redirectTo.redirect);
+  // Use NextAuth v5 signOut with proper URL handling
+  const result = await signOut({ 
+    redirect: false,
+    callbackUrl: "/" // Specify the redirect URL
+  });
+  
+  // In NextAuth v5, signOut with redirect: false returns { url: string }
+  redirect(result.url);
 };
 
 // PASSWORD RESET FUNCTIONS

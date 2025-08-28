@@ -34,16 +34,20 @@ export function useAuthSession(): AuthSessionState {
   }, [update])
 
   // Auto-refresh session on mount to ensure sync
+  // Reduced aggressiveness to prevent interference with sign-out
   useEffect(() => {
     if (status === 'loading') return
     
-    // Small delay to ensure SessionProvider is fully initialized
-    const timer = setTimeout(() => {
-      refresh()
-    }, 100)
+    // Only auto-refresh if we have an authenticated session
+    // This prevents interference with the sign-out process
+    if (status === 'authenticated' && !session) {
+      const timer = setTimeout(() => {
+        refresh()
+      }, 500) // Increased delay to reduce race conditions
 
-    return () => clearTimeout(timer)
-  }, [status, refresh])
+      return () => clearTimeout(timer)
+    }
+  }, [status, session, refresh])
 
   return {
     session,

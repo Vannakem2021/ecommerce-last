@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import useCartStore from '@/hooks/use-cart-store'
+import useUserCart from '@/hooks/use-user-cart'
 import { useToast } from '@/hooks/use-toast'
 import { OrderItem } from '@/types'
 import { useTranslations } from 'next-intl'
@@ -26,7 +26,7 @@ export default function AddToCart({
   const router = useRouter()
   const { toast } = useToast()
 
-  const { addItem } = useCartStore()
+  const { addItem } = useUserCart()
 
   //PROMPT: add quantity state
   const [quantity, setQuantity] = useState(1)
