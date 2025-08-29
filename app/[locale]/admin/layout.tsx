@@ -66,7 +66,7 @@ export default async function AdminLayout({
 
               <Link href='/'>
                 <Image
-                  src='/icons/logo.svg'
+                  src={site.logo}
                   width={48}
                   height={48}
                   alt={`${site.name} logo`}

@@ -236,9 +236,12 @@ export async function getAllOrders({
     .skip(skipAmount)
     .limit(limit)
   const ordersCount = await Order.countDocuments()
+  const paidOrdersCount = await Order.countDocuments({ isPaid: true })
   return {
     data: JSON.parse(JSON.stringify(orders)) as IOrderList[],
     totalPages: Math.ceil(ordersCount / limit),
+    totalOrders: ordersCount,
+    totalPaidOrders: paidOrdersCount,
   }
 }
 export async function getMyOrders({

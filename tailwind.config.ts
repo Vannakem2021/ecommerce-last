@@ -11,7 +11,9 @@ const config: Config = withUt({
   theme: {
     extend: {
       fontFamily: {
+        sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
         manrope: ['var(--font-manrope)', 'sans-serif'],
+        hanuman: ['var(--font-hanuman)', 'serif'],
       },
       colors: {
         background: 'hsl(var(--background))',
