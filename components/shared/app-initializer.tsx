@@ -12,12 +12,16 @@ export default function AppInitializer({
   const [rendered, setRendered] = useState(false)
 
   useEffect(() => {
-    setRendered(true)
-  }, [setting])
-  if (!rendered) {
+    // Initialize the setting store when component mounts or setting changes
     useSettingStore.setState({
       setting,
     })
+    setRendered(true)
+  }, [setting])
+
+  // Don't render children until the store is initialized
+  if (!rendered) {
+    return null
   }
 
   return children

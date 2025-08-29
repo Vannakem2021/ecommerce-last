@@ -78,7 +78,7 @@ const ProductPrice = ({
   ) : (
     <div className=''>
       <div className='flex justify-center gap-3'>
-        <div className='text-3xl text-orange-700'>-{discountPercent}%</div>
+        <div className='text-3xl text-orange-700 dark:text-orange-400'>-{discountPercent}%</div>
         <div className={cn('text-3xl', className)}>
           <span className='text-xs align-super'>{currency.symbol}</span>
           {intValue}

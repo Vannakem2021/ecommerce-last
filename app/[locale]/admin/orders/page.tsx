@@ -41,17 +41,14 @@ export default async function OrdersPage(props: {
     page: Number(page),
   })
 
-  // Calculate invoice statistics
-  const paidOrdersCount = orders.data.filter(order => order.isPaid).length
-
   return (
     <div className='space-y-4'>
       <h1 className='h1-bold'>Orders</h1>
 
       {/* Bulk Invoice Management */}
       <BulkInvoiceActions
-        totalOrders={orders.data.length}
-        paidOrders={paidOrdersCount}
+        totalOrders={orders.totalOrders}
+        paidOrders={orders.totalPaidOrders}
       />
       <div className='overflow-x-auto'>
         <Table>

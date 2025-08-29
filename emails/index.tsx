@@ -4,6 +4,7 @@ import { IOrder } from '@/lib/db/models/order.model'
 import AskReviewOrderItemsEmail from './ask-review-order-items'
 import PasswordResetEmail from './password-reset'
 import { SENDER_EMAIL, SENDER_NAME } from '@/lib/constants'
+import { getSetting } from '@/lib/actions/setting.actions'
 
 const resend = new Resend(process.env.RESEND_API_KEY as string)
 
@@ -37,11 +38,19 @@ export const sendPasswordResetEmail = async ({
   userEmail: string
   userName?: string
 }) => {
+  const { site } = await getSetting()
+
   const { data, error } = await resend.emails.send({
     from: `${SENDER_NAME} <${SENDER_EMAIL}>`,
     to: [userEmail],
-    subject: 'Reset your password - BCS',
-    react: <PasswordResetEmail resetToken={resetToken} userEmail={userEmail} userName={userName} />,
+    subject: `Reset your password - ${site.name}`,
+    react: <PasswordResetEmail
+      resetToken={resetToken}
+      userEmail={userEmail}
+      userName={userName}
+      siteName={site.name}
+      siteLogo={site.logo}
+    />,
   })
 
   if (error) {

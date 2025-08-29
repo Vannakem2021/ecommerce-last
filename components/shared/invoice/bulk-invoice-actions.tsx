@@ -4,10 +4,8 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { 
-  FileTextIcon, 
-  DownloadIcon, 
-  MailIcon,
+import {
+  FileTextIcon,
   BarChart3Icon,
   FilterIcon
 } from 'lucide-react'
@@ -50,52 +48,23 @@ export default function BulkInvoiceActions({
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Statistics */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="text-center p-3 bg-gray-50 rounded-lg">
-            <div className="text-2xl font-bold text-gray-900">{totalOrders}</div>
-            <div className="text-sm text-gray-600">Total Orders</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="text-center p-3 bg-card border rounded-lg">
+            <div className="text-2xl font-bold text-foreground">{totalOrders}</div>
+            <div className="text-sm text-muted-foreground">Total Orders</div>
           </div>
-          
-          <div className="text-center p-3 bg-green-50 rounded-lg">
-            <div className="text-2xl font-bold text-green-700">{paidOrders}</div>
-            <div className="text-sm text-gray-600">Invoiceable Orders</div>
-          </div>
-          
-          <div className="text-center p-3 bg-blue-50 rounded-lg">
-            <div className="text-2xl font-bold text-blue-700">
-              {totalOrders > 0 ? Math.round((paidOrders / totalOrders) * 100) : 0}%
-            </div>
-            <div className="text-sm text-gray-600">Payment Rate</div>
+
+          <div className="text-center p-3 bg-card border rounded-lg">
+            <div className="text-2xl font-bold text-foreground">{paidOrders}</div>
+            <div className="text-sm text-muted-foreground">Invoiceable Orders</div>
           </div>
         </div>
 
         {/* Quick Actions */}
         <div className="space-y-3">
           <h4 className="font-semibold text-sm">Quick Actions</h4>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleBulkAction('Export All Invoices')}
-              disabled={isLoading || paidOrders === 0}
-              className="flex items-center gap-2"
-            >
-              <DownloadIcon className="h-4 w-4" />
-              Export All Invoices
-            </Button>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleBulkAction('Email Invoices')}
-              disabled={isLoading || paidOrders === 0}
-              className="flex items-center gap-2"
-            >
-              <MailIcon className="h-4 w-4" />
-              Email to Customers
-            </Button>
-
             <Button
               variant="outline"
               size="sm"

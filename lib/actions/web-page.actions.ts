@@ -20,6 +20,7 @@ export async function createWebPage(data: z.infer<typeof WebPageInputSchema>) {
     await connectToDatabase()
     await WebPage.create(webPage)
     revalidatePath('/admin/web-pages')
+    revalidatePath('/') // Revalidate home page to update navigation
     return {
       success: true,
       message: 'WebPage created successfully',
@@ -39,6 +40,7 @@ export async function updateWebPage(data: z.infer<typeof WebPageUpdateSchema>) {
     await connectToDatabase()
     await WebPage.findByIdAndUpdate(webPage._id, webPage)
     revalidatePath('/admin/web-pages')
+    revalidatePath('/') // Revalidate home page to update navigation
     return {
       success: true,
       message: 'WebPage updated successfully',
@@ -57,6 +59,7 @@ export async function deleteWebPage(id: string) {
     const res = await WebPage.findByIdAndDelete(id)
     if (!res) throw new Error('WebPage not found')
     revalidatePath('/admin/web-pages')
+    revalidatePath('/') // Revalidate home page to update navigation
     return {
       success: true,
       message: 'WebPage deleted successfully',
@@ -84,4 +87,11 @@ export async function getWebPageBySlug(slug: string) {
   const webPage = await WebPage.findOne({ slug, isPublished: true })
   if (!webPage) throw new Error('WebPage not found')
   return JSON.parse(JSON.stringify(webPage)) as IWebPage
+}
+
+// GET PUBLISHED PAGES FOR NAVIGATION
+export async function getPublishedWebPagesForNavigation() {
+  await connectToDatabase()
+  const webPages = await WebPage.find({ isPublished: true }).select('title slug').sort({ title: 1 })
+  return JSON.parse(JSON.stringify(webPages)) as Pick<IWebPage, '_id' | 'title' | 'slug'>[]
 }

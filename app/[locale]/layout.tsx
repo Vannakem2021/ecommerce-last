@@ -1,4 +1,4 @@
-import { Manrope } from "next/font/google";
+import { Manrope, Kantumruy_Pro } from "next/font/google";
 import "../globals.css";
 import ClientProviders from "@/components/shared/client-providers";
 import { getDirection } from "@/i18n-config";
@@ -11,9 +11,17 @@ import { cookies } from "next/headers";
 import { SessionProvider } from "next-auth/react";
 import { auth } from "@/auth";
 
+// Google Fonts setup
 const manrope = Manrope({
   variable: "--font-manrope",
   subsets: ["latin"],
+  display: "swap",
+});
+
+const hanuman = Kantumruy_Pro({
+  variable: "--font-hanuman",
+  subsets: ["khmer"],
+  weight: ["100", "300", "400", "700"],
   display: "swap",
 });
 
@@ -53,6 +61,9 @@ export default async function AppLayout({
   }
   const messages = await getMessages();
 
+  // Determine font based on locale
+  const fontClass = locale === 'kh' ? 'font-hanuman' : 'font-manrope';
+
   return (
     <html
       lang={locale}
@@ -60,7 +71,7 @@ export default async function AppLayout({
       suppressHydrationWarning
     >
       <body
-        className={`min-h-screen ${manrope.variable} antialiased font-manrope`}
+        className={`min-h-screen ${manrope.variable} ${hanuman.variable} antialiased ${fontClass}`}
       >
         <NextIntlClientProvider locale={locale} messages={messages}>
           <SessionProvider session={session}>

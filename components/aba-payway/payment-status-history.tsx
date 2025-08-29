@@ -42,11 +42,11 @@ export function PaymentStatusHistory({
   const getSourceIcon = (source: string) => {
     switch (source) {
       case "callback":
-        return <Smartphone className="h-4 w-4 text-blue-500" />;
+        return <Smartphone className="h-4 w-4 text-blue-600 dark:text-blue-400" />;
       case "manual":
-        return <User className="h-4 w-4 text-purple-500" />;
+        return <User className="h-4 w-4 text-purple-600 dark:text-purple-400" />;
       default:
-        return <Clock className="h-4 w-4 text-gray-500" />;
+        return <Clock className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
@@ -137,7 +137,7 @@ export function PaymentStatusHistory({
     <Card className={className}>
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CollapsibleTrigger asChild>
-          <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors">
+          <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm">
                 Payment Status History ({history.length})
@@ -162,7 +162,7 @@ export function PaymentStatusHistory({
                 return (
                   <div
                     key={index}
-                    className="flex items-start gap-3 p-3 rounded-lg border bg-gray-50/50"
+                    className="flex items-start gap-3 p-3 rounded-lg border bg-muted/30"
                   >
                     {/* Status Icon */}
                     <div className="flex-shrink-0 mt-0.5">
@@ -177,18 +177,18 @@ export function PaymentStatusHistory({
                         >
                           {entry.status}
                         </Badge>
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-muted-foreground">
                           Code: {entry.statusCode}
                         </span>
                       </div>
 
                       {entry.details && (
-                        <p className="text-sm text-gray-700 mb-2">
+                        <p className="text-sm text-foreground mb-2">
                           {entry.details}
                         </p>
                       )}
 
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         {getSourceIcon(entry.source)}
                         <span>{getSourceLabel(entry.source)}</span>
                         <span>•</span>
@@ -203,7 +203,7 @@ export function PaymentStatusHistory({
             </div>
 
             {/* Summary */}
-            <div className="mt-4 pt-3 border-t text-xs text-gray-500">
+            <div className="mt-4 pt-3 border-t text-xs text-muted-foreground">
               <div className="flex items-center justify-between">
                 <span>
                   Latest:{" "}

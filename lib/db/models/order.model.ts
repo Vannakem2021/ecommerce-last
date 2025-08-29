@@ -76,7 +76,6 @@ const orderSchema = new Schema<IOrder>(
     },
     abaTransactionId: { type: String }, // ABA PayWay transaction ID
     abaStatusCode: { type: Number }, // Status code from ABA PayWay (0=success, 1=cancelled, etc.)
-    abaLastStatusCheck: { type: Date }, // Last time we checked status via API
     abaCallbackReceived: { type: Boolean, default: false }, // Whether we received a callback
     abaStatusHistory: [
       {

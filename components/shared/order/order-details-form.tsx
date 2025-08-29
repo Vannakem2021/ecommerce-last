@@ -201,7 +201,7 @@ export default function OrderDetailsForm({
             {isPaid && (
               <div className="border-t pt-4">
                 <h3 className="text-lg font-semibold mb-3">Invoice</h3>
-                <p className="text-sm text-gray-600 mb-3">
+                <p className="text-sm text-muted-foreground mb-3">
                   Download or print your invoice for this order.
                 </p>
                 <InvoiceActions
