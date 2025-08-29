@@ -47,6 +47,51 @@ export function CambodiaAddressForm<T extends FieldValues>({
     return (namePrefix ? `${namePrefix}.${field}` : field) as FieldPath<T>
   }
 
+  // Watch form values to sync with local state
+  const watchedProvinceId = useWatch({
+    control,
+    name: getFieldName('provinceId'),
+  })
+  const watchedDistrictId = useWatch({
+    control,
+    name: getFieldName('districtId'),
+  })
+
+  // Initialize local state from form values and sync when form values change
+  useEffect(() => {
+    if (watchedProvinceId && watchedProvinceId !== selectedProvinceId) {
+      const provinceId = typeof watchedProvinceId === 'string' ? parseInt(watchedProvinceId) : watchedProvinceId
+      setSelectedProvinceId(provinceId)
+      setDistricts(getDistrictsByProvinceId(provinceId).map(d => ({ id: d.id, name: d.location_en })))
+
+      // If district is also set, initialize it
+      if (watchedDistrictId && watchedDistrictId !== selectedDistrictId) {
+        const districtId = typeof watchedDistrictId === 'string' ? parseInt(watchedDistrictId) : watchedDistrictId
+        setSelectedDistrictId(districtId)
+        setCommunes(
+          getCommunesByDistrictId(provinceId, districtId).map(c => ({
+            code: c.code,
+            name: c.en,
+          }))
+        )
+      }
+    }
+  }, [watchedProvinceId, watchedDistrictId, selectedProvinceId, selectedDistrictId])
+
+  // Handle district changes when only district changes (not province)
+  useEffect(() => {
+    if (watchedDistrictId && selectedProvinceId && watchedDistrictId !== selectedDistrictId) {
+      const districtId = typeof watchedDistrictId === 'string' ? parseInt(watchedDistrictId) : watchedDistrictId
+      setSelectedDistrictId(districtId)
+      setCommunes(
+        getCommunesByDistrictId(selectedProvinceId, districtId).map(c => ({
+          code: c.code,
+          name: c.en,
+        }))
+      )
+    }
+  }, [watchedDistrictId, selectedProvinceId, selectedDistrictId])
+
   const handleProvinceChange = (provinceId: string, onChange: (value: any) => void) => {
     const id = parseInt(provinceId)
     setSelectedProvinceId(id)

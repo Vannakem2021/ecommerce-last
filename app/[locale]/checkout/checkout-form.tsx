@@ -20,14 +20,14 @@ import {
 } from "@/lib/utils";
 import { CambodiaAddressSchema } from "@/lib/validator";
 import { CambodiaAddressForm } from "@/components/shared/address/cambodia-address-form";
-import { AddressDisplay } from "@/components/shared/address/address-display";
+import { AddressDisplay, isAddressComplete } from "@/components/shared/address/address-display";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import CheckoutFooter from "./checkout-footer";
-import { ShippingAddress } from "@/types";
+import { ShippingAddress, CambodiaAddress } from "@/types";
 import useIsMounted from "@/hooks/use-is-mounted";
 import Link from "next/link";
 import useUserCart from "@/hooks/use-user-cart";
@@ -35,39 +35,30 @@ import useSettingStore from "@/hooks/use-setting-store";
 import ProductPrice from "@/components/shared/product/product-price";
 import CouponInput from "@/components/shared/promotion/coupon-input";
 import DiscountSummary from "@/components/shared/promotion/discount-summary";
+import { useAuthSession } from "@/hooks/use-auth-session";
+import { IUser } from "@/lib/db/models/user.model";
 
-const shippingAddressDefaultValues =
-  process.env.NODE_ENV === "development"
-    ? {
-        fullName: "Sok Dara",
-        phone: "012345678",
-        provinceId: 12, // Phnom Penh
-        districtId: 3, // Khan Chamkar Mon
-        communeCode: "120101", // Sangkat Tonle Basak
-        houseNumber: "123",
-        street: "Street 271",
-        postalCode: "120101",
-        provinceName: "Phnom Penh Capital",
-        districtName: "Khan Chamkar Mon",
-        communeName: "Sangkat Tonle Basak",
-      }
-    : {
-        fullName: "",
-        phone: "",
-        provinceId: undefined,
-        districtId: undefined,
-        communeCode: "",
-        houseNumber: "",
-        street: "",
-        postalCode: "",
-        provinceName: "",
-        districtName: "",
-        communeName: "",
-      };
+// Clean default values for address form (no pre-fill data)
+const emptyAddressValues = {
+  fullName: "",
+  phone: "",
+  provinceId: undefined,
+  districtId: undefined,
+  communeCode: "",
+  houseNumber: "",
+  street: "",
+  postalCode: "",
+  provinceName: "",
+  districtName: "",
+  communeName: "",
+};
 
 const CheckoutForm = () => {
   const { toast } = useToast();
   const router = useRouter();
+  const { user: sessionUser } = useAuthSession();
+  const [fullUser, setFullUser] = useState<IUser | null>(null);
+  const [userLoading, setUserLoading] = useState(true);
   const {
     setting: {
       site,
@@ -109,33 +100,128 @@ const CheckoutForm = () => {
   } = useUserCart();
   const isMounted = useIsMounted();
 
+  // Fetch full user data when session user is available
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!sessionUser?.id) {
+        setUserLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/user/me');
+        if (!response.ok) {
+          throw new Error('Failed to fetch user data');
+        }
+        const data = await response.json();
+        setFullUser(data.user);
+      } catch (error) {
+        console.error('Failed to fetch user data:', error);
+        setFullUser(null);
+      } finally {
+        setUserLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, [sessionUser?.id]);
+
+  // Check if user has a complete saved address
+  const userHasSavedAddress = fullUser?.address && isAddressComplete(fullUser.address as CambodiaAddress);
+
+  // Also check if there's a complete address in the cart's shipping address
+  const hasCompleteShippingAddress = shippingAddress && isAddressComplete(shippingAddress);
+
+  // Determine the default values for the form
+  const getDefaultAddressValues = () => {
+    // If there's already a shipping address in cart, use it
+    if (shippingAddress) {
+      return shippingAddress;
+    }
+    // If user has a saved address, use it
+    if (userHasSavedAddress) {
+      return fullUser.address as CambodiaAddress;
+    }
+    // Otherwise use empty values
+    return emptyAddressValues;
+  };
+
   const shippingAddressForm = useForm<ShippingAddress>({
     resolver: zodResolver(CambodiaAddressSchema),
-    defaultValues: shippingAddress || shippingAddressDefaultValues,
+    defaultValues: getDefaultAddressValues(),
   });
+
   const onSubmitShippingAddress: SubmitHandler<ShippingAddress> = (values) => {
     setShippingAddress(values);
     setIsAddressSelected(true);
+    setShowAddressForm(false); // Hide form after successful submission
   };
 
+  // Validate if address is complete for order placement
+  const validateAddressForOrder = (): boolean => {
+    if (!shippingAddress) {
+      toast({
+        description: "Please provide a shipping address before placing your order.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    const isComplete = isAddressComplete(shippingAddress);
+    if (!isComplete) {
+      toast({
+        description: "Please complete all required address fields before placing your order.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    return true;
+  };
+
+  // Initialize shipping address from user's saved address if available and no cart address exists
+  useEffect(() => {
+    if (!isMounted || !fullUser || userLoading) return;
+
+    // If cart doesn't have shipping address but user has saved address, use it
+    if (!shippingAddress && userHasSavedAddress) {
+      setShippingAddress(fullUser.address as CambodiaAddress);
+    }
+  }, [isMounted, fullUser, userLoading, shippingAddress, userHasSavedAddress, setShippingAddress]);
+
+  // Update form when shipping address changes
   useEffect(() => {
     if (!isMounted || !shippingAddress) return;
-    shippingAddressForm.setValue("fullName", shippingAddress.fullName);
-    shippingAddressForm.setValue("street", shippingAddress.street);
-    shippingAddressForm.setValue("city", shippingAddress.city);
-    shippingAddressForm.setValue("country", shippingAddress.country);
-    shippingAddressForm.setValue("postalCode", shippingAddress.postalCode);
-    shippingAddressForm.setValue("province", shippingAddress.province);
-    shippingAddressForm.setValue("phone", shippingAddress.phone);
-  }, [items, isMounted, router, shippingAddress, shippingAddressForm]);
 
+    // Reset form with current shipping address
+    shippingAddressForm.reset(shippingAddress);
+  }, [isMounted, shippingAddress, shippingAddressForm]);
+
+  // Initialize address selection state based on whether user has saved address
   const [isAddressSelected, setIsAddressSelected] = useState<boolean>(false);
   const [isPaymentMethodSelected, setIsPaymentMethodSelected] =
     useState<boolean>(false);
   const [isDeliveryDateSelected, setIsDeliveryDateSelected] =
     useState<boolean>(false);
+  const [showAddressForm, setShowAddressForm] = useState<boolean>(false);
+
+  // Initialize address selection state when component mounts
+  useEffect(() => {
+    if ((userHasSavedAddress || hasCompleteShippingAddress) && shippingAddress) {
+      setIsAddressSelected(true);
+    }
+    // Show form immediately for users without saved addresses and no complete shipping address
+    if (!userHasSavedAddress && !hasCompleteShippingAddress) {
+      setShowAddressForm(true);
+    }
+  }, [userHasSavedAddress, hasCompleteShippingAddress, shippingAddress]);
 
   const handlePlaceOrder = async () => {
+    // Validate address before placing order
+    if (!validateAddressForOrder()) {
+      return;
+    }
+
     const res = await createOrder({
       items,
       shippingAddress,
@@ -268,6 +354,20 @@ const CheckoutForm = () => {
     </Card>
   );
 
+  // Show loading state while user data is being fetched
+  if (!isMounted || userLoading) {
+    return (
+      <main className="max-w-6xl mx-auto highlight-link">
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p>Loading checkout...</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="max-w-6xl mx-auto highlight-link">
       <div className="grid md:grid-cols-4 gap-6">
@@ -288,8 +388,9 @@ const CheckoutForm = () => {
                     variant={"outline"}
                     onClick={() => {
                       setIsAddressSelected(false);
-                      setIsPaymentMethodSelected(true);
-                      setIsDeliveryDateSelected(true);
+                      setShowAddressForm(true);
+                      // Reset form to current shipping address for editing
+                      shippingAddressForm.reset(shippingAddress);
                     }}
                   >
                     Change
@@ -300,35 +401,76 @@ const CheckoutForm = () => {
               <>
                 <div className="flex text-primary text-lg font-bold my-2">
                   <span className="w-8">1 </span>
-                  <span>Enter shipping address</span>
+                  <span>
+                    {userHasSavedAddress ? "Confirm shipping address" : "Enter shipping address"}
+                  </span>
                 </div>
-                <Form {...shippingAddressForm}>
-                  <form
-                    method="post"
-                    onSubmit={shippingAddressForm.handleSubmit(
-                      onSubmitShippingAddress
-                    )}
-                    className="space-y-4"
-                  >
-                    <Card className="md:ml-8 my-4">
-                      <CardContent className="p-4 space-y-2">
-                        <div className="text-lg font-bold mb-2">
-                          Your address
-                        </div>
 
-                        <CambodiaAddressForm control={shippingAddressForm.control} setValue={shippingAddressForm.setValue} />
-                      </CardContent>
-                      <CardFooter className="  p-4">
+                {(userHasSavedAddress || hasCompleteShippingAddress) && !showAddressForm ? (
+                  // Show saved address or complete shipping address with option to use it or change it
+                  <Card className="md:ml-8 my-4">
+                    <CardContent className="p-4 space-y-2">
+                      <div className="text-lg font-bold mb-2">
+                        {userHasSavedAddress ? "Your saved address" : "Current shipping address"}
+                      </div>
+                      <AddressDisplay address={(userHasSavedAddress ? fullUser.address : shippingAddress) as CambodiaAddress} />
+                      <div className="flex gap-2 pt-4">
                         <Button
-                          type="submit"
+                          onClick={() => {
+                            const addressToUse = userHasSavedAddress ? fullUser.address : shippingAddress;
+                            setShippingAddress(addressToUse as CambodiaAddress);
+                            setIsAddressSelected(true);
+                          }}
                           className="rounded-full font-bold"
                         >
-                          Ship to this address
+                          Use this address
                         </Button>
-                      </CardFooter>
-                    </Card>
-                  </form>
-                </Form>
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            // Reset form to allow editing and show form
+                            shippingAddressForm.reset(emptyAddressValues);
+                            setShowAddressForm(true);
+                          }}
+                          className="rounded-full"
+                        >
+                          Use different address
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  // Show address form for users without saved address
+                  <Form {...shippingAddressForm}>
+                    <form
+                      method="post"
+                      onSubmit={shippingAddressForm.handleSubmit(
+                        onSubmitShippingAddress
+                      )}
+                      className="space-y-4"
+                    >
+                      <Card className="md:ml-8 my-4">
+                        <CardContent className="p-4 space-y-2">
+                          <div className="text-lg font-bold mb-2">
+                            Your address
+                          </div>
+
+                          <CambodiaAddressForm control={shippingAddressForm.control} setValue={shippingAddressForm.setValue} />
+                        </CardContent>
+                        <CardFooter className="p-4">
+                          <Button
+                            type="submit"
+                            className="rounded-full font-bold"
+                          >
+                            Ship to this address
+                          </Button>
+                        </CardFooter>
+                      </Card>
+                    </form>
+                  </Form>
+                )}
+
+
               </>
             )}
           </div>
