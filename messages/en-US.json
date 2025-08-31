@@ -68,6 +68,7 @@
     "Off": "Off",
     "In Stock": "In Stock",
     "Out of Stock": "Out of Stock",
+    "Only X left in stock - order soon": "Only {count} left in stock - order soon",
     "Add to Cart": "Add to Cart",
     "Quantity": "Quantity",
     "Buy Now": "Buy Now",

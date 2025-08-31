@@ -86,11 +86,18 @@ export default function PromotionForm({
         ? zodResolver(PromotionUpdateSchema)
         : zodResolver(PromotionInputSchema),
     defaultValues:
-      promotion && type === 'Update' 
+      promotion && type === 'Update'
         ? {
             ...promotion,
             startDate: new Date(promotion.startDate),
             endDate: new Date(promotion.endDate),
+            // Transform populated objects back to IDs for form compatibility
+            applicableProducts: Array.isArray(promotion.applicableProducts)
+              ? promotion.applicableProducts.map((p: any) => typeof p === 'string' ? p : p._id)
+              : [],
+            applicableCategories: Array.isArray(promotion.applicableCategories)
+              ? promotion.applicableCategories.map((c: any) => typeof c === 'string' ? c : c._id)
+              : [],
           }
         : promotionDefaultValues,
   })
@@ -461,7 +468,7 @@ export default function PromotionForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Applies To</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder='Select application scope' />

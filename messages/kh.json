@@ -68,6 +68,7 @@
     "Off": "បញ្ចុះតម្លៃ",
     "In Stock": "មានក្នុងស្តុក",
     "Out of Stock": "អស់ពីស្តុក",
+    "Only X left in stock - order soon": "នៅសល់តែ {count} ក្នុងស្តុក - សូមបញ្ជាទិញឆាប់ៗ",
     "Add to Cart": "បន្ថែមទៅកន្ត្រក",
     "Quantity": "បរិមាណ",
     "Buy Now": "ទិញឥឡូវនេះ",
