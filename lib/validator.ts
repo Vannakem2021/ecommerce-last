@@ -683,13 +683,18 @@ export const PromotionInputSchema = z.object({
   if (data.appliesTo === "products" && data.applicableProducts.length === 0) {
     return false;
   }
+  return true;
+}, {
+  message: "Must select at least one product when applying to specific products",
+  path: ["applicableProducts"],
+}).refine((data) => {
   if (data.appliesTo === "categories" && data.applicableCategories.length === 0) {
     return false;
   }
   return true;
 }, {
-  message: "Must select at least one product or category when not applying to all",
-  path: ["applicableProducts"],
+  message: "Must select at least one category when applying to specific categories",
+  path: ["applicableCategories"],
 });
 
 export const PromotionUpdateSchema = PromotionInputSchema.and(z.object({
