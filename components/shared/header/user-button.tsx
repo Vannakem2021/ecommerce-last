@@ -52,6 +52,9 @@ export default async function UserButton() {
               <Link className='w-full' href='/account/orders'>
                 <DropdownMenuItem>{t('Header.Your orders')}</DropdownMenuItem>
               </Link>
+              <Link className='w-full' href='/favorites'>
+                <DropdownMenuItem>{t('Header.Your favorites', { fallback: 'Your favorites' })}</DropdownMenuItem>
+              </Link>
 
               {session.user.role === 'Admin' && (
                 <Link className='w-full' href='/admin/overview'>

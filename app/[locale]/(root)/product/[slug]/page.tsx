@@ -18,6 +18,7 @@ import RatingSummary from '@/components/shared/product/rating-summary'
 import ProductSlider from '@/components/shared/product/product-slider'
 import PromotionBadge from '@/components/shared/promotion/promotion-badge'
 import { getTranslations } from 'next-intl/server'
+import FavoriteButton from '@/components/shared/product/favorite-button'
 
 export async function generateMetadata(props: {
   params: Promise<{ slug: string }>
@@ -71,7 +72,10 @@ export default async function ProductDetails(props: {
               <p className='p-medium-16 rounded-full bg-grey-500/10   text-grey-500'>
                 {t('Product.Brand')} {typeof product.brand === 'object' ? product.brand.name : product.brand} {typeof product.category === 'object' ? product.category.name : product.category}
               </p>
-              <h1 className='font-bold text-lg lg:text-xl'>{product.name}</h1>
+              <div className='flex items-start justify-between gap-2'>
+                <h1 className='font-bold text-lg lg:text-xl'>{product.name}</h1>
+                <FavoriteButton productId={product._id} />
+              </div>
 
               <RatingSummary
                 avgRating={product.avgRating}

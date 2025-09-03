@@ -31,7 +31,8 @@
     "Help": "Help",
     "Site Menu": "Site Menu",
     "Subtotal": "Subtotal",
-    "Go to cart": "Go to cart"
+    "Go to cart": "Go to cart",
+    "Your favorites": "Your favorites"
   },
   "Home": {
     "Categories to explore": "Categories to explore",
@@ -108,7 +109,11 @@
     "Loading": "Loading...",
     "Rating": "Rating",
     "No reviews yet": "No reviews yet",
-    "Submitting": "Submitting..."
+    "Submitting": "Submitting...",
+    "Add to Favorites": "Add to Favorites",
+    "Remove from Favorites": "Remove from Favorites",
+    "Added to Favorites": "Added to Favorites",
+    "Removed from Favorites": "Removed from Favorites"
   },
   "Cart": {
     "Shopping Cart": "Shopping Cart",
@@ -247,5 +252,10 @@
     "Stock Adjustment": "Stock Adjustment",
     "Update Stock": "Update Stock",
     "View History": "View History"
+  }
+  ,
+  "Favorites": {
+    "Your Favorites": "Your Favorites",
+    "No favorites yet": "No favorites yet"
   }
 }

@@ -193,6 +193,16 @@ export const OrderItemSchema = z.object({
   size: z.string().optional(),
   color: z.string().optional(),
 });
+
+// Favorites
+export const FavoriteToggleSchema = z.object({
+  productId: MongoId,
+})
+
+export const FavoriteListQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(50).optional(),
+})
 // Cambodia Address Schema
 export const CambodiaAddressSchema = z.object({
   fullName: z.string().min(1, "Full name is required"),
