@@ -11,6 +11,7 @@ import ProductPrice from './product-price'
 import ImageHover from './image-hover'
 import AddToCart from './add-to-cart'
 import PromotionBadge from '../promotion/promotion-badge'
+import FavoriteButton from './favorite-button'
 
 const ProductCard = ({
   product,
@@ -43,7 +44,9 @@ const ProductCard = ({
             />
           </div>
         )}
-
+        <div className='absolute top-2 right-2 z-10'>
+          <FavoriteButton productId={product._id} />
+        </div>
         {/* Promotion Badge - Disabled in product cards to reduce server action calls */}
         {/* <div className='absolute top-2 left-2 z-10'>
           <PromotionBadge
