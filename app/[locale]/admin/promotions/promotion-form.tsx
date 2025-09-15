@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -37,8 +37,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
 import { 
-  PromotionInputSchema, 
-  PromotionUpdateSchema 
+  PromotionInputSchema
 } from '@/lib/validator'
 import { 
   createPromotion, 
@@ -81,10 +80,7 @@ export default function PromotionForm({
   const [isPending, startTransition] = useTransition()
 
   const form = useForm<IPromotionInput>({
-    resolver:
-      type === 'Update'
-        ? zodResolver(PromotionUpdateSchema)
-        : zodResolver(PromotionInputSchema),
+    resolver: zodResolver(PromotionInputSchema),
     defaultValues:
       promotion && type === 'Update'
         ? {
@@ -104,8 +100,61 @@ export default function PromotionForm({
 
   const watchedType = form.watch('type')
   const watchedAppliesTo = form.watch('appliesTo')
+  const watchedValue = form.watch('value')
+  const watchedStart = form.watch('startDate')
+  const watchedEnd = form.watch('endDate')
+
+  // Keep value aligned with type-specific rules via effects to avoid render-set loops
+  useEffect(() => {
+    if (watchedType === 'free_shipping') {
+      form.setValue('value', 0, { shouldValidate: true })
+    }
+  }, [watchedType])
+  useEffect(() => {
+    if (watchedType === 'percentage' && typeof watchedValue === 'number') {
+      const clamped = Math.max(1, Math.min(100, Math.round(watchedValue)))
+      if (clamped !== watchedValue) {
+        form.setValue('value', clamped, { shouldValidate: true })
+      }
+    }
+  }, [watchedType, watchedValue])
 
   const onSubmit = (data: IPromotionInput) => {
+    // Client-side business checks for better UX before server
+    let hasClientError = false
+    if (!(data.endDate > data.startDate)) {
+      form.setError('endDate' as any, { message: 'End date must be after start date' })
+      hasClientError = true
+    } else if (data.endDate.getTime() - data.startDate.getTime() < 60_000) {
+      form.setError('endDate' as any, { message: 'Promotion period must be at least 1 minute long' })
+      hasClientError = true
+    }
+
+    if (data.type === 'percentage' && (data.value < 1 || data.value > 100)) {
+      form.setError('value' as any, { message: 'Percentage must be between 1 and 100' })
+      hasClientError = true
+    }
+    if (data.type === 'fixed' && data.value <= 0) {
+      form.setError('value' as any, { message: 'Fixed amount must be greater than 0' })
+      hasClientError = true
+    }
+    if (data.type === 'free_shipping' && data.value !== 0) {
+      form.setValue('value', 0)
+    }
+    if (data.appliesTo === 'products' && (!data.applicableProducts || data.applicableProducts.length === 0)) {
+      form.setError('applicableProducts' as any, { message: 'Select at least one product' })
+      hasClientError = true
+    }
+    if (data.appliesTo === 'categories' && (!data.applicableCategories || data.applicableCategories.length === 0)) {
+      form.setError('applicableCategories' as any, { message: 'Select at least one category' })
+      hasClientError = true
+    }
+    if (data.type === 'fixed' && data.minOrderValue > 0 && data.minOrderValue < data.value) {
+      form.setError('minOrderValue' as any, { message: 'Minimum order must be ≥ discount amount' })
+      hasClientError = true
+    }
+    if (hasClientError) return
+
     startTransition(async () => {
       const res =
         type === 'Update'
@@ -236,7 +285,7 @@ export default function PromotionForm({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Discount Type</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder='Select discount type' />
@@ -265,12 +314,16 @@ export default function PromotionForm({
                         <FormControl>
                           <Input
                             type='number'
-                            min={watchedType === 'percentage' ? 1 : 0}
+                            min={watchedType === 'percentage' ? 1 : 0.01}
                             max={watchedType === 'percentage' ? 100 : undefined}
                             step={watchedType === 'percentage' ? 1 : 0.01}
                             placeholder={watchedType === 'percentage' ? '20' : '10.00'}
                             {...field}
-                            onChange={(e) => field.onChange(Number(e.target.value))}
+                            onChange={(e) => {
+                              const num = Number(e.target.value)
+                              if (Number.isNaN(num)) return field.onChange(0)
+                              field.onChange(num)
+                            }}
                           />
                         </FormControl>
                         <FormMessage />

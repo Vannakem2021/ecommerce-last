@@ -637,27 +637,20 @@ export const SettingInputSchema = z.object({
 });
 
 // PROMOTION
-export const PromotionInputSchema = z.object({
+const PromotionBaseSchema = z.object({
   code: z
     .string()
     .min(3, "Code must be at least 3 characters")
     .max(20, "Code must be at most 20 characters")
-    .regex(/^[A-Z0-9_-]+$/, "Code can only contain uppercase letters, numbers, hyphens, and underscores")
+    .regex(
+      /^[A-Z0-9_-]+$/,
+      "Code can only contain uppercase letters, numbers, hyphens, and underscores"
+    )
     .transform((val) => val.toUpperCase()),
   name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
-  type: z.enum(["percentage", "fixed", "free_shipping"], {
-    required_error: "Promotion type is required",
-  }),
-  value: z.coerce
-    .number()
-    .min(0, "Value must be non-negative"),
-  startDate: z.date({
-    required_error: "Start date is required",
-  }),
-  endDate: z.date({
-    required_error: "End date is required",
-  }),
+  startDate: z.date({ required_error: "Start date is required" }),
+  endDate: z.date({ required_error: "End date is required" }),
   active: z.boolean().default(true),
   minOrderValue: z.coerce
     .number()
@@ -673,39 +666,68 @@ export const PromotionInputSchema = z.object({
     .int()
     .min(0, "User usage limit must be non-negative")
     .default(0),
-  appliesTo: z.enum(["all", "products", "categories"], {
-    required_error: "Application scope is required",
-  }).default("all"),
+  appliesTo: z
+    .enum(["all", "products", "categories"], {
+      required_error: "Application scope is required",
+    })
+    .default("all"),
   applicableProducts: z.array(MongoId).default([]),
   applicableCategories: z.array(MongoId).default([]),
-}).refine((data) => data.endDate > data.startDate, {
-  message: "End date must be after start date",
-  path: ["endDate"],
-}).refine((data) => {
-  if (data.type === "percentage" && (data.value < 1 || data.value > 100)) {
-    return false;
-  }
-  return true;
-}, {
-  message: "Percentage must be between 1 and 100",
-  path: ["value"],
-}).refine((data) => {
-  if (data.appliesTo === "products" && data.applicableProducts.length === 0) {
-    return false;
-  }
-  return true;
-}, {
-  message: "Must select at least one product when applying to specific products",
-  path: ["applicableProducts"],
-}).refine((data) => {
-  if (data.appliesTo === "categories" && data.applicableCategories.length === 0) {
-    return false;
-  }
-  return true;
-}, {
-  message: "Must select at least one category when applying to specific categories",
-  path: ["applicableCategories"],
-});
+})
+
+const PercentagePromotionSchema = PromotionBaseSchema.extend({
+  type: z.literal("percentage"),
+  value: z.coerce
+    .number()
+    .int()
+    .min(1, "Percentage must be between 1 and 100")
+    .max(100, "Percentage must be between 1 and 100"),
+})
+
+const FixedPromotionSchema = PromotionBaseSchema.extend({
+  type: z.literal("fixed"),
+  value: z.coerce.number().gt(0, "Fixed amount must be greater than 0"),
+})
+
+const FreeShippingPromotionSchema = PromotionBaseSchema.extend({
+  type: z.literal("free_shipping"),
+  value: z.literal(0).default(0),
+})
+
+export const PromotionInputSchema = z
+  .discriminatedUnion("type", [
+    PercentagePromotionSchema,
+    FixedPromotionSchema,
+    FreeShippingPromotionSchema,
+  ])
+  .superRefine((data, ctx) => {
+    if (!(data.endDate > data.startDate)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "End date must be after start date",
+        path: ["endDate"],
+      })
+    }
+    if (data.appliesTo === "products" && data.applicableProducts.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "Must select at least one product when applying to specific products",
+        path: ["applicableProducts"],
+      })
+    }
+    if (
+      data.appliesTo === "categories" &&
+      data.applicableCategories.length === 0
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "Must select at least one category when applying to specific categories",
+        path: ["applicableCategories"],
+      })
+    }
+  })
 
 export const PromotionUpdateSchema = PromotionInputSchema.and(z.object({
   _id: z.string().min(1, "Id is required"),

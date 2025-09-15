@@ -5,6 +5,7 @@ import Product from '@/lib/db/models/product.model'
 import Brand from '@/lib/db/models/brand.model'
 import Category from '@/lib/db/models/category.model'
 import StockMovement from '@/lib/db/models/stock-movement.model'
+import mongoose from 'mongoose'
 import { revalidatePath } from 'next/cache'
 import { formatError } from '../utils'
 import { SetStockSchema, AdjustStockSchema, InventoryFiltersSchema } from '../validator'
@@ -333,7 +334,8 @@ export async function createSaleStockMovement(
   productId: string,
   quantity: number,
   orderId: string,
-  userId: string
+  userId: string,
+  session?: mongoose.ClientSession
 ) {
   try {
     await connectToDatabase()
@@ -347,8 +349,8 @@ export async function createSaleStockMovement(
     const previousStock = product.countInStock
     const newStock = Math.max(0, previousStock - quantity)
 
-    // Create stock movement record
-    await StockMovement.create({
+    // Create stock movement record (supports optional session)
+    const doc = {
       product: productId,
       sku: product.sku,
       type: 'SALE',
@@ -358,7 +360,12 @@ export async function createSaleStockMovement(
       reason: `Sale - Order #${orderId}`,
       notes: `Stock reduced due to order payment confirmation`,
       createdBy: userId,
-    })
+    }
+    if (session) {
+      await StockMovement.create([doc], { session })
+    } else {
+      await StockMovement.create(doc as any)
+    }
 
     return {
       success: true,
