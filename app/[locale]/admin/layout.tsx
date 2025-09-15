@@ -39,16 +39,16 @@ export default async function AdminLayout({
       <Script id="admin-layout-class" strategy="beforeInteractive">
         {`document.documentElement.classList.add('admin-layout');`}
       </Script>
-      <div className='flex h-screen overflow-hidden'>
+      <div className='flex min-h-screen'>
         {/* Sidebar - Hidden on mobile, visible on desktop */}
         <div className='hidden md:flex md:flex-shrink-0 fixed left-0 top-0 h-full z-10'>
           <AdminNav userRole={session.user.role} />
         </div>
 
         {/* Main content area */}
-        <div className='flex flex-col flex-1 overflow-hidden md:ml-64'>
+        <div className='flex flex-col flex-1 min-h-screen md:ml-64'>
           {/* Header */}
-          <div className='bg-background text-foreground border-b border-border'>
+          <div className='bg-background text-foreground border-b border-border sticky top-0 z-20'>
             <div className='flex h-16 items-center px-4'>
               {/* Mobile sidebar trigger */}
               <div className='md:hidden mr-3'>
@@ -80,7 +80,7 @@ export default async function AdminLayout({
           </div>
 
           {/* Page content */}
-          <div className='flex-1 overflow-auto p-4' data-main-content>{children}</div>
+          <div className='flex-1 p-4 pb-20' data-main-content>{children}</div>
         </div>
       </div>
     </>
