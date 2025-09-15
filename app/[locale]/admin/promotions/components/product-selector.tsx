@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Check, ChevronsUpDown, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/popover'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
-import { getAllProductsForAdmin } from '@/lib/actions/product.actions'
+import { getAllProductsForAdmin, getProductById } from '@/lib/actions/product.actions'
 
 interface Product {
   _id: string
@@ -27,6 +27,7 @@ interface Product {
   slug: string
   price: number
   listPrice: number
+  isPublished: boolean
 }
 
 interface ProductSelectorProps {
@@ -39,30 +40,121 @@ export default function ProductSelector({ value, onChange }: ProductSelectorProp
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(false)
   const [search, setSearch] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const retryRef = useRef(0)
+  const [selectedProductsMap, setSelectedProductsMap] = useState<Record<string, Product>>({})
 
   useEffect(() => {
     loadProducts()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Debounced search reload
+  useEffect(() => {
+    const t = setTimeout(() => {
+      loadProducts()
+    }, 300)
+    return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search])
+
+  // Ensure selected products are always visible via a dedicated map
+  useEffect(() => {
+    if (!Array.isArray(value) || value.length === 0) {
+      return
+    }
+    const currentIds = new Set(Object.keys(selectedProductsMap))
+    const missingIds = value.filter((id) => !currentIds.has(id))
+    if (missingIds.length === 0) {
+      return
+    }
+    ;(async () => {
+      try {
+        // First, attempt to hydrate from the current products list
+        const fromList: Record<string, Product> = {}
+        for (const id of missingIds) {
+          const found = products.find((p) => p._id === id)
+          if (found) fromList[id] = found
+        }
+
+        // Fetch the rest by ID
+        const stillMissing = missingIds.filter((id) => !fromList[id])
+        const fetchedPairs: Array<[string, Product | null]> = await Promise.all(
+          stillMissing.map(async (id) => {
+            try {
+              const prod = await getProductById(id)
+              // Only map essential fields and keep shape consistent
+              const mapped: Product = {
+                _id: prod._id,
+                name: prod.name,
+                slug: prod.slug,
+                price: prod.price,
+                listPrice: prod.listPrice,
+                isPublished: Boolean(prod.isPublished),
+              }
+              return [id, mapped]
+            } catch (e) {
+              // Ignore fetch failures for individual IDs
+              return [id, null]
+            }
+          })
+        )
+
+        const fetched: Record<string, Product> = {}
+        for (const [id, item] of fetchedPairs) {
+          if (item) fetched[id] = item
+        }
+
+        setSelectedProductsMap((prev) => {
+          // Optionally prune entries not in value to keep memory tidy
+          const next: Record<string, Product> = {}
+          for (const id of value) {
+            if (prev[id]) next[id] = prev[id]
+          }
+          return { ...next, ...fromList, ...fetched }
+        })
+      } catch {
+        // noop; the main list still works
+      }
+    })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value, products])
 
   const loadProducts = async () => {
     setLoading(true)
+    setError(null)
     try {
       const result = await getAllProductsForAdmin({
         query: search,
         page: 1,
         limit: 100, // Load more products for selection
       })
-      setProducts(result.products)
+      if (!result || !Array.isArray(result.products)) {
+        throw new Error('Unexpected response while fetching products')
+      }
+      setProducts((result.products as any[]).filter((p: any) => p.isPublished))
     } catch (error) {
+      const msg =
+        error instanceof Error
+          ? error.message
+          : typeof error === 'string'
+            ? error
+            : 'Unknown error'
       console.error('Failed to load products:', error)
+      // Surface authorization/auth issues clearly
+      if (/permission|authorize|auth|401|403/i.test(msg)) {
+        setError('You do not have permission to view products.')
+      } else {
+        setError('Unable to load products. Please try again.')
+      }
     } finally {
       setLoading(false)
     }
   }
 
-  const selectedProducts = products.filter(product => 
-    value.includes(product._id)
-  )
+  const selectedProducts: Product[] = value
+    .map((id) => selectedProductsMap[id] || products.find((p) => p._id === id))
+    .filter(Boolean) as Product[]
 
   const handleSelect = (productId: string) => {
     if (value.includes(productId)) {
@@ -121,7 +213,26 @@ export default function ProductSelector({ value, onChange }: ProductSelectorProp
             />
             <CommandList>
               <CommandEmpty>
-                {loading ? "Loading..." : "No products found."}
+                {loading
+                  ? 'Loading...'
+                  : error
+                    ? (
+                      <div className="flex flex-col gap-2 p-2">
+                        <span className="text-red-600 text-sm">{error}</span>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            retryRef.current += 1
+                            loadProducts()
+                          }}
+                        >
+                          Retry
+                        </Button>
+                      </div>
+                    )
+                    : 'No products found.'}
               </CommandEmpty>
               <CommandGroup>
                 {products.map((product) => (

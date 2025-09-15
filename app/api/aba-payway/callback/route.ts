@@ -149,22 +149,18 @@ export async function POST(req: NextRequest) {
         orderAmount: order.totalPrice,
       });
 
-      // Update payment result
-      order.paymentResult = {
-        id: tran_id as string,
-        status: "COMPLETED",
-        email_address: (order.user as any)?.email || "",
-        pricePaid: order.totalPrice.toFixed(2), // Use order amount, not pushback
-      };
-      await order.save();
-
-      // Mark order as paid using the existing function
+      // Mark order as paid and persist payment result atomically
       console.log(
         "[ABA PayWay] Calling updateOrderToPaid for order:",
         order._id
       );
       try {
-        const updateResult = await updateOrderToPaid(order._id);
+        const updateResult = await updateOrderToPaid(order._id, {
+          id: tran_id as string,
+          status: "COMPLETED",
+          // email_address omitted to avoid persisting empty string without populated user
+          pricePaid: order.totalPrice.toFixed(2),
+        } as any);
         console.log("[ABA PayWay] updateOrderToPaid result:", updateResult);
 
         if (updateResult.success) {
@@ -207,7 +203,7 @@ export async function POST(req: NextRequest) {
       await order.save();
     }
 
-    // Update order with status tracking
+    // Update order with status tracking (after payment handling)
     await Order.findByIdAndUpdate(order._id, {
       $set: {
         abaPaymentStatus: statusString,

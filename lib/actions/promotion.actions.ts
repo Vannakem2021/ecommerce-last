@@ -3,6 +3,7 @@
 import { connectToDatabase } from '@/lib/db'
 import Promotion, { IPromotion } from '@/lib/db/models/promotion.model'
 import PromotionUsage from '@/lib/db/models/promotion-usage.model'
+import mongoose from 'mongoose'
 import Product from '@/lib/db/models/product.model'
 import Category from '@/lib/db/models/category.model'
 import { revalidatePath } from 'next/cache'
@@ -39,17 +40,67 @@ export async function createPromotion(data: IPromotionInput) {
 
     const validatedData = PromotionInputSchema.parse(data)
 
+    // Extra business validations
+    // 1) Date sanity: ensure at least 1 minute window
+    if (!(validatedData.endDate > validatedData.startDate)) {
+      throw new Error('End date must be after start date')
+    }
+    if (validatedData.endDate.getTime() - validatedData.startDate.getTime() < 60_000) {
+      throw new Error('Promotion period must be at least 1 minute long')
+    }
+
+    // 2) Conditional value rules
+    if (validatedData.type === 'percentage') {
+      if (validatedData.value < 1 || validatedData.value > 100) {
+        throw new Error('Percentage value must be between 1 and 100')
+      }
+    } else if (validatedData.type === 'fixed') {
+      if (validatedData.value <= 0) {
+        throw new Error('Fixed discount value must be greater than 0')
+      }
+      // 6) Minimum order value vs discount amount
+      if (validatedData.minOrderValue > 0 && validatedData.minOrderValue < validatedData.value) {
+        throw new Error('Minimum order value must be greater than or equal to the discount amount')
+      }
+    } else if (validatedData.type === 'free_shipping') {
+      // Ensure value is 0 for free shipping
+      validatedData.value = 0
+    }
+
+    // 4) Validate selected products/categories exist and are active
+    await connectToDatabase()
+    if (validatedData.appliesTo === 'products') {
+      if (!validatedData.applicableProducts?.length) {
+        throw new Error('Select at least one product for this promotion')
+      }
+      const found = await Product.countDocuments({
+        _id: { $in: validatedData.applicableProducts },
+        isPublished: true,
+      })
+      if (found !== validatedData.applicableProducts.length) {
+        throw new Error('Some selected products do not exist or are not active')
+      }
+    }
+    if (validatedData.appliesTo === 'categories') {
+      if (!validatedData.applicableCategories?.length) {
+        throw new Error('Select at least one category for this promotion')
+      }
+      const found = await Category.countDocuments({
+        _id: { $in: validatedData.applicableCategories },
+        active: true,
+      })
+      if (found !== validatedData.applicableCategories.length) {
+        throw new Error('Some selected categories do not exist or are not active')
+      }
+    }
+
     const promotion = {
       ...validatedData,
       createdBy: session.user.id
     }
     
-    await connectToDatabase()
-    
-    // Check if promotion code already exists
-    const existingPromotion = await Promotion.findOne({ 
-      code: promotion.code.toUpperCase() 
-    })
+    // 5) Robust duplicate code check (case-insensitive)
+    const existingPromotion = await Promotion.findOne({ code: promotion.code.toUpperCase() })
     if (existingPromotion) {
       throw new Error('Promotion code already exists')
     }
@@ -80,14 +131,56 @@ export async function updatePromotion(data: IPromotionUpdate) {
       throw new Error('Promotion not found')
     }
 
-    // Check if code is being changed and if new code already exists
+    // Check if code is being changed and if new code already exists (case-insensitive)
     if (promotion.code !== existingPromotion.code) {
-      const codeExists = await Promotion.findOne({ 
-        code: promotion.code.toUpperCase(),
-        _id: { $ne: promotion._id }
+      const codeExists = await Promotion.findOne({ code: promotion.code.toUpperCase(), _id: { $ne: promotion._id } })
+      if (codeExists) throw new Error('Promotion code already exists')
+    }
+
+    // Extra business validations (same as create)
+    if (!(promotion.endDate > promotion.startDate)) {
+      throw new Error('End date must be after start date')
+    }
+    if (promotion.endDate.getTime() - promotion.startDate.getTime() < 60_000) {
+      throw new Error('Promotion period must be at least 1 minute long')
+    }
+    if (promotion.type === 'percentage') {
+      if (promotion.value < 1 || promotion.value > 100) {
+        throw new Error('Percentage value must be between 1 and 100')
+      }
+    } else if (promotion.type === 'fixed') {
+      if (promotion.value <= 0) {
+        throw new Error('Fixed discount value must be greater than 0')
+      }
+      if (promotion.minOrderValue > 0 && promotion.minOrderValue < promotion.value) {
+        throw new Error('Minimum order value must be greater than or equal to the discount amount')
+      }
+    } else if (promotion.type === 'free_shipping') {
+      promotion.value = 0
+    }
+
+    if (promotion.appliesTo === 'products') {
+      if (!promotion.applicableProducts?.length) {
+        throw new Error('Select at least one product for this promotion')
+      }
+      const found = await Product.countDocuments({
+        _id: { $in: promotion.applicableProducts },
+        isPublished: true,
       })
-      if (codeExists) {
-        throw new Error('Promotion code already exists')
+      if (found !== promotion.applicableProducts.length) {
+        throw new Error('Some selected products do not exist or are not active')
+      }
+    }
+    if (promotion.appliesTo === 'categories') {
+      if (!promotion.applicableCategories?.length) {
+        throw new Error('Select at least one category for this promotion')
+      }
+      const found = await Category.countDocuments({
+        _id: { $in: promotion.applicableCategories },
+        active: true,
+      })
+      if (found !== promotion.applicableCategories.length) {
+        throw new Error('Some selected categories do not exist or are not active')
       }
     }
 
@@ -353,26 +446,42 @@ function calculatePromotionDiscount(
 }
 
 // RECORD PROMOTION USAGE
-export async function recordPromotionUsage(data: IPromotionUsageInput) {
+export async function recordPromotionUsage(
+  data: IPromotionUsageInput,
+  session?: mongoose.ClientSession
+) {
   try {
     const usage = PromotionUsageInputSchema.parse(data)
-    await connectToDatabase()
+    // Avoid redundant connect when participating in an existing transaction
+    if (!session) await connectToDatabase()
 
     // Check if usage already recorded for this order
-    const existingUsage = await PromotionUsage.findOne({
-      order: usage.order
-    })
+    const existingUsageQuery = PromotionUsage.findOne({ order: usage.order })
+    if (session) existingUsageQuery.session(session)
+    const existingUsage = await existingUsageQuery
     if (existingUsage) {
-      return // Already recorded
+      return { success: true, message: 'Promotion usage already recorded for this order' }
     }
 
     // Create usage record
-    await PromotionUsage.create(usage)
+    if (session) {
+      await PromotionUsage.create([usage], { session })
+    } else {
+      await PromotionUsage.create(usage as any)
+    }
 
     // Increment promotion usage count
-    await Promotion.findByIdAndUpdate(usage.promotion, {
-      $inc: { usedCount: 1 }
-    })
+    if (session) {
+      await Promotion.findByIdAndUpdate(
+        usage.promotion,
+        { $inc: { usedCount: 1 } },
+        { session }
+      )
+    } else {
+      await Promotion.findByIdAndUpdate(usage.promotion, {
+        $inc: { usedCount: 1 }
+      })
+    }
 
     return {
       success: true,

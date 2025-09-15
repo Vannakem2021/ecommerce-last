@@ -16,6 +16,7 @@ import mongoose from 'mongoose'
 import { getSetting } from './setting.actions'
 import { createSaleStockMovement } from './inventory.actions'
 import { recordPromotionUsage } from './promotion.actions'
+import StockMovement from '@/lib/db/models/stock-movement.model'
 
 // CREATE
 export const createOrder = async (clientSideCart: Cart) => {
@@ -44,11 +45,11 @@ export const createOrderFromCart = async (
 ) => {
   const cart = {
     ...clientSideCart,
-    ...calcDeliveryDateAndPrice({
+    ...(await calcDeliveryDateAndPrice({
       items: clientSideCart.items,
       shippingAddress: clientSideCart.shippingAddress,
       deliveryDateIndex: clientSideCart.deliveryDateIndex,
-    }),
+    })),
   }
 
   const order = OrderInputSchema.parse({
@@ -65,46 +66,167 @@ export const createOrderFromCart = async (
     discountAmount: cart.discountAmount || 0,
   })
 
-  const createdOrder = await Order.create(order)
+  // Attempt transactional creation for atomicity
+  const session = await mongoose.connection.startSession()
+  try {
+    session.startTransaction()
+    const opts = { session }
 
-  // Record promotion usage if a promotion was applied
-  if (cart.appliedPromotion) {
-    try {
-      await recordPromotionUsage({
+    const [createdOrder] = await Order.create([order], opts)
+
+    if (cart.appliedPromotion) {
+      const usagePayload = {
         promotion: cart.appliedPromotion.promotionId,
         user: userId,
         order: createdOrder._id,
         discountAmount: cart.appliedPromotion.discountAmount,
-        originalTotal: cart.itemsPrice + (cart.shippingPrice || 0) + (cart.taxPrice || 0),
+        originalTotal:
+          cart.itemsPrice + (cart.shippingPrice || 0) + (cart.taxPrice || 0),
         finalTotal: cart.totalPrice,
-      })
-    } catch (error) {
-      console.error('Failed to record promotion usage:', error)
-      // Don't fail order creation if promotion recording fails
+      }
+      const res = await recordPromotionUsage(usagePayload as any, session)
+      if (!res?.success) {
+        throw new Error(res?.message || 'Failed to record promotion usage')
+      }
     }
-  }
 
-  return createdOrder
+    await session.commitTransaction()
+    return createdOrder
+  } catch (txErr: any) {
+    // Rollback and fallback for non-replica or other tx issues
+    try {
+      await session.abortTransaction()
+    } catch {}
+
+    // Fallback: create without transaction (best-effort)
+    const createdOrder = await Order.create(order)
+    if (cart.appliedPromotion) {
+      try {
+        await recordPromotionUsage({
+          promotion: cart.appliedPromotion.promotionId,
+          user: userId,
+          order: createdOrder._id,
+          discountAmount: cart.appliedPromotion.discountAmount,
+          originalTotal:
+            cart.itemsPrice + (cart.shippingPrice || 0) + (cart.taxPrice || 0),
+          finalTotal: cart.totalPrice,
+        } as any)
+      } catch (error) {
+        console.error('Failed to record promotion usage (non-tx):', error)
+        // Preserve prior behavior: do not fail order creation if promotion recording fails
+      }
+    }
+
+    return createdOrder
+  } finally {
+    try { session.endSession() } catch {}
+  }
 }
 
-export async function updateOrderToPaid(orderId: string) {
+export async function updateOrderToPaid(
+  orderId: string,
+  paymentResult?: { id?: string; status?: string; email_address?: string; [key: string]: any }
+) {
   try {
-    await connectToDatabase()
+    if (mongoose.connection.readyState !== 1) {
+      await connectToDatabase()
+    }
     const order = await Order.findById(orderId).populate<{
       user: { email: string; name: string }
     }>('user', 'name email')
     if (!order) throw new Error('Order not found')
-    if (order.isPaid) throw new Error('Order is already paid')
-    order.isPaid = true
-    order.paidAt = new Date()
-    await order.save()
-    if (!process.env.MONGODB_URI?.startsWith('mongodb://localhost'))
-      await updateProductStock(order._id)
-    if (order.user.email) await sendPurchaseReceipt({ order })
+    if (order.isPaid) return { success: true, message: 'Order already paid' }
+
+    // Always try transactional path first
+    let didUpdate = false
+    try {
+      const { updated } = await updateProductStock(order._id, paymentResult)
+      didUpdate = !!updated
+    } catch (txError) {
+      // Fallback: non-transactional update mirroring createOrderFromCart approach
+      // 1) Pre-validate all stock levels first
+      const stockPlans = [] as Array<{
+        productId: any
+        sku: string
+        previousStock: number
+        newStock: number
+        quantity: number
+      }>
+      for (const item of order.items) {
+        const product = await Product.findById(item.product)
+        if (!product) throw new Error('Product not found')
+        const previousStock = product.countInStock
+        const newStock = previousStock - item.quantity
+        if (newStock < 0) {
+          throw new Error(`Insufficient stock for product ${product.sku}`)
+        }
+        stockPlans.push({
+          productId: product._id,
+          sku: product.sku,
+          previousStock,
+          newStock,
+          quantity: item.quantity,
+        })
+      }
+
+      // 2) Apply changes best-effort; revert order flags if any error occurs
+      let orderSaved = false
+      try {
+        order.isPaid = true
+        order.paidAt = new Date()
+        if (paymentResult) order.paymentResult = paymentResult as any
+        await order.save()
+        orderSaved = true
+
+        for (const plan of stockPlans) {
+          await Product.updateOne(
+            { _id: plan.productId },
+            { countInStock: plan.newStock }
+          )
+          await StockMovement.create({
+            product: plan.productId,
+            sku: plan.sku,
+            type: 'SALE',
+            quantity: -plan.quantity,
+            previousStock: plan.previousStock,
+            newStock: plan.newStock,
+            reason: `Sale - Order #${order._id}`,
+            notes: `Stock reduced due to order payment confirmation`,
+            createdBy: order.user as any,
+          } as any)
+        }
+        didUpdate = true
+      } catch (fallbackErr) {
+        // Revert order flags if we saved them already
+        if (orderSaved) {
+          try {
+            order.isPaid = false
+            order.paidAt = undefined as any
+            order.paymentResult = undefined as any
+            await order.save()
+          } catch {}
+        }
+        throw fallbackErr
+      }
+    }
+
+    // Send purchase receipt only if update occurred
+    if (didUpdate) {
+      const updatedOrder = await Order.findById(order._id).populate<{
+        user: { email: string; name: string }
+      }>('user', 'name email')
+      if (updatedOrder?.user && (updatedOrder as any).user.email) {
+        await sendPurchaseReceipt({ order: updatedOrder as any })
+      }
+    }
 
     // Send Telegram notification for paid order (non-blocking)
     try {
-      await sendOrderPaidNotification(order)
+      if (didUpdate) {
+        // Use fresh order state
+        const o = await Order.findById(order._id)
+        if (o) await sendOrderPaidNotification(o as any)
+      }
     } catch (telegramError) {
       // Don't fail the payment confirmation if Telegram fails
     }
@@ -115,61 +237,74 @@ export async function updateOrderToPaid(orderId: string) {
     return { success: false, message: formatError(err) }
   }
 }
-const updateProductStock = async (orderId: string) => {
+const updateProductStock = async (
+  orderId: string,
+  paymentResult?: { id?: string; status?: string; email_address?: string; [key: string]: any }
+) => {
   const session = await mongoose.connection.startSession()
-
   try {
     session.startTransaction()
     const opts = { session }
 
     const order = await Order.findOneAndUpdate(
-      { _id: orderId },
-      { isPaid: true, paidAt: new Date() },
+      { _id: orderId, isPaid: false },
+      {
+        isPaid: true,
+        paidAt: new Date(),
+        ...(paymentResult ? { paymentResult: paymentResult as any } : {}),
+      },
       opts
     )
-    if (!order) throw new Error('Order not found')
+    // Idempotent no-op: if already paid (no match), exit without adjusting stock
+    if (!order) {
+      await session.abortTransaction()
+      return { updated: false }
+    }
 
     // Process each item in the order
     for (const item of order.items) {
       const product = await Product.findById(item.product).session(session)
       if (!product) throw new Error('Product not found')
 
-      // Update product stock
-      product.countInStock -= item.quantity
+      // Update product stock with negative-stock guard
+      const previousStock = product.countInStock
+      const newStock = previousStock - item.quantity
+      if (newStock < 0) {
+        throw new Error(`Insufficient stock for product ${product.sku}`)
+      }
+      product.countInStock = newStock
       await Product.updateOne(
         { _id: product._id },
-        { countInStock: product.countInStock },
+        { $inc: { countInStock: -item.quantity } },
         opts
       )
 
-      // Create stock movement record for the sale
-      // Note: We'll create this outside the transaction to avoid circular dependencies
-      // The stock movement will be created after the transaction commits
+      // Create stock movement record for the sale inside the transaction
+      await StockMovement.create(
+        [
+          {
+            product: item.product,
+            sku: product.sku,
+            type: 'SALE',
+            quantity: -item.quantity,
+            previousStock,
+            newStock,
+            reason: `Sale - Order #${orderId}`,
+            notes: `Stock reduced due to order payment confirmation`,
+            createdBy: order.user as any,
+          },
+        ],
+        opts
+      )
     }
 
     await session.commitTransaction()
-
-    // Create stock movement records after successful stock update
-    for (const item of order.items) {
-      try {
-        await createSaleStockMovement(
-          item.product.toString(),
-          item.quantity,
-          orderId,
-          order.user.toString()
-        )
-      } catch (movementError) {
-        // Log the error but don't fail the order - stock was already updated
-        console.error('Failed to create stock movement record:', movementError)
-      }
-    }
-
-    session.endSession()
-    return true
+    return { updated: true }
   } catch (error) {
     await session.abortTransaction()
-    session.endSession()
     throw error
+  } finally {
+    try { session.endSession() } catch {}
   }
 }
 export async function deliverOrder(orderId: string) {
