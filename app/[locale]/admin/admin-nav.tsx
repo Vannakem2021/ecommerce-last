@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import React, { useState } from "react";
+import React from "react";
 import {
   BarChart3,
   Package,
@@ -9,30 +9,14 @@ import {
   Users,
   FileText,
   Settings,
-  ChevronDown,
-  ChevronRight,
-  Info,
-  SettingsIcon,
-  ImageIcon,
-  Languages,
-  Currency,
-  CreditCard,
-  Package as PackageIcon,
   Tag,
   Layers,
   Warehouse,
-  MessageSquare,
   Percent,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { Button } from "@/components/ui/button";
 import { hasPermission } from "@/lib/rbac-utils";
 import { Permission } from "@/lib/constants";
 
@@ -91,21 +75,12 @@ const mainLinks = [
     icon: Percent,
     permission: "promotions.read" as Permission,
   },
-];
-
-const settingsLinks = [
-  { name: "Site Info", hash: "setting-site-info", icon: Info },
-  { name: "Common Settings", hash: "setting-common", icon: SettingsIcon },
-  { name: "Carousels", hash: "setting-carousels", icon: ImageIcon },
-  { name: "Languages", hash: "setting-languages", icon: Languages },
-  { name: "Currencies", hash: "setting-currencies", icon: Currency },
   {
-    name: "Payment Methods",
-    hash: "setting-payment-methods",
-    icon: CreditCard,
+    title: "Settings",
+    href: "/admin/settings",
+    icon: Settings,
+    permission: "settings.read" as Permission,
   },
-  { name: "Telegram", hash: "setting-telegram", icon: MessageSquare },
-  { name: "Delivery Dates", hash: "setting-delivery-dates", icon: PackageIcon },
 ];
 
 interface AdminNavProps extends React.HTMLAttributes<HTMLElement> {
@@ -115,19 +90,11 @@ interface AdminNavProps extends React.HTMLAttributes<HTMLElement> {
 export function AdminNav({ className, userRole, ...props }: AdminNavProps) {
   const pathname = usePathname();
   const t = useTranslations("Admin");
-  const [settingsOpen, setSettingsOpen] = useState(
-    pathname.includes("/admin/settings")
-  );
-
-  const isSettingsActive = pathname.includes("/admin/settings");
 
   // Filter navigation links based on user permissions
   const visibleMainLinks = mainLinks.filter((link) =>
     hasPermission(userRole, link.permission)
   );
-
-  // Check if user can access settings
-  const canAccessSettings = hasPermission(userRole, "settings.read");
 
   return (
     <nav
@@ -159,89 +126,6 @@ export function AdminNav({ className, userRole, ...props }: AdminNavProps) {
             </Link>
           );
         })}
-
-        {/* Settings Collapsible Section */}
-        {canAccessSettings && (
-          <Collapsible open={settingsOpen} onOpenChange={setSettingsOpen}>
-            <CollapsibleTrigger asChild>
-              <Button
-                variant="ghost"
-                className={cn(
-                  "admin-sidebar-link justify-between w-full",
-                  isSettingsActive
-                    ? "admin-sidebar-link-active"
-                    : "admin-sidebar-link-inactive"
-                )}
-              >
-                <div className="flex items-center gap-3">
-                  <Settings className="h-4 w-4" />
-                  {t("Settings")}
-                </div>
-                {settingsOpen ? (
-                  <ChevronDown className="h-4 w-4" />
-                ) : (
-                  <ChevronRight className="h-4 w-4" />
-                )}
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-1 mt-1">
-              {settingsLinks.map((item) => {
-                const Icon = item.icon;
-
-                const handleSettingsClick = (e: React.MouseEvent) => {
-                  e.preventDefault();
-                  // Navigate to settings page first if not already there
-                  if (!pathname.includes("/admin/settings")) {
-                    window.location.href = `/admin/settings#${item.hash}`;
-                  } else {
-                    // If already on settings page, update URL hash and scroll to section
-                    window.history.replaceState(null, '', `/admin/settings#${item.hash}`);
-
-                    setTimeout(() => {
-                      const section = document.getElementById(item.hash);
-                      const mainContent = document.querySelector('[data-main-content]') as HTMLElement;
-
-                      if (section && mainContent) {
-                        // Get the section's position relative to the main content container
-                        const mainContentRect = mainContent.getBoundingClientRect();
-                        const sectionRect = section.getBoundingClientRect();
-                        const relativeTop = sectionRect.top - mainContentRect.top + mainContent.scrollTop;
-
-                        // Calculate the desired scroll position with offset
-                        let scrollTop = relativeTop - 16; // 16px offset for spacing
-
-                        // Ensure we don't scroll past the bottom of the content
-                        const maxScrollTop = mainContent.scrollHeight - mainContent.clientHeight;
-                        scrollTop = Math.min(scrollTop, maxScrollTop);
-
-                        // Scroll the main content container to the section
-                        mainContent.scrollTo({
-                          top: scrollTop,
-                          behavior: "smooth"
-                        });
-                      }
-                    }, 100); // Small delay to ensure DOM is ready
-                  }
-                };
-
-                return (
-                  <a
-                    key={item.hash}
-                    href={`/admin/settings#${item.hash}`}
-                    onClick={handleSettingsClick}
-                    className={cn(
-                      "flex items-center gap-3 px-6 py-2 rounded-md text-sm transition-colors cursor-pointer",
-                      "hover:bg-muted hover:text-foreground text-muted-foreground"
-                    )}
-                  >
-                    <Icon className="h-3 w-3" />
-                    {item.name}
-                  </a>
-                );
-              })}
-            </CollapsibleContent>
-          </Collapsible>
-        )}
       </div>
     </nav>
   );

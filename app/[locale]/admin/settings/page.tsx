@@ -1,8 +1,7 @@
 import { getNoCachedSetting } from '@/lib/actions/setting.actions'
 import { auth } from '@/auth'
 import { hasPermission } from '@/lib/rbac-utils'
-import SettingForm from './setting-form'
-
+import TabSettingsForm from './tab-settings-form'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -16,9 +15,11 @@ const SettingPage = async () => {
     throw new Error('Insufficient permissions to view settings')
   }
 
+  const setting = await getNoCachedSetting()
+
   return (
     <div className='space-y-2'>
-      <SettingForm setting={await getNoCachedSetting()} />
+      <TabSettingsForm setting={setting} />
     </div>
   )
 }
