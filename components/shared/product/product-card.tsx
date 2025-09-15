@@ -18,11 +18,21 @@ const ProductCard = ({
   hideBorder = false,
   hideDetails = false,
   hideAddToCart = false,
+  onFavoriteToggleStart,
+  onFavoriteToggleError,
+  onFavoriteToggled,
+  favoriteButtonSubmit = false,
+  favoriteButtonControlled = false,
 }: {
   product: IProduct
   hideDetails?: boolean
   hideBorder?: boolean
   hideAddToCart?: boolean
+  onFavoriteToggleStart?: (args: { productId: string; nextActive: boolean }) => void
+  onFavoriteToggleError?: (args: { productId: string; error?: unknown }) => void
+  onFavoriteToggled?: (args: { productId: string; isFavorite: boolean; success: boolean; message: string }) => void
+  favoriteButtonSubmit?: boolean
+  favoriteButtonControlled?: boolean
 }) => {
   const ProductImage = () => (
     <Link href={`/product/${product.slug}`}>
@@ -45,7 +55,14 @@ const ProductCard = ({
           </div>
         )}
         <div className='absolute top-2 right-2 z-10'>
-          <FavoriteButton productId={product._id} />
+          <FavoriteButton 
+            productId={product._id}
+            onToggleStart={onFavoriteToggleStart}
+            onToggleError={onFavoriteToggleError}
+            onToggled={onFavoriteToggled}
+            type={favoriteButtonSubmit ? 'submit' : 'button'}
+            useInternalToggle={!favoriteButtonControlled}
+          />
         </div>
         {/* Promotion Badge - Disabled in product cards to reduce server action calls */}
         {/* <div className='absolute top-2 left-2 z-10'>

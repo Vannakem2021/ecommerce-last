@@ -56,35 +56,53 @@ const useFavoritesStore = create(
       isFavorite: (id: string) => get().ids.includes(id),
 
       add: async (id: string) => {
-        const prev = get().ids
-        if (prev.includes(id)) return { success: true, message: 'Added to Favorites' }
-        set({ ids: [id, ...prev] })
+        if (get().ids.includes(id)) return { success: true, message: 'Added to Favorites' }
+        // Optimistic add using functional update to avoid races
+        set((state) => ({ ids: state.ids.includes(id) ? state.ids : [id, ...state.ids] }))
         const res = await addFavoriteAction(id)
-        if (!res.success) set({ ids: prev })
+        if (!res.success) {
+          // Revert only the added id
+          set((state) => ({ ids: state.ids.filter((x) => x !== id) }))
+        }
         return res
       },
 
       remove: async (id: string) => {
-        const prev = get().ids
-        if (!prev.includes(id)) return { success: true, message: 'Removed from Favorites' }
-        set({ ids: prev.filter((x) => x !== id) })
+        if (!get().ids.includes(id)) return { success: true, message: 'Removed from Favorites' }
+        // Optimistic remove
+        set((state) => ({ ids: state.ids.filter((x) => x !== id) }))
         const res = await removeFavoriteAction(id)
-        if (!res.success) set({ ids: prev })
+        if (!res.success) {
+          // Revert by adding back if it was removed
+          set((state) => ({ ids: state.ids.includes(id) ? state.ids : [id, ...state.ids] }))
+        }
         return res
       },
 
       toggle: async (id: string) => {
-        const prev = get().ids
-        const isFav = prev.includes(id)
-        set({ ids: isFav ? prev.filter((x) => x !== id) : [id, ...prev] })
+        // Optimistic toggle with functional update to avoid races
+        set((state) => {
+          const isFav = state.ids.includes(id)
+          return { ids: isFav ? state.ids.filter((x) => x !== id) : [id, ...state.ids] }
+        })
         const res = await toggleFavoriteAction(id)
-        if (!res.success) set({ ids: prev })
+        if (!res.success) {
+          // Revert by toggling again
+          set((state) => {
+            const isFav = state.ids.includes(id)
+            return { ids: isFav ? state.ids.filter((x) => x !== id) : [id, ...state.ids] }
+          })
+        }
         return res
       },
 
       clearAll: () => set({ ids: [] }),
     }),
-    { name: 'favorites-store' }
+    {
+      name: 'favorites-store',
+      // Only persist the essential bits
+      partialize: (s) => ({ ids: s.ids, currentUserId: s.currentUserId }),
+    }
   )
 )
 

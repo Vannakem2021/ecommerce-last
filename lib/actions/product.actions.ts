@@ -11,6 +11,16 @@ import { IProductInput } from '@/types'
 import { z } from 'zod'
 import { getSetting } from './setting.actions'
 import { requirePermission } from '../rbac'
+import Favorite from '@/lib/db/models/favorite.model'
+import { i18n } from '@/i18n-config'
+
+function revalidateFavoritesPaths() {
+  try {
+    for (const loc of i18n.locales) {
+      revalidatePath(`/${loc.code}/favorites`)
+    }
+  } catch {}
+}
 
 // CREATE
 export async function createProduct(data: IProductInput) {
@@ -58,7 +68,10 @@ export async function deleteProduct(id: string) {
     await connectToDatabase()
     const res = await Product.findByIdAndDelete(id)
     if (!res) throw new Error('Product not found')
+    // Clean up orphaned favorites referencing this product
+    await Favorite.deleteMany({ product: id })
     revalidatePath('/admin/products')
+    revalidateFavoritesPaths()
     return {
       success: true,
       message: 'Product deleted successfully',
