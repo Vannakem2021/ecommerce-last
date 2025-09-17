@@ -10,17 +10,20 @@ import { hasPermission, canAssignRole, isAdmin, isManagerOrHigher } from './rbac
  */
 export async function requirePermission(permission: Permission, redirectPath?: string): Promise<void> {
   const session = await auth()
-  
+
   if (!session?.user?.id) {
+    console.warn(`Authorization failed: Authentication required for permission ${permission}`)
     const { redirectAuthenticationRequired } = await import('./unauthorized-redirect')
     redirectAuthenticationRequired(redirectPath)
   }
-  
-  if (!session.user.role) {
-    throw new Error('User role not found')
+
+  if (!session.user.role || typeof session.user.role !== 'string') {
+    console.error(`Authorization failed: Invalid or missing role for user ${session.user.id}`)
+    throw new Error('User role not found or invalid')
   }
-  
+
   if (!hasPermission(session.user.role, permission)) {
+    console.warn(`Authorization failed: User ${session.user.id} with role ${session.user.role} lacks permission ${permission}`)
     const { redirectInsufficientRole } = await import('./unauthorized-redirect')
     redirectInsufficientRole(redirectPath)
   }
@@ -61,19 +64,28 @@ export async function requireManagerOrHigher(redirectPath?: string): Promise<voi
 }
 
 /**
- * Get current user's session with role validation
+ * Validate session and ensure it's properly authenticated
  */
-export async function getCurrentUserWithRole() {
+export async function requireValidSession() {
   const session = await auth()
-  
+
   if (!session?.user?.id) {
     throw new Error('Authentication required')
   }
-  
-  if (!session.user.role) {
-    throw new Error('User role not found')
+
+  if (!session.user.role || typeof session.user.role !== 'string') {
+    throw new Error('User role not found or invalid')
   }
-  
+
+  return session
+}
+
+/**
+ * Get current user's session with role validation
+ */
+export async function getCurrentUserWithRole() {
+  const session = await requireValidSession()
+
   return {
     ...session.user,
     role: session.user.role.toLowerCase() as UserRole
@@ -88,16 +100,31 @@ export async function canManageUser(targetUserRole: string): Promise<boolean> {
   try {
     const currentUser = await getCurrentUserWithRole()
     const targetRole = targetUserRole.toLowerCase() as UserRole
-    
+
+    // Validate target role exists in hierarchy
+    if (!ROLE_HIERARCHY.hasOwnProperty(targetRole)) {
+      console.warn(`Invalid target role: ${targetRole}`)
+      return false
+    }
+
     const currentHierarchy = ROLE_HIERARCHY[currentUser.role]
     const targetHierarchy = ROLE_HIERARCHY[targetRole]
-    
-    // Users can only manage users with equal or lower hierarchy
-    return currentHierarchy >= targetHierarchy
-  } catch {
+
+    // Users can only manage users with lower hierarchy (not equal)
+    const canManage = currentHierarchy > targetHierarchy
+
+    if (!canManage) {
+      console.warn(`User ${currentUser.id} (${currentUser.role}) cannot manage user with role ${targetRole}`)
+    }
+
+    return canManage
+  } catch (error) {
+    console.error('Error in canManageUser:', error)
     return false
   }
 }
+
+
 
 /**
  * Validate role assignment in user management operations

@@ -25,7 +25,7 @@ import {
   validateRoleAssignment,
   getCurrentUserWithRole,
 } from "../rbac";
-import { normalizeRole } from "../rbac-utils";
+import { normalizeRole, canUserRoleManageTargetRole } from "../rbac-utils";
 import { sendPasswordResetEmail } from "../../emails";
 
 // CREATE
@@ -44,7 +44,7 @@ export async function registerUser(userSignUp: IUserSignUp) {
     await User.create({
       name: user.name,
       email: user.email,
-      password: await bcrypt.hash(user.password, 5),
+      password: await bcrypt.hash(user.password, 12),
       role: "user", // Default role for new registrations
       emailVerified: false,
       // paymentMethod and address are optional during registration
@@ -80,7 +80,7 @@ export async function createUserByAdmin(userInput: IAdminUserCreate) {
       name: validatedData.name,
       email: validatedData.email,
       role: normalizeRole(validatedData.role),
-      password: await bcrypt.hash(validatedData.password, 5),
+      password: await bcrypt.hash(validatedData.password, 12),
       emailVerified: false,
     };
 
@@ -242,11 +242,11 @@ export const SignInWithGoogle = async () => {
 };
 export const SignOut = async () => {
   // Use NextAuth v5 signOut with proper URL handling
-  const result = await signOut({ 
+  const result = await signOut({
     redirect: false,
-    callbackUrl: "/" // Specify the redirect URL
+    redirectTo: "/" // Specify the redirect URL
   });
-  
+
   // In NextAuth v5, signOut with redirect: false returns { url: string }
   redirect(result.url);
 };
@@ -350,7 +350,7 @@ export async function resetPassword(resetPasswordData: IResetPassword) {
     }
 
     // Update user password
-    user.password = await bcrypt.hash(password, 5);
+    user.password = await bcrypt.hash(password, 12);
     await user.save();
 
     // Mark token as used
@@ -395,6 +395,61 @@ export async function getAllUsers({
   };
 }
 
+// GET USERS WITH PERMISSIONS (Server-side permission filtering)
+export async function getAllUsersWithPermissions({
+  limit,
+  page,
+}: {
+  limit?: number;
+  page: number;
+}) {
+  // Check if current user has permission to read users
+  await requirePermission("users.read");
+
+  const currentUser = await getCurrentUserWithRole();
+  const {
+    common: { pageSize },
+  } = await getSetting();
+  limit = limit || pageSize;
+  await connectToDatabase();
+
+  const skipAmount = (Number(page) - 1) * limit;
+  const users = await User.find()
+    .sort({ createdAt: "desc" })
+    .skip(skipAmount)
+    .limit(limit);
+  const usersCount = await User.countDocuments();
+
+  // Add permission flags to each user based on current user's permissions
+  // Use the more efficient version that doesn't call auth() per user
+  const usersWithPermissions = users.map((user) => {
+    const userObj = JSON.parse(JSON.stringify(user)) as IUser;
+
+    // Check if current user can manage this user using role comparison
+    const canManageThisUser = canUserRoleManageTargetRole(currentUser.role, user.role);
+
+    return {
+      ...userObj,
+      canEdit: canManageThisUser,
+      canDelete: canManageThisUser && currentUser.id !== user._id.toString(),
+    };
+  });
+
+  // Check current user's permissions for UI controls
+  const { hasPermission } = await import('../rbac-utils');
+  const permissions = {
+    canCreate: hasPermission(currentUser.role, 'users.create'),
+    canUpdate: hasPermission(currentUser.role, 'users.update'),
+    canDelete: hasPermission(currentUser.role, 'users.delete'),
+  };
+
+  return {
+    data: usersWithPermissions,
+    totalPages: Math.ceil(usersCount / limit),
+    permissions,
+  };
+}
+
 export async function getUserById(userId: string) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -430,26 +485,38 @@ export async function updateUserAddress(userId: string, address: any) {
       throw new Error("Authentication required");
     }
 
-    // Users can only update their own address, or admins can update any address
-    if (session.user.id !== userId && session.user.role !== "admin") {
-      throw new Error("Unauthorized");
+    // Additional validation to prevent users from updating addresses of other users
+    if (session.user.id !== userId) {
+      // Only admins can update other users' addresses
+      if (session.user.role !== "admin") {
+        console.warn(`User ${session.user.id} attempted to update address for user ${userId}`);
+        throw new Error("Unauthorized: Cannot update another user's address");
+      }
+    }
+
+    // Input sanitization for address data
+    if (!address || typeof address !== 'object') {
+      throw new Error("Invalid address data");
     }
 
     await connectToDatabase();
 
-    const user = await User.findByIdAndUpdate(
+    // Verify target user exists before update
+    const targetUser = await User.findById(userId);
+    if (!targetUser) {
+      throw new Error("User not found");
+    }
+
+    await User.findByIdAndUpdate(
       userId,
       { address },
       { new: true }
     );
 
-    if (!user) {
-      throw new Error("User not found");
-    }
-
     revalidatePath("/account/addresses");
     return { success: true };
   } catch (error) {
+    console.error(`Address update failed for user ${userId}:`, error);
     return { success: false, error: formatError(error) };
   }
 }
