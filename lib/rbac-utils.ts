@@ -102,7 +102,32 @@ export function normalizeRole(role: string): UserRole {
     'seller': 'seller',
     'user': 'user'
   }
-  
+
   const normalizedRole = roleMap[role]
   return normalizedRole || 'user'
+}
+
+/**
+ * Check if a user with given role can manage a target user role
+ * This version doesn't call auth() and is more efficient for bulk operations
+ */
+export function canUserRoleManageTargetRole(currentUserRole: string, targetUserRole: string): boolean {
+  try {
+    const currentRole = currentUserRole.toLowerCase() as UserRole
+    const targetRole = targetUserRole.toLowerCase() as UserRole
+
+    // Validate roles exist in hierarchy
+    if (!ROLE_HIERARCHY.hasOwnProperty(currentRole) || !ROLE_HIERARCHY.hasOwnProperty(targetRole)) {
+      return false
+    }
+
+    const currentHierarchy = ROLE_HIERARCHY[currentRole]
+    const targetHierarchy = ROLE_HIERARCHY[targetRole]
+
+    // Users can only manage users with lower hierarchy (not equal)
+    return currentHierarchy > targetHierarchy
+  } catch (error) {
+    console.error('Error in canUserRoleManageTargetRole:', error)
+    return false
+  }
 }

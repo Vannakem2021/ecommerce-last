@@ -4,7 +4,9 @@ import { formatNumberWithDecimal } from "./utils";
 // Common
 const MongoId = z
   .string()
-  .regex(/^[0-9a-fA-F]{24}$/, { message: "Invalid MongoDB ID" });
+  .min(24, "MongoDB ID must be 24 characters")
+  .max(24, "MongoDB ID must be 24 characters")
+  .regex(/^[0-9a-fA-F]{24}$/, { message: "Invalid MongoDB ID format" });
 
 const Price = (field: string) =>
   z.coerce
@@ -334,21 +336,94 @@ const UserName = z
 const Email = z
   .string()
   .min(1, "Email is required")
+  .max(254, "Email is too long") // RFC 5321 limit
   .email("Email is invalid")
+  .refine((email) => {
+    // Additional email security checks
+    const normalizedEmail = email.toLowerCase().trim();
+    // Prevent email injection attacks
+    if (normalizedEmail.includes('\n') || normalizedEmail.includes('\r') || normalizedEmail.includes('\t')) {
+      return false;
+    }
+    // Basic domain validation
+    const domain = normalizedEmail.split('@')[1];
+    if (!domain || domain.length < 2) {
+      return false;
+    }
+    return true;
+  }, "Invalid email format")
+  .transform((email) => email.toLowerCase().trim());
+
+const RegistrationEmail = z
+  .string()
+  .min(1, "Email is required")
+  .max(254, "Email is too long") // RFC 5321 limit
+  .email("Email is invalid")
+  .refine((email) => {
+    // Additional email security checks
+    const normalizedEmail = email.toLowerCase().trim();
+    // Prevent email injection attacks
+    if (normalizedEmail.includes('\n') || normalizedEmail.includes('\r') || normalizedEmail.includes('\t')) {
+      return false;
+    }
+    // Basic domain validation
+    const domain = normalizedEmail.split('@')[1];
+    if (!domain || domain.length < 2) {
+      return false;
+    }
+    return true;
+  }, "Invalid email format")
+  .refine((email) => {
+    // Only allow Gmail addresses for registration
+    const normalizedEmail = email.toLowerCase().trim();
+    const domain = normalizedEmail.split('@')[1];
+    return domain === 'gmail.com';
+  }, "Only Gmail addresses are allowed for registration")
   .transform((email) => email.toLowerCase().trim());
 const Password = z
   .string()
   .min(8, "Password must be at least 8 characters")
-  .max(1000, "Password must be at most 1000 characters")
+  .max(128, "Password must be at most 128 characters")
   .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
   .regex(/[a-z]/, "Password must contain at least one lowercase letter")
   .regex(/[0-9]/, "Password must contain at least one number")
-  .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character");
+  .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character")
+  .refine((password) => {
+    // Block common weak passwords
+    const commonPasswords = [
+      'password', 'password123', 'admin123', 'qwerty123', '123456789', 'password1',
+      'welcome123', 'letmein123', 'monkey123', 'dragon123', 'sunshine123',
+      '12345678', 'qwertyui', 'asdfghjk', 'zxcvbnm1', 'iloveyou', 'princess',
+      'football', 'baseball', 'welcome1', 'abc12345'
+    ];
+    return !commonPasswords.includes(password.toLowerCase());
+  }, "Password is too common. Please choose a stronger password")
+  .refine((password) => {
+    // Prevent passwords that are just repeated characters
+    const repeatedChar = /^(.)\1+$/.test(password);
+    return !repeatedChar;
+  }, "Password cannot be just repeated characters")
+  .refine((password) => {
+    // Prevent sequential characters (123, abc, etc.)
+    const sequential = /(012|123|234|345|456|567|678|789|abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz)/i.test(password);
+    return !sequential;
+  }, "Password cannot contain sequential characters (like 123 or abc)")
+  .refine((password) => {
+    // Prevent keyboard patterns
+    const keyboardPatterns = ['qwerty', 'asdfgh', 'zxcvbn', '1qaz2wsx', 'qazwsx'];
+    return !keyboardPatterns.some(pattern => password.toLowerCase().includes(pattern));
+  }, "Password cannot contain keyboard patterns (like qwerty or asdfgh)");
+
+const SignInPassword = z.string().min(1, "Password is required");
 const UserRole = z.enum(["admin", "manager", "seller", "user"], {
   errorMap: () => ({
     message: "Invalid role. Must be admin, manager, seller, or user",
   }),
-});
+}).refine((role) => {
+  // Additional role validation to prevent injection
+  const validRoles = ["admin", "manager", "seller", "user"];
+  return validRoles.includes(role);
+}, "Invalid role value");
 
 export const UserUpdateSchema = z.object({
   _id: MongoId,
@@ -427,10 +502,12 @@ export const UserProfileCompleteSchema = UserInputSchema.refine(
 
 export const UserSignInSchema = z.object({
   email: Email,
-  password: Password,
+  password: SignInPassword,
 });
-export const UserSignUpSchema = UserSignInSchema.extend({
+export const UserSignUpSchema = z.object({
   name: UserName,
+  email: RegistrationEmail,
+  password: Password,
   confirmPassword: Password,
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
@@ -458,7 +535,7 @@ export const ResetPasswordSchema = z.object({
 export const AdminUserCreateSchema = z
   .object({
     name: UserName,
-    email: Email,
+    email: RegistrationEmail,
     role: UserRole,
     password: Password,
     sendWelcomeEmail: z.boolean().default(false),

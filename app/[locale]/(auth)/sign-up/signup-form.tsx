@@ -105,7 +105,7 @@ export default function CredentialsSignInForm() {
               <FormItem className='w-full'>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input placeholder='Enter email address' {...field} />
+                  <Input placeholder='Enter Gmail address' {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -121,7 +121,7 @@ export default function CredentialsSignInForm() {
                 <FormControl>
                   <Input
                     type='password'
-                    placeholder='Enter password'
+                    placeholder='Min 8 chars with uppercase, lowercase, number & special char'
                     {...field}
                   />
                 </FormControl>

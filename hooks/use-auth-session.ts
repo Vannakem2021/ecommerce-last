@@ -1,30 +1,38 @@
 /**
  * Enhanced Authentication Session Hook
- * 
+ *
  * This hook provides improved session management for client components
- * with automatic synchronization and error handling.
+ * with secure session handling and proper TypeScript types.
  */
 
-import { useSession } from 'next-auth/react'
+import { useSession, Session } from 'next-auth/react'
 import { useEffect, useCallback } from 'react'
 
+export interface AuthUser {
+  id: string
+  name?: string | null
+  email?: string | null
+  image?: string | null
+  role: string
+}
+
 export interface AuthSessionState {
-  session: any
+  session: Session | null
   status: 'loading' | 'authenticated' | 'unauthenticated'
   isLoading: boolean
   isAuthenticated: boolean
-  user: any
-  update: () => Promise<any>
+  user: AuthUser | null
+  update: () => Promise<Session | null>
   refresh: () => Promise<void>
 }
 
 /**
- * Enhanced session hook with automatic synchronization
+ * Enhanced session hook with secure session management
  */
 export function useAuthSession(): AuthSessionState {
   const { data: session, status, update } = useSession()
 
-  // Refresh session to ensure synchronization
+  // Simplified refresh function - rely on NextAuth's built-in mechanisms
   const refresh = useCallback(async () => {
     try {
       await update()
@@ -33,28 +41,19 @@ export function useAuthSession(): AuthSessionState {
     }
   }, [update])
 
-  // Auto-refresh session on mount to ensure sync
-  // Reduced aggressiveness to prevent interference with sign-out
+  // Cleanup effect for component unmounting
   useEffect(() => {
-    if (status === 'loading') return
-    
-    // Only auto-refresh if we have an authenticated session
-    // This prevents interference with the sign-out process
-    if (status === 'authenticated' && !session) {
-      const timer = setTimeout(() => {
-        refresh()
-      }, 500) // Increased delay to reduce race conditions
-
-      return () => clearTimeout(timer)
+    return () => {
+      // Cleanup any pending operations when component unmounts
     }
-  }, [status, session, refresh])
+  }, [])
 
   return {
     session,
     status,
     isLoading: status === 'loading',
-    isAuthenticated: status === 'authenticated',
-    user: session?.user || null,
+    isAuthenticated: status === 'authenticated' && !!session?.user,
+    user: session?.user as AuthUser | null,
     update,
     refresh,
   }
@@ -62,39 +61,37 @@ export function useAuthSession(): AuthSessionState {
 
 /**
  * Hook for components that require authentication
- * Automatically handles loading states and redirects
+ * Throws during render when unauthenticated
  */
 export function useRequireAuth() {
   const authSession = useAuthSession()
-  
-  useEffect(() => {
-    if (authSession.status === 'loading') return
-    
-    if (!authSession.isAuthenticated) {
-      // Could add automatic redirect logic here if needed
-      console.warn('Component requires authentication but user is not authenticated')
-    }
-  }, [authSession.status, authSession.isAuthenticated])
+
+  if (authSession.status !== 'loading' && !authSession.isAuthenticated) {
+    throw new Error('Authentication required')
+  }
 
   return authSession
 }
 
 /**
- * Debug hook for authentication troubleshooting
+ * Debug hook for authentication troubleshooting (development only)
  */
 export function useAuthDebug() {
   const authSession = useAuthSession()
-  
+
   useEffect(() => {
-    console.log('🔍 Auth Debug Info:', {
-      status: authSession.status,
-      isAuthenticated: authSession.isAuthenticated,
-      hasSession: !!authSession.session,
-      hasUser: !!authSession.user,
-      userId: authSession.user?.id,
-      userRole: authSession.user?.role,
-      userName: authSession.user?.name,
-    })
+    // Only log in development environment
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔍 Auth Debug Info:', {
+        status: authSession.status,
+        isAuthenticated: authSession.isAuthenticated,
+        hasSession: !!authSession.session,
+        hasUser: !!authSession.user,
+        userId: authSession.user?.id,
+        userRole: authSession.user?.role,
+        userName: authSession.user?.name,
+      })
+    }
   }, [authSession])
 
   return authSession

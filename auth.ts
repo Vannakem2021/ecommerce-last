@@ -1,37 +1,25 @@
 import { MongoDBAdapter } from "@auth/mongodb-adapter";
-import Google from "next-auth/providers/google";
-import bcrypt from "bcryptjs";
-import CredentialsProvider from "next-auth/providers/credentials";
 import { connectToDatabase } from "./lib/db";
 import client from "./lib/db/client";
 import User from "./lib/db/models/user.model";
+import Google from "next-auth/providers/google";
+import bcrypt from "bcryptjs";
+import CredentialsProvider from "next-auth/providers/credentials";
 
 import NextAuth, { type DefaultSession } from "next-auth";
 import authConfig from "./auth.config";
-import { isSellerOrHigher } from "./lib/rbac-utils";
+import { getPostLoginRedirectUrl } from "./lib/auth-redirect";
 
 declare module "next-auth" {
   interface Session {
     user: {
+      id: string;
       role: string;
     } & DefaultSession["user"];
   }
 }
 
-// Helper function to determine redirect URL based on user role
-function getRoleBasedRedirectUrl(role: string, callbackUrl?: string): string {
-  // If there's a specific callback URL, use it
-  if (callbackUrl && callbackUrl !== "/") {
-    return callbackUrl;
-  }
-  
-  // Role-based default redirects
-  if (isSellerOrHigher(role)) {
-    return "/admin";
-  }
-  
-  return "/"; // Regular users go to home page
-}
+
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
@@ -48,7 +36,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: MongoDBAdapter(client),
   providers: [
     Google({
-      allowDangerousEmailAccountLinking: true,
       profile(profile) {
         return {
           id: profile.sub,
@@ -86,7 +73,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           );
           if (isMatch) {
             return {
-              id: user._id,
+              id: user._id.toString(),
               name: user.name,
               email: user.email,
               role: user.role,
@@ -98,33 +85,73 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
+    redirect: async ({ url, baseUrl }) => {
+      try {
+        // Only allow same-origin redirects for security
+        if (!url.startsWith("/") && !url.startsWith(baseUrl)) {
+          return baseUrl;
+        }
+
+        // For OAuth flows, redirect to a post-auth page that handles role-based redirects
+        // This is necessary because the redirect callback doesn't have access to user session
+        if (url.includes("/api/auth/callback/")) {
+          return `${baseUrl}/auth/post-signin`;
+        }
+
+        // For other redirects, ensure they're same-origin
+        return url.startsWith("/") ? `${baseUrl}${url}` : url;
+      } catch (error) {
+        console.error("Redirect callback error:", error);
+        return baseUrl;
+      }
+    },
+    signIn: async ({ user, account, profile }) => {
+      try {
+        if (account?.provider === "google") {
+          await connectToDatabase();
+
+          // Check if user already exists with this email
+          const existingUser = await User.findOne({ email: user.email });
+
+          if (existingUser) {
+            // Preserve existing role and user data for OAuth account linking
+            user.role = existingUser.role;
+            user.name = existingUser.name || user.name;
+          } else {
+            // New OAuth user - set default role
+            user.role = "user";
+          }
+        }
+        return true;
+      } catch (error) {
+        console.error("SignIn callback error:", error);
+        return false;
+      }
+    },
     jwt: async ({ token, user, trigger, session }) => {
+      // Normalize token.sub to string as safeguard
+      if (token.sub) {
+        token.sub = String(token.sub);
+      }
+
       // Handle new user sign-in
       if (user) {
         token.role = (user as { role: string }).role || "user";
         token.name = user.name || user.email!.split("@")[0];
+      }
 
-        // For users without complete profile data, handle asynchronously
-        if (!user.name) {
-          // Don't block authentication - handle name update in background
-          setImmediate(async () => {
-            try {
-              await connectToDatabase();
-              const existingUser = await User.findById(user.id);
-              const updatedName = user.email!.split("@")[0];
-
-              if (existingUser) {
-                await User.findByIdAndUpdate(user.id, { name: updatedName });
-              } else {
-                await User.findByIdAndUpdate(user.id, {
-                  name: updatedName,
-                  role: "user",
-                });
-              }
-            } catch (error) {
-              console.error("Background user update failed:", error);
-            }
-          });
+      // Query database for role if missing (edge case handling)
+      if (!token.role && token.sub) {
+        try {
+          await connectToDatabase();
+          const dbUser = await User.findById(token.sub);
+          if (dbUser) {
+            token.role = dbUser.role;
+            token.name = dbUser.name || token.name;
+          }
+        } catch (error) {
+          console.error("JWT callback database query failed:", error);
+          token.role = "user"; // Fallback to user role
         }
       }
 
@@ -136,15 +163,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return token;
     },
     session: async ({ session, token }) => {
-      // Ensure session has all required fields
-      session.user.id = token.sub as string;
-      session.user.role = token.role as string;
-      session.user.name = token.name as string;
-      
-      // Add role-based redirect URL for client-side use
-      (session as any).redirectUrl = getRoleBasedRedirectUrl(token.role as string);
-      
-      return session;
+      try {
+        // Ensure session has all required fields
+        session.user.id = token.sub as string;
+        session.user.role = (token.role as string) || "user";
+        session.user.name = (token.name as string) || session.user.email?.split("@")[0] || "";
+
+        return session;
+      } catch (error) {
+        console.error("Session callback error:", error);
+        // Return session with fallback values
+        session.user.role = "user";
+        return session;
+      }
     },
   },
 });

@@ -12,7 +12,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet'
 import { auth } from '@/auth'
-import { hasPermission } from '@/lib/rbac-utils'
+import { isSellerOrHigher } from '@/lib/rbac-utils'
 import { redirectInsufficientRole, redirectAuthenticationRequired } from '@/lib/unauthorized-redirect'
 import Script from 'next/script'
 
@@ -25,11 +25,19 @@ export default async function AdminLayout({
 
   // Check if user is authenticated
   if (!session?.user?.id) {
+    console.warn('Unauthorized admin access attempt: No session')
     redirectAuthenticationRequired('/admin')
   }
 
-  // Basic admin access check - more specific checks are done in individual pages
-  if (!session.user.role || !hasPermission(session.user.role, 'reports.read')) {
+  // Comprehensive admin access validation - require seller or higher role
+  if (!session.user.role || !isSellerOrHigher(session.user.role)) {
+    console.warn(`Unauthorized admin access attempt: User ${session.user.id} with role ${session.user.role}`)
+    redirectInsufficientRole('/admin')
+  }
+
+  // Additional validation for session integrity
+  if (typeof session.user.role !== 'string' || session.user.role.trim() === '') {
+    console.error(`Invalid role format for user ${session.user.id}: ${session.user.role}`)
     redirectInsufficientRole('/admin')
   }
 

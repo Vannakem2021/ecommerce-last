@@ -49,42 +49,62 @@ export default function CredentialsSignInForm() {
   const onSubmit = async (data: IUserSignIn) => {
     setIsLoading(true)
     try {
-      // Use NextAuth's signIn directly from the client
+      // Use NextAuth's signIn with manual redirect handling
       const result = await signIn('credentials', {
         email: data.email,
         password: data.password,
-        redirect: false,
+        redirect: false, // Handle redirect manually for role-based routing
       })
-      
+
       if (result?.error) {
-        throw new Error(result.error)
-      }
-      
-      if (result?.ok) {
-        // Force session update to get the latest user data
-        const session = await update()
-        
-        // Small delay to ensure session is fully updated
-        await new Promise(resolve => setTimeout(resolve, 100))
-        
-        // Get the updated session one more time if needed
-        const finalSession = session?.user?.role ? session : await update()
-        
-        // Determine redirect URL based on role
-        if (finalSession?.user?.role) {
-          const redirectUrl = getRoleBasedRedirectUrl(finalSession.user.role, callbackUrl)
-          router.push(redirectUrl)
-        } else {
-          // Fallback to callback URL if no role available yet
-          router.push(callbackUrl)
+        setIsLoading(false)
+        let errorMessage = 'Invalid email or password'
+
+        // Provide more specific error messages
+        if (result.error === 'CredentialsSignin') {
+          errorMessage = 'Invalid email or password'
+        } else if (result.error === 'AccessDenied') {
+          errorMessage = 'Account access denied'
+        } else if (result.error === 'Configuration') {
+          errorMessage = 'Authentication configuration error'
         }
-        // Don't reset loading here - let the navigation happen
+
+        toast({
+          title: 'Sign In Failed',
+          description: errorMessage,
+          variant: 'destructive',
+        })
+      } else if (result?.ok) {
+        // Authentication successful - handle role-based redirect
+        try {
+          // Get the updated session to access user role
+          const response = await fetch('/api/auth/session')
+          const session = await response.json()
+
+          if (session?.user?.role) {
+            // Validate callback URL to prevent open redirect attacks
+            const safeCallbackUrl = callbackUrl.startsWith('/') ? callbackUrl : null
+
+            // Get role-based redirect URL
+            const redirectUrl = getRoleBasedRedirectUrl(session.user.role, safeCallbackUrl)
+
+            // Redirect to appropriate page
+            router.replace(redirectUrl)
+          } else {
+            // Fallback redirect if role is not available
+            router.replace('/')
+          }
+        } catch (sessionError) {
+          console.error('Error getting session after login:', sessionError)
+          // Fallback redirect
+          router.replace('/')
+        }
       }
-    } catch {
+    } catch (error) {
       setIsLoading(false)
       toast({
         title: 'Error',
-        description: 'Invalid email or password',
+        description: 'An unexpected error occurred. Please try again.',
         variant: 'destructive',
       })
     }
