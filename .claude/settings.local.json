@@ -8,7 +8,9 @@
       "mcp__playwright__browser_snapshot",
       "mcp__playwright__browser_evaluate",
       "mcp__playwright__browser_click",
-      "mcp__playwright__browser_wait_for"
+      "mcp__playwright__browser_wait_for",
+      "Bash(npx tsc:*)",
+      "Bash(npm run dev:*)"
     ],
     "deny": [],
     "ask": []

@@ -419,6 +419,9 @@ export async function getOrderById(orderId: string): Promise<IOrder> {
 
 
 
+// Cache for delivery calculations to avoid redundant server calls
+const deliveryCalculationCache = new Map<string, any>()
+
 export const calcDeliveryDateAndPrice = async ({
   items,
   shippingAddress,
@@ -428,41 +431,89 @@ export const calcDeliveryDateAndPrice = async ({
   items: OrderItem[]
   shippingAddress?: ShippingAddress
 }) => {
-  const { availableDeliveryDates } = await getSetting()
-  const itemsPrice = round2(
-    items.reduce((acc, item) => acc + item.price * item.quantity, 0)
-  )
+  // Input validation
+  if (!items || !Array.isArray(items)) {
+    throw new Error('Invalid items array')
+  }
 
-  const deliveryDate =
-    availableDeliveryDates[
-      deliveryDateIndex === undefined
-        ? availableDeliveryDates.length - 1
-        : deliveryDateIndex
-    ]
-  const shippingPrice =
-    !shippingAddress || !deliveryDate
-      ? undefined
-      : deliveryDate.freeShippingMinPrice > 0 &&
-          itemsPrice >= deliveryDate.freeShippingMinPrice
-        ? 0
-        : deliveryDate.shippingPrice
+  // Create cache key for identical inputs
+  const cacheKey = JSON.stringify({ items, shippingAddress, deliveryDateIndex })
 
-  const taxPrice = !shippingAddress ? undefined : round2(itemsPrice * 0.15)
-  const totalPrice = round2(
-    itemsPrice +
-      (shippingPrice ? round2(shippingPrice) : 0) +
-      (taxPrice ? round2(taxPrice) : 0)
-  )
-  return {
-    availableDeliveryDates,
-    deliveryDateIndex:
-      deliveryDateIndex === undefined
-        ? availableDeliveryDates.length - 1
-        : deliveryDateIndex,
-    itemsPrice,
-    shippingPrice,
-    taxPrice,
-    totalPrice,
+  // Check cache first
+  if (deliveryCalculationCache.has(cacheKey)) {
+    return deliveryCalculationCache.get(cacheKey)
+  }
+
+  try {
+    const { availableDeliveryDates } = await getSetting()
+    const itemsPrice = round2(
+      items.reduce((acc, item) => {
+        if (!item.price || !item.quantity) return acc
+        return acc + item.price * item.quantity
+      }, 0)
+    )
+
+    // Handle empty availableDeliveryDates by setting deliveryDateIndex to 0 and deliveryDate to undefined
+    let adjustedDeliveryDateIndex = deliveryDateIndex === undefined
+      ? Math.max(0, availableDeliveryDates.length - 1)
+      : deliveryDateIndex
+
+    // If no dates exist, set index to 0 and deliveryDate to undefined
+    if (availableDeliveryDates.length === 0) {
+      adjustedDeliveryDateIndex = 0
+    }
+
+    const deliveryDate = availableDeliveryDates.length > 0
+      ? availableDeliveryDates[Math.min(adjustedDeliveryDateIndex, availableDeliveryDates.length - 1)]
+      : undefined
+    const shippingPrice =
+      !shippingAddress || !deliveryDate
+        ? undefined
+        : deliveryDate.freeShippingMinPrice > 0 &&
+            itemsPrice >= deliveryDate.freeShippingMinPrice
+          ? 0
+          : deliveryDate.shippingPrice
+
+    const taxPrice = !shippingAddress ? undefined : round2(itemsPrice * 0.15)
+    const totalPrice = round2(
+      itemsPrice +
+        (shippingPrice ? round2(shippingPrice) : 0) +
+        (taxPrice ? round2(taxPrice) : 0)
+    )
+
+    const result = {
+      availableDeliveryDates,
+      deliveryDateIndex: adjustedDeliveryDateIndex,
+      itemsPrice,
+      shippingPrice,
+      taxPrice,
+      totalPrice,
+    }
+
+    // Cache the result (with a reasonable limit to prevent memory leaks)
+    if (deliveryCalculationCache.size > 100) {
+      deliveryCalculationCache.clear()
+    }
+    deliveryCalculationCache.set(cacheKey, result)
+
+    return result
+  } catch (error) {
+    console.error('Failed to calculate delivery date and price:', error)
+    // Return fallback calculation
+    const itemsPrice = round2(
+      items.reduce((acc, item) => {
+        if (!item.price || !item.quantity) return acc
+        return acc + item.price * item.quantity
+      }, 0)
+    )
+    return {
+      availableDeliveryDates: [],
+      deliveryDateIndex: 0,
+      itemsPrice,
+      shippingPrice: undefined,
+      taxPrice: undefined,
+      totalPrice: itemsPrice,
+    }
   }
 }
 

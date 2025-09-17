@@ -14,11 +14,12 @@ import {
 } from '@/components/ui/select'
 import useUserCart from '@/hooks/use-user-cart'
 import useSettingStore from '@/hooks/use-setting-store'
-import { useTranslations } from 'next-intl'
+import { useAuthSession } from '@/hooks/use-auth-session'
+import { useTranslations, useLocale } from 'next-intl'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import React from 'react'
+import React, { useMemo, useState } from 'react'
 
 export default function CartPage() {
   const {
@@ -27,6 +28,8 @@ export default function CartPage() {
     removeItem,
   } = useUserCart()
   const router = useRouter()
+  const { user } = useAuthSession()
+  const locale = useLocale()
   const {
     setting: {
       site,
@@ -35,6 +38,52 @@ export default function CartPage() {
   } = useSettingStore()
 
   const t = useTranslations()
+
+  // Loading states for server operations
+  const [isUpdating, setIsUpdating] = useState(false)
+  const [updateError, setUpdateError] = useState<string | null>(null)
+
+  // Enhanced update item with loading/error handling
+  const handleUpdateItem = async (item: any, quantity: number) => {
+    setIsUpdating(true)
+    setUpdateError(null)
+    try {
+      await updateItem(item, quantity)
+    } catch (error) {
+      setUpdateError(error instanceof Error ? error.message : 'Failed to update item')
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  // Enhanced remove item with loading/error handling
+  const handleRemoveItem = async (item: any) => {
+    setIsUpdating(true)
+    setUpdateError(null)
+    try {
+      await removeItem(item)
+    } catch (error) {
+      setUpdateError(error instanceof Error ? error.message : 'Failed to remove item')
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  // Safe calculation with fallback if itemsPrice is NaN or undefined
+  const safeItemsPrice = useMemo(() => {
+    if (typeof itemsPrice === 'number' && !isNaN(itemsPrice)) {
+      return itemsPrice
+    }
+    return items.reduce((acc, item) => acc + item.price * item.quantity, 0)
+  }, [itemsPrice, items])
+
+  // Safe total calculation
+  const safeTotalPrice = useMemo(() => {
+    if (typeof totalPrice === 'number' && !isNaN(totalPrice)) {
+      return totalPrice
+    }
+    return safeItemsPrice
+  }, [totalPrice, safeItemsPrice])
   return (
     <div>
       <div className='grid grid-cols-1 md:grid-cols-4  md:gap-4'>
@@ -56,6 +105,11 @@ export default function CartPage() {
               <Card className='rounded-none'>
                 <CardHeader className='text-3xl pb-0'>
                   {t('Cart.Shopping Cart')}
+                  {updateError && (
+                    <div className='text-sm text-red-600 bg-red-50 p-2 rounded mt-2'>
+                      {updateError}
+                    </div>
+                  )}
                 </CardHeader>
                 <CardContent className='p-4'>
                   <div className='flex justify-end border-b mb-4'>
@@ -108,8 +162,9 @@ export default function CartPage() {
                           <Select
                             value={item.quantity.toString()}
                             onValueChange={(value) =>
-                              updateItem(item, Number(value))
+                              handleUpdateItem(item, Number(value))
                             }
+                            disabled={isUpdating}
                           >
                             <SelectTrigger className='w-auto'>
                               <SelectValue>
@@ -128,7 +183,8 @@ export default function CartPage() {
                           </Select>
                           <Button
                             variant={'outline'}
-                            onClick={() => removeItem(item)}
+                            onClick={() => handleRemoveItem(item)}
+                            disabled={isUpdating}
                           >
                             {t('Cart.Delete')}
                           </Button>
@@ -160,7 +216,7 @@ export default function CartPage() {
                     {items.reduce((acc, item) => acc + item.quantity, 0)}{' '}
                     {t('Cart.Items')}):{' '}
                     <span className='font-bold ml-1'>
-                      <ProductPrice price={itemsPrice} plain />
+                      <ProductPrice price={safeItemsPrice} plain />
                     </span>{' '}
                   </div>
                 </CardContent>
@@ -172,12 +228,12 @@ export default function CartPage() {
 
               <Card className='rounded-none'>
                 <CardContent className='py-4 space-y-4'>
-                  {itemsPrice < freeShippingMinPrice ? (
+                  {safeItemsPrice < freeShippingMinPrice ? (
                     <div className='flex-1'>
                       {t('Cart.Add')}{' '}
                       <span className='text-green-700'>
                         <ProductPrice
-                          price={freeShippingMinPrice - itemsPrice}
+                          price={freeShippingMinPrice - safeItemsPrice}
                           plain
                         />
                       </span>{' '}
@@ -198,7 +254,7 @@ export default function CartPage() {
                     {items.reduce((acc, item) => acc + item.quantity, 0)}{' '}
                     {t('Cart.items')}):{' '}
                     <span className='font-bold'>
-                      <ProductPrice price={itemsPrice} plain />
+                      <ProductPrice price={safeItemsPrice} plain />
                     </span>{' '}
                   </div>
 
@@ -207,14 +263,24 @@ export default function CartPage() {
 
                   {discountAmount && (
                     <div className='text-lg font-bold border-t pt-2'>
-                      {t('Cart.Total')}: <ProductPrice price={totalPrice || itemsPrice} plain />
+                      {t('Cart.Total')}: <ProductPrice price={safeTotalPrice} plain />
                     </div>
                   )}
+
+                  {!user && (
+                    <div className='text-sm text-muted-foreground text-center mb-2'>
+                      {t('Cart.Sign in required to complete checkout')}
+                    </div>
+                  )}
+
                   <Button
-                    onClick={() => router.push('/checkout')}
+                    onClick={() => {
+                      const checkoutPath = locale === 'en-US' ? '/checkout' : `/${locale}/checkout`
+                      router.push(checkoutPath)
+                    }}
                     className='rounded-full w-full'
                   >
-                    {t('Cart.Proceed to Checkout')}
+                    {user ? t('Cart.Proceed to Checkout') : t('Cart.Sign In to Checkout')}
                   </Button>
                 </CardContent>
               </Card>

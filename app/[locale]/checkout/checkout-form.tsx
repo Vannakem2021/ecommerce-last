@@ -225,9 +225,12 @@ const CheckoutForm = () => {
     const res = await createOrder({
       items,
       shippingAddress,
-      expectedDeliveryDate: calculateFutureDate(
-        availableDeliveryDates[deliveryDateIndex!].daysToDeliver
-      ),
+      expectedDeliveryDate: availableDeliveryDates &&
+        deliveryDateIndex !== undefined &&
+        availableDeliveryDates[deliveryDateIndex] &&
+        availableDeliveryDates[deliveryDateIndex].daysToDeliver
+        ? calculateFutureDate(availableDeliveryDates[deliveryDateIndex].daysToDeliver)
+        : new Date(),
       deliveryDateIndex,
       paymentMethod,
       itemsPrice,
@@ -554,12 +557,16 @@ const CheckoutForm = () => {
                   <p>
                     Delivery date:{" "}
                     {
-                      formatDateTime(
-                        calculateFutureDate(
-                          availableDeliveryDates[deliveryDateIndex]
-                            .daysToDeliver
-                        )
-                      ).dateOnly
+                      availableDeliveryDates &&
+                      deliveryDateIndex !== undefined &&
+                      availableDeliveryDates[deliveryDateIndex] &&
+                      availableDeliveryDates[deliveryDateIndex].daysToDeliver
+                        ? formatDateTime(
+                            calculateFutureDate(
+                              availableDeliveryDates[deliveryDateIndex].daysToDeliver
+                            )
+                          ).dateOnly
+                        : "TBD"
                     }
                   </p>
                   <ul>
@@ -594,12 +601,16 @@ const CheckoutForm = () => {
                       <span className="text-lg font-bold text-green-700">
                         Arriving{" "}
                         {
-                          formatDateTime(
-                            calculateFutureDate(
-                              availableDeliveryDates[deliveryDateIndex!]
-                                .daysToDeliver
-                            )
-                          ).dateOnly
+                          availableDeliveryDates &&
+                          deliveryDateIndex !== undefined &&
+                          availableDeliveryDates[deliveryDateIndex] &&
+                          availableDeliveryDates[deliveryDateIndex].daysToDeliver
+                            ? formatDateTime(
+                                calculateFutureDate(
+                                  availableDeliveryDates[deliveryDateIndex].daysToDeliver
+                                )
+                              ).dateOnly
+                            : "Loading..."
                         }
                       </span>{" "}
                       If you order in the next {timeUntilMidnight().hours} hours
@@ -665,17 +676,21 @@ const CheckoutForm = () => {
                           <ul>
                             <RadioGroup
                               value={
-                                availableDeliveryDates[deliveryDateIndex!].name
+                                availableDeliveryDates &&
+                                deliveryDateIndex !== undefined &&
+                                availableDeliveryDates[deliveryDateIndex]
+                                  ? availableDeliveryDates[deliveryDateIndex].name
+                                  : ""
                               }
                               onValueChange={(value) =>
                                 setDeliveryDateIndex(
-                                  availableDeliveryDates.findIndex(
+                                  availableDeliveryDates?.findIndex(
                                     (address) => address.name === value
-                                  )!
+                                  ) ?? 0
                                 )
                               }
                             >
-                              {availableDeliveryDates.map((dd) => (
+                              {availableDeliveryDates?.map((dd) => (
                                 <div key={dd.name} className="flex">
                                   <RadioGroupItem
                                     value={dd.name}

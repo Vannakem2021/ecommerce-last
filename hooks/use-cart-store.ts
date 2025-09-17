@@ -4,6 +4,7 @@ import { persist } from 'zustand/middleware'
 import { Cart, OrderItem, ShippingAddress, PromotionValidationResult } from '@/types'
 import { calcDeliveryDateAndPrice } from '@/lib/actions/order.actions'
 import { validatePromotionCode } from '@/lib/actions/promotion.actions'
+import { round2 } from '@/lib/utils'
 
 const initialState: Cart = {
   items: [],
@@ -18,29 +19,92 @@ const initialState: Cart = {
   discountAmount: undefined,
 }
 
+// Client-side price calculation function to reduce server calls
+const calculateClientSidePrices = (items: OrderItem[]) => {
+  const itemsPrice = round2(
+    items.reduce((acc, item) => {
+      // Guard against undefined price/quantity, mirroring server-side guard
+      if (!item.price || !item.quantity) return acc
+      return acc + item.price * item.quantity
+    }, 0)
+  )
+  return {
+    itemsPrice,
+    // Basic totals without server-side shipping/tax calculations
+    totalPrice: itemsPrice
+  }
+}
+
 interface CartState {
   cart: Cart
   currentUserId: string | null
   addItem: (item: OrderItem, quantity: number) => Promise<string>
   updateItem: (item: OrderItem, quantity: number) => Promise<void>
-  removeItem: (item: OrderItem) => void
+  removeItem: (item: OrderItem) => Promise<void>
   clearCart: () => void
   setShippingAddress: (shippingAddress: ShippingAddress) => Promise<void>
   setPaymentMethod: (paymentMethod: string) => void
   setDeliveryDateIndex: (index: number) => Promise<void>
   applyPromotion: (code: string, userId?: string) => Promise<PromotionValidationResult>
   removePromotion: () => Promise<void>
+  recalculateServerPrices: () => Promise<void>
   initializeForUser: (userId: string | null) => void
+  init: () => void
 }
 
 const useCartStore = create(
   persist<CartState>(
-    (set, get) => ({
-      cart: initialState,
-      currentUserId: null,
+    (set, get) => {
+      // Debounced promotion recalculation
+      let promotionRecalcDebounce: ReturnType<typeof setTimeout> | null = null
+
+      const schedulePromotionRecalc = () => {
+        if (promotionRecalcDebounce) {
+          clearTimeout(promotionRecalcDebounce)
+        }
+        promotionRecalcDebounce = setTimeout(async () => {
+          const { appliedPromotion, items, shippingAddress, deliveryDateIndex } = get().cart
+          if (appliedPromotion) {
+            try {
+              const serverPrices = await calcDeliveryDateAndPrice({
+                items,
+                shippingAddress,
+                deliveryDateIndex,
+              })
+
+              // Re-apply free shipping if promotion includes it
+              let finalShippingPrice = serverPrices.shippingPrice
+              if (appliedPromotion.freeShipping) {
+                finalShippingPrice = 0
+              }
+
+              // Recalculate final totals with promotion
+              const baseTotal = serverPrices.itemsPrice +
+                (finalShippingPrice || 0) +
+                (serverPrices.taxPrice || 0)
+              const finalTotalPrice = baseTotal - appliedPromotion.discountAmount
+
+              set({
+                cart: {
+                  ...get().cart,
+                  ...serverPrices,
+                  shippingPrice: finalShippingPrice,
+                  totalPrice: Math.max(0, finalTotalPrice),
+                },
+              })
+            } catch (error) {
+              console.error('Failed to recalculate promotion prices:', error)
+            }
+          }
+        }, 500) // 500ms debounce
+      }
+
+      return {
+        cart: initialState,
+        currentUserId: null,
 
       addItem: async (item: OrderItem, quantity: number) => {
-        const { items, shippingAddress } = get().cart
+        const { items } = get().cart
         const existItem = items.find(
           (x) =>
             x.product === item.product &&
@@ -68,16 +132,23 @@ const useCartStore = create(
             )
           : [...items, { ...item, quantity }]
 
+        // Use client-side calculation for immediate response
+        const clientPrices = calculateClientSidePrices(updatedCartItems)
+
         set({
           cart: {
             ...get().cart,
             items: updatedCartItems,
-            ...(await calcDeliveryDateAndPrice({
-              items: updatedCartItems,
-              shippingAddress,
-            })),
+            ...clientPrices,
           },
         })
+
+        // Schedule promotion recalculation if promotion is applied
+        const { appliedPromotion } = get().cart
+        if (appliedPromotion) {
+          schedulePromotionRecalc()
+        }
+
         const foundItem = updatedCartItems.find(
           (x) =>
             x.product === item.product &&
@@ -90,7 +161,7 @@ const useCartStore = create(
         return foundItem.clientId
       },
       updateItem: async (item: OrderItem, quantity: number) => {
-        const { items, shippingAddress } = get().cart
+        const { items } = get().cart
         const exist = items.find(
           (x) =>
             x.product === item.product &&
@@ -105,48 +176,85 @@ const useCartStore = create(
             ? { ...exist, quantity: quantity }
             : x
         )
+
+        // Use client-side calculation for immediate response
+        const clientPrices = calculateClientSidePrices(updatedCartItems)
+
         set({
           cart: {
             ...get().cart,
             items: updatedCartItems,
-            ...(await calcDeliveryDateAndPrice({
-              items: updatedCartItems,
-              shippingAddress,
-            })),
+            ...clientPrices,
           },
         })
+
+        // Schedule promotion recalculation if promotion is applied
+        const { appliedPromotion } = get().cart
+        if (appliedPromotion) {
+          schedulePromotionRecalc()
+        }
       },
       removeItem: async (item: OrderItem) => {
-        const { items, shippingAddress } = get().cart
+        const { items } = get().cart
         const updatedCartItems = items.filter(
           (x) =>
             x.product !== item.product ||
             x.color !== item.color ||
             x.size !== item.size
         )
+
+        // Use client-side calculation for immediate response
+        const clientPrices = calculateClientSidePrices(updatedCartItems)
+
         set({
           cart: {
             ...get().cart,
             items: updatedCartItems,
-            ...(await calcDeliveryDateAndPrice({
-              items: updatedCartItems,
-              shippingAddress,
-            })),
+            ...clientPrices,
           },
         })
+
+        // Schedule promotion recalculation if promotion is applied
+        const { appliedPromotion } = get().cart
+        if (appliedPromotion) {
+          schedulePromotionRecalc()
+        }
       },
       setShippingAddress: async (shippingAddress: ShippingAddress) => {
-        const { items } = get().cart
-        set({
-          cart: {
-            ...get().cart,
+        const { items, appliedPromotion } = get().cart
+        try {
+          const serverPrices = await calcDeliveryDateAndPrice({
+            items,
             shippingAddress,
-            ...(await calcDeliveryDateAndPrice({
-              items,
+          })
+
+          // Re-apply free shipping if promotion includes it
+          let finalShippingPrice = serverPrices.shippingPrice
+          if (appliedPromotion?.freeShipping) {
+            finalShippingPrice = 0
+          }
+
+          set({
+            cart: {
+              ...get().cart,
               shippingAddress,
-            })),
-          },
-        })
+              ...serverPrices,
+              shippingPrice: finalShippingPrice,
+            },
+          })
+        } catch (error) {
+          // Fallback to client-side calculation if server fails
+          const clientPrices = calculateClientSidePrices(items)
+          set({
+            cart: {
+              ...get().cart,
+              shippingAddress,
+              ...clientPrices,
+              shippingPrice: appliedPromotion?.freeShipping ? 0 : undefined,
+            },
+          })
+          console.error('Server calculation failed, using client fallback:', error)
+        }
       },
       setPaymentMethod: (paymentMethod: string) => {
         set({
@@ -157,25 +265,45 @@ const useCartStore = create(
         })
       },
       setDeliveryDateIndex: async (index: number) => {
-        const { items, shippingAddress } = get().cart
+        const { items, shippingAddress, appliedPromotion } = get().cart
 
-        set({
-          cart: {
-            ...get().cart,
-            ...(await calcDeliveryDateAndPrice({
-              items,
-              shippingAddress,
+        try {
+          const serverPrices = await calcDeliveryDateAndPrice({
+            items,
+            shippingAddress,
+            deliveryDateIndex: index,
+          })
+
+          // Re-apply free shipping if promotion includes it
+          let finalShippingPrice = serverPrices.shippingPrice
+          if (appliedPromotion?.freeShipping) {
+            finalShippingPrice = 0
+          }
+
+          set({
+            cart: {
+              ...get().cart,
+              ...serverPrices,
+              shippingPrice: finalShippingPrice,
+            },
+          })
+        } catch (error) {
+          // Fallback to client-side calculation if server fails
+          const clientPrices = calculateClientSidePrices(items)
+          set({
+            cart: {
+              ...get().cart,
               deliveryDateIndex: index,
-            })),
-          },
-        })
+              ...clientPrices,
+              shippingPrice: appliedPromotion?.freeShipping ? 0 : undefined,
+            },
+          })
+          console.error('Server calculation failed, using client fallback:', error)
+        }
       },
       clearCart: () => {
         set({
-          cart: {
-            ...get().cart,
-            items: [],
-          },
+          cart: initialState,
         })
       },
 
@@ -186,8 +314,11 @@ const useCartStore = create(
           const result = await validatePromotionCode(code, currentCart, userId)
 
           if (result.success && result.discount !== undefined && result.promotion) {
-            // Calculate original total before discount
-            const originalTotal = currentCart.itemsPrice + (currentCart.shippingPrice || 0) + (currentCart.taxPrice || 0)
+            // Calculate original total before discount with safe itemsPrice
+            const safeItemsPrice = typeof currentCart.itemsPrice === 'number' && !isNaN(currentCart.itemsPrice)
+              ? currentCart.itemsPrice
+              : calculateClientSidePrices(currentCart.items).itemsPrice
+            const originalTotal = safeItemsPrice + (currentCart.shippingPrice || 0) + (currentCart.taxPrice || 0)
 
             const appliedPromotion = {
               code: code.toUpperCase(),
@@ -252,37 +383,101 @@ const useCartStore = create(
           discountAmount: undefined,
         }
 
-        const priceCalculation = await calcDeliveryDateAndPrice({
-          items: updatedCart.items,
-          shippingAddress: updatedCart.shippingAddress,
-          deliveryDateIndex: updatedCart.deliveryDateIndex,
-        })
+        try {
+          const priceCalculation = await calcDeliveryDateAndPrice({
+            items: updatedCart.items,
+            shippingAddress: updatedCart.shippingAddress,
+            deliveryDateIndex: updatedCart.deliveryDateIndex,
+          })
 
-        set({
-          cart: {
-            ...updatedCart,
-            ...priceCalculation,
-          },
-        })
+          set({
+            cart: {
+              ...updatedCart,
+              ...priceCalculation,
+            },
+          })
+        } catch (error) {
+          // Fallback to client-side calculation if server fails
+          const clientPrices = calculateClientSidePrices(updatedCart.items)
+          set({
+            cart: {
+              ...updatedCart,
+              ...clientPrices,
+            },
+          })
+          console.error('Server calculation failed, using client fallback:', error)
+        }
+      },
+
+      recalculateServerPrices: async () => {
+        const { items, shippingAddress, deliveryDateIndex, appliedPromotion } = get().cart
+        try {
+          const serverPrices = await calcDeliveryDateAndPrice({
+            items,
+            shippingAddress,
+            deliveryDateIndex,
+          })
+
+          // Re-apply free shipping if promotion includes it
+          let finalShippingPrice = serverPrices.shippingPrice
+          if (appliedPromotion?.freeShipping) {
+            finalShippingPrice = 0
+          }
+
+          set({
+            cart: {
+              ...get().cart,
+              ...serverPrices,
+              shippingPrice: finalShippingPrice,
+            },
+          })
+        } catch (error) {
+          console.error('Failed to recalculate server prices:', error)
+          // Keep current client-side prices if server fails
+        }
       },
 
       initializeForUser: (userId: string | null) => {
-        const currentUserId = get().currentUserId
-        
-        // If user changed or signed out, clear cart and reset to initial state
-        if (currentUserId !== userId) {
-          set({ 
-            cart: initialState,
-            currentUserId: userId
+        const state = get()
+        const prevUserId = state.currentUserId
+        const sameUser = !!prevUserId && !!userId && prevUserId === userId
+
+        if (!sameUser) {
+          // Clear sensitive fields on user change/sign-out while preserving cart items
+          // Reset stale prices and recalculate client-side totals
+          const clientPrices = calculateClientSidePrices(state.cart.items)
+          set({
+            currentUserId: userId,
+            cart: {
+              ...state.cart,
+              shippingAddress: undefined,
+              paymentMethod: undefined,
+              appliedPromotion: undefined,
+              discountAmount: undefined,
+              shippingPrice: undefined,
+              taxPrice: undefined,
+              deliveryDateIndex: undefined,
+              ...clientPrices,
+            }
           })
+        } else {
+          // Same user, just update the user ID
+          set({ currentUserId: userId })
         }
       },
 
       init: () => set({ cart: initialState }),
-    }),
+      }
+    },
 
     {
       name: 'cart-store',
+      partialize: (state) => ({
+        cart: {
+          items: state.cart.items,
+        },
+        currentUserId: state.currentUserId,
+      }),
     }
   )
 )
