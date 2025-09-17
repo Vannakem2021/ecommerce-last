@@ -1,4 +1,5 @@
 import useUserCart from '@/hooks/use-user-cart'
+import { useAuthSession } from '@/hooks/use-auth-session'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import React from 'react'
@@ -25,6 +26,7 @@ export default function CartSidebar() {
     updateItem,
     removeItem,
   } = useUserCart()
+  const { user } = useAuthSession()
   const {
     setting: {
       common: { freeShippingMinPrice },
@@ -50,6 +52,12 @@ export default function CartSidebar() {
             {itemsPrice > freeShippingMinPrice && (
               <div className=' text-center text-xs'>
                 {t('Cart.Your order qualifies for FREE Shipping')}
+              </div>
+            )}
+
+            {!user && items.length > 0 && (
+              <div className='text-center text-xs text-muted-foreground'>
+                {t('Cart.Sign in required for checkout')}
               </div>
             )}
 

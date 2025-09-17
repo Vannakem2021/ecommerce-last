@@ -131,6 +131,9 @@
     "Tax": "ពន្ធ",
     "Total": "សរុប",
     "Proceed to Checkout": "បន្តទៅការទូទាត់ប្រាក់",
+    "Sign In to Checkout": "ចូលគណនីដើម្បីទូទាត់ប្រាក់",
+    "Sign in required to complete checkout": "ត្រូវចូលគណនីដើម្បីបញ្ចប់ការទូទាត់ប្រាក់",
+    "Sign in required for checkout": "ត្រូវចូលគណនីសម្រាប់ការទូទាត់ប្រាក់",
     "Delete": "លុប",
     "Update": "កែប្រែ",
     "Checkout": "ទូទាត់ប្រាក់"

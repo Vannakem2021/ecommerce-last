@@ -12,9 +12,17 @@ import {
 import useUserCart from '@/hooks/use-user-cart'
 import { useToast } from '@/hooks/use-toast'
 import { OrderItem } from '@/types'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+
+/**
+ * Add to Cart Component
+ *
+ * This component allows users to add items to cart without authentication.
+ * Cart items persist regardless of authentication state. Users will be
+ * prompted to sign in only when they proceed to checkout.
+ */
 
 export default function AddToCart({
   item,
@@ -25,6 +33,7 @@ export default function AddToCart({
 }) {
   const router = useRouter()
   const { toast } = useToast()
+  const locale = useLocale()
 
   const { addItem } = useUserCart()
 
@@ -36,15 +45,16 @@ export default function AddToCart({
   return minimal ? (
     <Button
       className='rounded-full w-auto'
-      onClick={() => {
+      onClick={async () => {
         try {
-          addItem(item, 1)
+          await addItem(item, 1)
           toast({
             description: t('Product.Added to Cart'),
             action: (
               <Button
                 onClick={() => {
-                  router.push('/cart')
+                  const cartPath = locale === 'en-US' ? '/cart' : `/${locale}/cart`
+                  router.push(cartPath)
                 }}
               >
                 {t('Product.Go to Cart')}
@@ -92,7 +102,8 @@ export default function AddToCart({
               action: (
                 <Button
                   onClick={() => {
-                    router.push('/cart')
+                    const cartPath = locale === 'en-US' ? '/cart' : `/${locale}/cart`
+                    router.push(cartPath)
                   }}
                 >
                   {t('Product.Go to Cart')}
@@ -114,7 +125,8 @@ export default function AddToCart({
         onClick={async () => {
           try {
             await addItem(item, quantity)
-            router.push(`/checkout`)
+            const checkoutPath = locale === 'en-US' ? '/checkout' : `/${locale}/checkout`
+            router.push(checkoutPath)
           } catch (error: any) {
             toast({
               variant: 'destructive',

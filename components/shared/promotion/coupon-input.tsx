@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useCallback, useRef } from 'react'
 import { Loader2, Tag, X, Check } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -17,8 +17,44 @@ export default function CouponInput() {
   const { toast } = useToast()
   const [couponCode, setCouponCode] = useState('')
   const [isPending, startTransition] = useTransition()
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>()
+  const [retryCount, setRetryCount] = useState(0)
+
+  // Debounced coupon application to prevent rapid-fire requests
+  const debouncedApplyCoupon = useCallback((code: string) => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current)
+    }
+    debounceRef.current = setTimeout(() => {
+      startTransition(async () => {
+        try {
+          const result = await applyPromotion(code, session?.user?.id)
+
+          if (result.success) {
+            toast({
+              description: `Coupon applied! You saved $${result.discount?.toFixed(2)}`,
+            })
+            setCouponCode('')
+            setRetryCount(0)
+          } else {
+            toast({
+              variant: 'destructive',
+              description: result.error || 'Failed to apply coupon',
+            })
+          }
+        } catch (error) {
+          console.error('Failed to apply coupon:', error)
+          toast({
+            variant: 'destructive',
+            description: 'Network error. Please try again.',
+          })
+        }
+      })
+    }, 300) // 300ms debounce
+  }, [applyPromotion, session?.user?.id, toast])
 
   const handleApplyCoupon = () => {
+    // Client-side validation
     if (!couponCode.trim()) {
       toast({
         variant: 'destructive',
@@ -27,31 +63,27 @@ export default function CouponInput() {
       return
     }
 
-    startTransition(async () => {
-      try {
-        const result = await applyPromotion(
-          couponCode.trim(),
-          session?.user?.id
-        )
+    if (couponCode.trim().length < 3) {
+      toast({
+        variant: 'destructive',
+        description: 'Coupon code must be at least 3 characters',
+      })
+      return
+    }
 
-        if (result.success) {
-          toast({
-            description: `Coupon applied! You saved $${result.discount?.toFixed(2)}`,
-          })
-          setCouponCode('')
-        } else {
-          toast({
-            variant: 'destructive',
-            description: result.error || 'Failed to apply coupon',
-          })
-        }
-      } catch (error) {
-        toast({
-          variant: 'destructive',
-          description: 'Failed to apply coupon. Please try again.',
-        })
-      }
-    })
+    debouncedApplyCoupon(couponCode.trim())
+  }
+
+  const handleRetry = () => {
+    if (retryCount < 3) {
+      setRetryCount(prev => prev + 1)
+      handleApplyCoupon()
+    } else {
+      toast({
+        variant: 'destructive',
+        description: 'Maximum retry attempts reached. Please try again later.',
+      })
+    }
   }
 
   const handleRemoveCoupon = () => {
@@ -61,10 +93,12 @@ export default function CouponInput() {
         toast({
           description: 'Coupon removed',
         })
+        setRetryCount(0)
       } catch (error) {
+        console.error('Failed to remove coupon:', error)
         toast({
           variant: 'destructive',
-          description: 'Failed to remove coupon',
+          description: 'Failed to remove coupon. Please try again.',
         })
       }
     })

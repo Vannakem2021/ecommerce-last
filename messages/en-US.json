@@ -136,6 +136,9 @@
     "Tax": "Tax",
     "Total": "Total",
     "Proceed to Checkout": "Proceed to Checkout",
+    "Sign In to Checkout": "Sign In to Checkout",
+    "Sign in required to complete checkout": "Sign in required to complete checkout",
+    "Sign in required for checkout": "Sign in required for checkout",
     "Delete": "Delete",
     "Update": "Update",
     "Checkout": "Checkout"
