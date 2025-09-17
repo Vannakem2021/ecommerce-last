@@ -83,6 +83,11 @@ export async function deleteProduct(id: string) {
 // GET ONE PRODUCT BY ID
 export async function getProductById(productId: string) {
   await connectToDatabase()
+
+  // Ensure models are registered
+  Brand
+  Category
+
   const product = await Product.findById(productId)
     .populate('brand', 'name')
     .populate('category', 'name')
@@ -102,6 +107,10 @@ export async function getAllProductsForAdmin({
   limit?: number
 }) {
   await connectToDatabase()
+
+  // Ensure models are registered
+  Brand
+  Category
 
   const {
     common: { pageSize },
@@ -187,6 +196,11 @@ export async function getProductsByTag({
   limit?: number
 }) {
   await connectToDatabase()
+
+  // Ensure models are registered
+  Brand
+  Category
+
   const products = await Product.find({
     tags: { $in: [tag] },
     isPublished: true,
@@ -201,6 +215,11 @@ export async function getProductsByTag({
 // GET ONE PRODUCT BY SLUG
 export async function getProductBySlug(slug: string) {
   await connectToDatabase()
+
+  // Ensure models are registered
+  Brand
+  Category
+
   const product = await Product.findOne({ slug, isPublished: true })
     .populate('brand', 'name')
     .populate('category', 'name')
@@ -224,6 +243,11 @@ export async function getRelatedProductsByCategory({
   } = await getSetting()
   limit = limit || pageSize
   await connectToDatabase()
+
+  // Ensure models are registered
+  Brand
+  Category
+
   const skipAmount = (Number(page) - 1) * limit
   // Handle both string and ObjectId category references
   let categoryCondition = category
@@ -277,6 +301,10 @@ export async function getAllProducts({
   } = await getSetting()
   limit = limit || pageSize
   await connectToDatabase()
+
+  // Ensure models are registered
+  Brand
+  Category
 
   const queryFilter =
     query && query !== 'all'
