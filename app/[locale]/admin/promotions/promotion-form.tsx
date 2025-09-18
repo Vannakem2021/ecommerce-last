@@ -183,6 +183,17 @@ export default function PromotionForm({
         </h1>
       </div>
 
+      {/* Form Description */}
+      <div className='p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg'>
+        <h2 className='text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2'>
+          Checkout-Level Promotions
+        </h2>
+        <p className='text-sm text-blue-800 dark:text-blue-200'>
+          Promotions are discount codes that customers enter at checkout to receive discounts on their entire order or specific products/categories.
+          These are different from product-level sales, which are time-limited price reductions managed in the product settings.
+        </p>
+      </div>
+
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
           {/* Basic Information */}
@@ -515,6 +526,12 @@ export default function PromotionForm({
               <CardTitle>Application Scope</CardTitle>
             </CardHeader>
             <CardContent className='space-y-4'>
+              <div className='p-3 bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-md'>
+                <p className='text-sm text-yellow-800 dark:text-yellow-200'>
+                  <strong>Note:</strong> All promotions require customers to enter the coupon code at checkout to receive the discount.
+                </p>
+              </div>
+
               <FormField
                 control={form.control}
                 name='appliesTo'
@@ -528,33 +545,45 @@ export default function PromotionForm({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value='all'>All Products</SelectItem>
-                        <SelectItem value='products'>Specific Products</SelectItem>
-                        <SelectItem value='categories'>Specific Categories</SelectItem>
+                        <SelectItem value='all'>All Products - Applied to entire order when coupon is used</SelectItem>
+                        <SelectItem value='products'>Specific Products - Applied only to selected products when coupon is used</SelectItem>
+                        <SelectItem value='categories'>Specific Categories - Applied only to products in selected categories when coupon is used</SelectItem>
                       </SelectContent>
                     </Select>
+                    <FormDescription>
+                      Choose which products this promotion applies to when customers use the coupon code
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
               {watchedAppliesTo === 'products' && (
-                <FormField
-                  control={form.control}
-                  name='applicableProducts'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Select Products</FormLabel>
-                      <FormControl>
-                        <ProductSelector
-                          value={field.value}
-                          onChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <>
+                  <div className='p-3 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 rounded-md'>
+                    <p className='text-sm text-orange-800 dark:text-orange-200'>
+                      <strong>Product-Specific Promotion:</strong> This promotion will only apply to the selected products when customers enter the coupon code at checkout.
+                      Consider using product-level sales instead if you want automatic discounts without requiring coupon codes.
+                    </p>
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name='applicableProducts'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Select Products</FormLabel>
+                        <FormControl>
+                          <ProductSelector
+                            value={field.value}
+                            onChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
               )}
 
               {watchedAppliesTo === 'categories' && (

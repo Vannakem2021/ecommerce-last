@@ -6,7 +6,7 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { IProduct } from '@/lib/db/models/product.model'
 
 import Rating from './rating'
-import { formatNumber, generateId, round2 } from '@/lib/utils'
+import { formatNumber, generateId, round2, getEffectivePrice } from '@/lib/utils'
 import ProductPrice from './product-price'
 import ImageHover from './image-hover'
 import AddToCart from './add-to-cart'
@@ -95,9 +95,11 @@ const ProductCard = ({
       </div>
 
       <ProductPrice
-        isDeal={product.tags.includes('todays-deal')}
         price={product.price}
         listPrice={product.listPrice}
+        salePrice={product.salePrice}
+        saleStartDate={product.saleStartDate}
+        saleEndDate={product.saleEndDate}
         forListing
       />
     </div>
@@ -115,7 +117,7 @@ const ProductCard = ({
           name: product.name,
           slug: product.slug,
           category: typeof product.category === 'object' ? product.category.name : product.category,
-          price: round2(product.price),
+          price: round2(getEffectivePrice(product)),
           quantity: 1,
           image: product.images[0],
         }}

@@ -19,13 +19,15 @@ interface PromotionBadgeProps {
   categoryId?: string
   className?: string
   size?: 'sm' | 'md' | 'lg'
+  context?: 'product' | 'cart' | 'checkout'
 }
 
-export default function PromotionBadge({ 
-  productId, 
-  categoryId, 
+export default function PromotionBadge({
+  productId,
+  categoryId,
   className = '',
-  size = 'sm'
+  size = 'sm',
+  context = 'product'
 }: PromotionBadgeProps) {
   const [applicablePromotions, setApplicablePromotions] = useState<IPromotionDetails[]>([])
   const [loading, setLoading] = useState(true)
@@ -52,25 +54,30 @@ export default function PromotionBadge({
       }
       
       const applicable = activePromotions.filter(promotion => {
+        // For product context, avoid showing product-specific promotions to prevent confusion with product sales
+        if (context === 'product' && promotion.appliesTo === 'products') {
+          return false
+        }
+
         // Site-wide promotions
         if (promotion.appliesTo === 'all') {
           return true
         }
-        
-        // Product-specific promotions
-        if (promotion.appliesTo === 'products' && productId) {
+
+        // Product-specific promotions (only for cart/checkout context)
+        if (promotion.appliesTo === 'products' && productId && context !== 'product') {
           return promotion.applicableProducts?.some(
             (p: any) => p._id === productId || p.toString() === productId
           )
         }
-        
+
         // Category-specific promotions
         if (promotion.appliesTo === 'categories' && categoryId) {
           return promotion.applicableCategories?.some(
             (c: any) => c._id === categoryId || c.toString() === categoryId
           )
         }
-        
+
         return false
       })
 

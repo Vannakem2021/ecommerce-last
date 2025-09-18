@@ -1,4 +1,5 @@
 import { Document, Model, model, models, Schema } from 'mongoose'
+import { getEffectivePrice as getEffectivePriceUtil } from '@/lib/utils'
 
 export interface IProduct extends Document {
   _id: string
@@ -11,6 +12,7 @@ export interface IProduct extends Document {
   description: string
   price: number
   listPrice: number
+  salePrice?: number
   countInStock: number
   tags: string[]
   colors: string[]
@@ -21,8 +23,14 @@ export interface IProduct extends Document {
   numSales: number
   isPublished: boolean
   reviews: Schema.Types.ObjectId[]
+  saleStartDate?: Date
+  saleEndDate?: Date
   createdAt: Date
   updatedAt: Date
+
+  // Virtual methods
+  isCurrentlyOnSale(date?: Date): boolean
+  getEffectivePrice(date?: Date): number
 }
 
 const productSchema = new Schema<IProduct>(
@@ -64,6 +72,10 @@ const productSchema = new Schema<IProduct>(
     listPrice: {
       type: Number,
       required: true,
+    },
+    salePrice: {
+      type: Number,
+      required: false,
     },
     countInStock: {
       type: Number,
@@ -111,11 +123,51 @@ const productSchema = new Schema<IProduct>(
         default: [],
       },
     ],
+    saleStartDate: {
+      type: Date,
+      required: false,
+    },
+    saleEndDate: {
+      type: Date,
+      required: false,
+    },
   },
   {
     timestamps: true,
   }
 )
+
+// Add validation for sale dates
+productSchema.pre('save', function (next) {
+  if (this.saleStartDate && this.saleEndDate) {
+    if (this.saleEndDate <= this.saleStartDate) {
+      return next(new Error('Sale end date must be after sale start date'))
+    }
+    // Ensure sale period is at least 1 hour
+    const hourInMs = 60 * 60 * 1000
+    if (this.saleEndDate.getTime() - this.saleStartDate.getTime() < hourInMs) {
+      return next(new Error('Sale period must be at least 1 hour long'))
+    }
+  }
+  next()
+})
+
+// Virtual method to check if product is currently on sale
+productSchema.methods.isCurrentlyOnSale = function (date?: Date): boolean {
+  const checkDate = date || new Date()
+  if (!this.saleStartDate || !this.saleEndDate) {
+    return false
+  }
+  return checkDate >= this.saleStartDate && checkDate <= this.saleEndDate
+}
+
+// Virtual method to get effective price - delegates to utils function
+productSchema.methods.getEffectivePrice = function (date?: Date): number {
+  return getEffectivePriceUtil(this, date)
+}
+
+// Add indexes for performance
+productSchema.index({ saleStartDate: 1, saleEndDate: 1 })
 
 const Product =
   (models.Product as Model<IProduct>) ||

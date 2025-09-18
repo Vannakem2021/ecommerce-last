@@ -1,7 +1,7 @@
 'use server'
 
 import { Cart, IOrderList, OrderItem, ShippingAddress } from '@/types'
-import { formatError, round2 } from '../utils'
+import { formatError, round2, getEffectivePrice } from '../utils'
 import { connectToDatabase } from '../db'
 import { auth } from '@/auth'
 import { OrderInputSchema } from '../validator'
@@ -52,15 +52,61 @@ export const createOrderFromCart = async (
     })),
   }
 
+  // Server-enforced per-item pricing: recompute prices based on effective pricing at order time
+  await connectToDatabase()
+  const currentTime = new Date()
+
+  // Collect unique product IDs from cart items
+  const productIds = [...new Set(cart.items.map(item => item.product))]
+
+  // Query products with pricing/sale fields
+  const products = await Product.find(
+    { _id: { $in: productIds } },
+    { _id: 1, price: 1, listPrice: 1, salePrice: 1, saleStartDate: 1, saleEndDate: 1 }
+  )
+
+  // Build product map for efficient lookup
+  const productMap = new Map(products.map(p => [p._id.toString(), p]))
+
+  // Recompute cart items with server-enforced effective prices
+  const serverTrustedItems = cart.items.map(item => {
+    const product = productMap.get(item.product)
+    if (!product) {
+      // Fallback to client price if product not found (shouldn't happen in normal flow)
+      return item
+    }
+
+    // Compute effective price using server-side logic
+    const effectivePrice = round2(getEffectivePrice(product, currentTime))
+
+    return {
+      ...item,
+      price: effectivePrice
+    }
+  })
+
+  // Recompute itemsPrice from server-trusted items to ensure consistency
+  const serverItemsPrice = round2(
+    serverTrustedItems.reduce((acc, item) => acc + item.price * item.quantity, 0)
+  )
+
+  // Calculate base total before discount
+  const baseTotal = serverItemsPrice + (cart.shippingPrice || 0) + (cart.taxPrice || 0)
+
+  // Apply existing discount amount (promotion discounts are calculated separately and should remain the same)
+  const finalTotal = cart.appliedPromotion
+    ? round2(baseTotal - (cart.discountAmount || 0))
+    : baseTotal
+
   const order = OrderInputSchema.parse({
     user: userId,
-    items: cart.items,
+    items: serverTrustedItems,
     shippingAddress: cart.shippingAddress,
     paymentMethod: cart.paymentMethod,
-    itemsPrice: cart.itemsPrice,
+    itemsPrice: serverItemsPrice,
     shippingPrice: cart.shippingPrice,
     taxPrice: cart.taxPrice,
-    totalPrice: cart.totalPrice,
+    totalPrice: finalTotal,
     expectedDeliveryDate: cart.expectedDeliveryDate,
     appliedPromotion: cart.appliedPromotion,
     discountAmount: cart.discountAmount || 0,
@@ -80,9 +126,8 @@ export const createOrderFromCart = async (
         user: userId,
         order: createdOrder._id,
         discountAmount: cart.appliedPromotion.discountAmount,
-        originalTotal:
-          cart.itemsPrice + (cart.shippingPrice || 0) + (cart.taxPrice || 0),
-        finalTotal: cart.totalPrice,
+        originalTotal: baseTotal,
+        finalTotal: finalTotal,
       }
       const res = await recordPromotionUsage(usagePayload as any, session)
       if (!res?.success) {
@@ -107,9 +152,8 @@ export const createOrderFromCart = async (
           user: userId,
           order: createdOrder._id,
           discountAmount: cart.appliedPromotion.discountAmount,
-          originalTotal:
-            cart.itemsPrice + (cart.shippingPrice || 0) + (cart.taxPrice || 0),
-          finalTotal: cart.totalPrice,
+          originalTotal: baseTotal,
+          finalTotal: finalTotal,
         } as any)
       } catch (error) {
         console.error('Failed to record promotion usage (non-tx):', error)
@@ -445,11 +489,26 @@ export const calcDeliveryDateAndPrice = async ({
   }
 
   try {
+    await connectToDatabase()
     const { availableDeliveryDates } = await getSetting()
+
+    // Fetch current products and compute effective pricing
+    const productIds = [...new Set(items.map(item => item.product))]
+    const products = await Product.find(
+      { _id: { $in: productIds } },
+      { saleStartDate: 1, saleEndDate: 1, price: 1, listPrice: 1, salePrice: 1 }
+    )
+
+    const productMap = new Map(products.map(p => [p._id.toString(), p]))
+
     const itemsPrice = round2(
       items.reduce((acc, item) => {
-        if (!item.price || !item.quantity) return acc
-        return acc + item.price * item.quantity
+        if (!item.quantity) return acc
+        const product = productMap.get(item.product)
+        if (!product) return acc + (item.price || 0) * item.quantity
+
+        const effectivePrice = getEffectivePrice(product, new Date())
+        return acc + effectivePrice * item.quantity
       }, 0)
     )
 
