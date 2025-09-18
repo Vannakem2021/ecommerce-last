@@ -50,7 +50,7 @@ export const ReviewInputSchema = z.object({
     .max(5, "Rating must be at most 5"),
 });
 
-export const ProductInputSchema = z.object({
+const ProductBaseSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters"),
   slug: z.string().min(3, "Slug must be at least 3 characters"),
   sku: z.string().min(3, "SKU must be at least 3 characters").toUpperCase(),
@@ -61,6 +61,7 @@ export const ProductInputSchema = z.object({
   isPublished: z.boolean(),
   price: Price("Price"),
   listPrice: Price("List price"),
+  salePrice: Price("Sale price").optional(),
   countInStock: z.coerce
     .number()
     .int()
@@ -84,10 +85,96 @@ export const ProductInputSchema = z.object({
     .number()
     .int()
     .nonnegative("Number of sales must be a non-negative number"),
+  saleStartDate: z.date().optional(),
+  saleEndDate: z.date().optional(),
 });
 
-export const ProductUpdateSchema = ProductInputSchema.extend({
+export const ProductInputSchema = ProductBaseSchema.superRefine((data, ctx) => {
+  // Both-or-none validation for sale dates
+  const hasStartDate = !!data.saleStartDate;
+  const hasEndDate = !!data.saleEndDate;
+
+  if (hasStartDate && !hasEndDate) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Both sale start and end dates are required for a sale",
+      path: ["saleEndDate"],
+    });
+  }
+
+  if (!hasStartDate && hasEndDate) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Both sale start and end dates are required for a sale",
+      path: ["saleStartDate"],
+    });
+  }
+
+  // If both sale dates are provided, end date must be after start date
+  if (data.saleStartDate && data.saleEndDate) {
+    if (!(data.saleEndDate > data.saleStartDate)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Sale end date must be after sale start date",
+        path: ["saleEndDate"],
+      });
+    }
+
+    // If both dates are provided, sale period must be at least 1 hour
+    const hourInMs = 60 * 60 * 1000;
+    if (!(data.saleEndDate.getTime() - data.saleStartDate.getTime() >= hourInMs)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Sale period must be at least 1 hour long",
+        path: ["saleEndDate"],
+      });
+    }
+  }
+});
+
+export const ProductUpdateSchema = ProductBaseSchema.extend({
   _id: z.string(),
+}).superRefine((data, ctx) => {
+  // Both-or-none validation for sale dates
+  const hasStartDate = !!data.saleStartDate;
+  const hasEndDate = !!data.saleEndDate;
+
+  if (hasStartDate && !hasEndDate) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Both sale start and end dates are required for a sale",
+      path: ["saleEndDate"],
+    });
+  }
+
+  if (!hasStartDate && hasEndDate) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Both sale start and end dates are required for a sale",
+      path: ["saleStartDate"],
+    });
+  }
+
+  // If both sale dates are provided, end date must be after start date
+  if (data.saleStartDate && data.saleEndDate) {
+    if (!(data.saleEndDate > data.saleStartDate)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Sale end date must be after sale start date",
+        path: ["saleEndDate"],
+      });
+    }
+
+    // If both dates are provided, sale period must be at least 1 hour
+    const hourInMs = 60 * 60 * 1000;
+    if (!(data.saleEndDate.getTime() - data.saleStartDate.getTime() >= hourInMs)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Sale period must be at least 1 hour long",
+        path: ["saleEndDate"],
+      });
+    }
+  }
 });
 
 // Temporary schema for migration period - supports both string and ObjectId
@@ -102,6 +189,7 @@ export const ProductInputLegacySchema = z.object({
   isPublished: z.boolean(),
   price: Price("Price"),
   listPrice: Price("List price"),
+  salePrice: Price("Sale price").optional(),
   countInStock: z.coerce
     .number()
     .int()

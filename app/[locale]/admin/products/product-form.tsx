@@ -35,9 +35,14 @@ import { ICategory } from '@/lib/db/models/category.model'
 import { UploadButton } from '@/lib/uploadthing'
 import { ProductInputSchema, ProductUpdateSchema, ProductInputLegacySchema } from '@/lib/validator'
 import { Checkbox } from '@/components/ui/checkbox'
-import { toSlug } from '@/lib/utils'
+import { toSlug, getSaleDiscountPercentage } from '@/lib/utils'
 import { IProductInput } from '@/types'
 import { PRODUCT_TAGS } from '@/lib/constants'
+import { Calendar } from '@/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { CalendarIcon, X } from 'lucide-react'
+import { format } from 'date-fns'
+import { cn } from '@/lib/utils'
 
 const productDefaultValues: IProductInput =
   process.env.NODE_ENV === 'development'
@@ -51,6 +56,7 @@ const productDefaultValues: IProductInput =
         description: 'This is a sample description of the product.',
         price: 99.99,
         listPrice: 0,
+        salePrice: undefined,
         countInStock: 15,
         numReviews: 0,
         avgRating: 0,
@@ -61,6 +67,8 @@ const productDefaultValues: IProductInput =
         colors: [],
         ratingDistribution: [],
         reviews: [],
+        saleStartDate: undefined,
+        saleEndDate: undefined,
       }
     : {
         name: '',
@@ -72,6 +80,7 @@ const productDefaultValues: IProductInput =
         description: '',
         price: 0,
         listPrice: 0,
+        salePrice: undefined,
         countInStock: 0,
         numReviews: 0,
         avgRating: 0,
@@ -82,6 +91,8 @@ const productDefaultValues: IProductInput =
         colors: [],
         ratingDistribution: [],
         reviews: [],
+        saleStartDate: undefined,
+        saleEndDate: undefined,
       }
 
 const ProductForm = ({
@@ -104,7 +115,13 @@ const ProductForm = ({
         ? zodResolver(ProductUpdateSchema)
         : zodResolver(ProductInputSchema),
     defaultValues:
-      product && type === 'Update' ? product : productDefaultValues,
+      product && type === 'Update'
+        ? {
+            ...product,
+            saleStartDate: product.saleStartDate ? new Date(product.saleStartDate) : undefined,
+            saleEndDate: product.saleEndDate ? new Date(product.saleEndDate) : undefined
+          }
+        : productDefaultValues,
   })
 
   const { toast } = useToast()
@@ -151,6 +168,14 @@ const ProductForm = ({
             Object.entries(updates).forEach(([key, value]) => {
               form.setValue(key as keyof IProductInput, value)
             })
+          }
+
+          // Convert string dates to Date objects if needed
+          if (product.saleStartDate && typeof product.saleStartDate === 'string') {
+            form.setValue('saleStartDate', new Date(product.saleStartDate))
+          }
+          if (product.saleEndDate && typeof product.saleEndDate === 'string') {
+            form.setValue('saleEndDate', new Date(product.saleEndDate))
           }
         }
       } catch (error) {
@@ -321,14 +346,29 @@ const ProductForm = ({
             name='price'
             render={({ field }) => (
               <FormItem className='w-full'>
-                <FormLabel>Net Price</FormLabel>
+                <FormLabel>Regular Price</FormLabel>
                 <FormControl>
-                  <Input placeholder='Enter product price' {...field} />
+                  <Input placeholder='Enter product regular price' {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+          <FormField
+            control={form.control}
+            name='salePrice'
+            render={({ field }) => (
+              <FormItem className='w-full'>
+                <FormLabel>Sale Price (Optional)</FormLabel>
+                <FormControl>
+                  <Input placeholder='Enter product sale price' {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        <div className='flex flex-col gap-5 md:flex-row'>
           <FormField
             control={form.control}
             name='countInStock'
@@ -347,6 +387,142 @@ const ProductForm = ({
             )}
           />
         </div>
+
+        {/* Sale Configuration Section */}
+        <Card>
+          <CardContent className='p-6'>
+            <h3 className='text-lg font-semibold mb-4'>Sale Configuration</h3>
+            <div className='flex flex-col gap-5 md:flex-row'>
+              <FormField
+                control={form.control}
+                name='saleStartDate'
+                render={({ field }) => (
+                  <FormItem className='w-full'>
+                    <FormLabel>Sale Start Date</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant='outline'
+                            className={cn(
+                              'w-full pl-3 text-left font-normal',
+                              !field.value && 'text-muted-foreground'
+                            )}
+                          >
+                            {field.value ? (
+                              format(field.value, 'PPP')
+                            ) : (
+                              <span>Pick a start date</span>
+                            )}
+                            <CalendarIcon className='ml-auto h-4 w-4 opacity-50' />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className='w-auto p-0' align='start'>
+                        <Calendar
+                          mode='single'
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          disabled={(date) => date < new Date()}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormDescription>
+                      When the sale should start (optional)
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name='saleEndDate'
+                render={({ field }) => (
+                  <FormItem className='w-full'>
+                    <FormLabel>Sale End Date</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant='outline'
+                            className={cn(
+                              'w-full pl-3 text-left font-normal',
+                              !field.value && 'text-muted-foreground'
+                            )}
+                          >
+                            {field.value ? (
+                              format(field.value, 'PPP')
+                            ) : (
+                              <span>Pick an end date</span>
+                            )}
+                            <CalendarIcon className='ml-auto h-4 w-4 opacity-50' />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className='w-auto p-0' align='start'>
+                        <Calendar
+                          mode='single'
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          disabled={(date) => {
+                            const startDate = form.getValues('saleStartDate')
+                            return date < new Date() || (startDate && date <= startDate)
+                          }}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormDescription>
+                      When the sale should end (optional)
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Sale Preview */}
+            {form.watch('saleStartDate') && form.watch('saleEndDate') && form.watch('listPrice') > 0 && (
+              <div className='mt-4 p-4 bg-muted rounded-lg'>
+                <h4 className='font-medium mb-2'>Sale Preview</h4>
+                <p className='text-sm text-muted-foreground'>
+                  Discount: {getSaleDiscountPercentage({
+                    price: form.watch('price'),
+                    listPrice: form.watch('listPrice'),
+                    salePrice: form.watch('salePrice')
+                  })}% off
+                </p>
+                {form.watch('salePrice') && (
+                  <p className='text-sm text-muted-foreground'>
+                    Sale Price: ${form.watch('salePrice')} (Regular: ${form.watch('price')})
+                  </p>
+                )}
+                <p className='text-sm text-muted-foreground'>
+                  Sale Period: {format(form.watch('saleStartDate')!, 'PPP')} - {format(form.watch('saleEndDate')!, 'PPP')}
+                </p>
+              </div>
+            )}
+
+            {/* Clear Sale Button */}
+            {(form.watch('saleStartDate') || form.watch('saleEndDate')) && (
+              <div className='mt-4'>
+                <Button
+                  type='button'
+                  variant='outline'
+                  size='sm'
+                  onClick={() => {
+                    form.setValue('saleStartDate', undefined)
+                    form.setValue('saleEndDate', undefined)
+                  }}
+                >
+                  <X className='w-4 h-4 mr-2' />
+                  Remove Sale
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         <div className='flex flex-col gap-5 md:flex-row'>
           <FormField

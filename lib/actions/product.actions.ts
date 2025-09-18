@@ -59,6 +59,30 @@ export async function updateProduct(data: z.infer<typeof ProductUpdateSchema>) {
     return { success: false, message: formatError(error) }
   }
 }
+
+// GET PRODUCTS ON SALE
+export async function getProductsOnSale() {
+  try {
+    await connectToDatabase()
+    const now = new Date()
+
+    const productsOnSale = await Product.find({
+      saleStartDate: { $lte: now },
+      saleEndDate: { $gte: now },
+      isPublished: true
+    })
+    .populate('category', 'name')
+    .populate('brand', 'name')
+    .sort({ saleEndDate: 1 }) // Sort by sale end date (ending soon first)
+
+    return {
+      success: true,
+      data: JSON.parse(JSON.stringify(productsOnSale))
+    }
+  } catch (error) {
+    return { success: false, message: formatError(error) }
+  }
+}
 // DELETE
 export async function deleteProduct(id: string) {
   try {
