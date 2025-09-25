@@ -6,7 +6,7 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { IProduct } from '@/lib/db/models/product.model'
 
 import Rating from './rating'
-import { formatNumber, generateId, round2, getEffectivePrice } from '@/lib/utils'
+import { formatNumber, generateId, round2 } from '@/lib/utils'
 import ProductPrice from './product-price'
 import ImageHover from './image-hover'
 import AddToCart from './add-to-cart'
@@ -97,9 +97,6 @@ const ProductCard = ({
       <ProductPrice
         price={product.price}
         listPrice={product.listPrice}
-        salePrice={product.salePrice}
-        saleStartDate={product.saleStartDate}
-        saleEndDate={product.saleEndDate}
         forListing
       />
     </div>
@@ -117,7 +114,7 @@ const ProductCard = ({
           name: product.name,
           slug: product.slug,
           category: typeof product.category === 'object' ? product.category.name : product.category,
-          price: round2(getEffectivePrice(product)),
+          price: round2(product.price),
           quantity: 1,
           image: product.images[0],
         }}
@@ -138,7 +135,7 @@ const ProductCard = ({
       )}
     </div>
   ) : (
-    <Card className='flex flex-col  '>
+    <Card className='flex flex-col bg-card border-border'>
       <CardHeader className='p-3'>
         <ProductImage />
       </CardHeader>

@@ -36,7 +36,7 @@ export default function ProductSortSelector({
     >
       <SelectTrigger>
         <SelectValue>
-          Sort By: {sortOrders.find((s) => s.value === sort)!.name}
+          Sort By: {sortOrders.find((s) => s.value === sort)?.name || sortOrders[0]?.name}
         </SelectValue>
       </SelectTrigger>
 

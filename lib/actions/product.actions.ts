@@ -60,29 +60,6 @@ export async function updateProduct(data: z.infer<typeof ProductUpdateSchema>) {
   }
 }
 
-// GET PRODUCTS ON SALE
-export async function getProductsOnSale() {
-  try {
-    await connectToDatabase()
-    const now = new Date()
-
-    const productsOnSale = await Product.find({
-      saleStartDate: { $lte: now },
-      saleEndDate: { $gte: now },
-      isPublished: true
-    })
-    .populate('category', 'name')
-    .populate('brand', 'name')
-    .sort({ saleEndDate: 1 }) // Sort by sale end date (ending soon first)
-
-    return {
-      success: true,
-      data: JSON.parse(JSON.stringify(productsOnSale))
-    }
-  } catch (error) {
-    return { success: false, message: formatError(error) }
-  }
-}
 // DELETE
 export async function deleteProduct(id: string) {
   try {
@@ -429,4 +406,122 @@ export async function getAllTags() {
           .join(' ')
       ) as string[]) || []
   )
+}
+
+// GET NEW ARRIVALS - LOGIC-BASED (using createdAt)
+export async function getNewArrivals({
+  limit = 10,
+}: {
+  limit?: number
+} = {}) {
+  await connectToDatabase()
+
+  // Ensure models are registered
+  Brand
+  Category
+
+  const products = await Product.find({
+    isPublished: true,
+  })
+    .populate('brand', 'name')
+    .populate('category', 'name')
+    .sort({ createdAt: -1 }) // Most recent first
+    .limit(limit)
+  return JSON.parse(JSON.stringify(products)) as IProduct[]
+}
+
+// GET BEST SELLING PRODUCTS - LOGIC-BASED (using numSales)
+export async function getBestSellingProducts({
+  limit = 10,
+}: {
+  limit?: number
+} = {}) {
+  await connectToDatabase()
+
+  // Ensure models are registered
+  Brand
+  Category
+
+  const products = await Product.find({
+    isPublished: true,
+  })
+    .populate('brand', 'name')
+    .populate('category', 'name')
+    .sort({ numSales: -1, createdAt: -1 }) // Best selling first, then most recent
+    .limit(limit)
+  return JSON.parse(JSON.stringify(products)) as IProduct[]
+}
+
+// GET TODAY'S DEALS - LOGIC-BASED (using time-based sale logic)
+export async function getTodaysDeals({
+  limit = 10,
+}: {
+  limit?: number
+} = {}) {
+  await connectToDatabase()
+
+  // Ensure models are registered
+  Brand
+  Category
+
+  const now = new Date()
+
+  const products = await Product.find({
+    isPublished: true,
+    saleStartDate: { $lte: now },
+    saleEndDate: { $gte: now },
+  })
+    .populate('brand', 'name')
+    .populate('category', 'name')
+    .sort({ saleEndDate: 1, createdAt: -1 }) // Ending soon first, then most recent
+    .limit(limit)
+  return JSON.parse(JSON.stringify(products)) as IProduct[]
+}
+
+// GET NEW ARRIVALS FOR CARD - LOGIC-BASED (using createdAt)
+export async function getNewArrivalsForCard({
+  limit = 4,
+}: {
+  limit?: number
+} = {}) {
+  await connectToDatabase()
+  const products = await Product.find(
+    { isPublished: true },
+    {
+      name: 1,
+      href: { $concat: ['/product/', '$slug'] },
+      image: { $arrayElemAt: ['$images', 0] },
+    }
+  )
+    .sort({ createdAt: -1 })
+    .limit(limit)
+  return JSON.parse(JSON.stringify(products)) as {
+    name: string
+    href: string
+    image: string
+  }[]
+}
+
+// GET BEST SELLERS FOR CARD - LOGIC-BASED (using numSales)
+export async function getBestSellersForCard({
+  limit = 4,
+}: {
+  limit?: number
+} = {}) {
+  await connectToDatabase()
+  const products = await Product.find(
+    { isPublished: true },
+    {
+      name: 1,
+      href: { $concat: ['/product/', '$slug'] },
+      image: { $arrayElemAt: ['$images', 0] },
+    }
+  )
+    .sort({ numSales: -1, createdAt: -1 })
+    .limit(limit)
+  return JSON.parse(JSON.stringify(products)) as {
+    name: string
+    href: string
+    image: string
+  }[]
 }

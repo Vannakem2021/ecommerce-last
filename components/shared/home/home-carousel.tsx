@@ -43,7 +43,7 @@ export function HomeCarousel({ items }: { items: ICarousel[] }) {
                   className='object-cover'
                   priority
                 />
-                <div className='absolute w-1/3 left-16 md:left-32 top-1/2 transform -translate-y-1/2'>
+                <div className='absolute w-1/3 left-4 sm:left-8 md:left-16 lg:left-32 top-1/2 transform -translate-y-1/2'>
                   <h2
                     className={cn(
                       'text-xl md:text-6xl font-bold mb-4 text-primary  '
@@ -60,8 +60,8 @@ export function HomeCarousel({ items }: { items: ICarousel[] }) {
           </CarouselItem>
         ))}
       </CarouselContent>
-      <CarouselPrevious className='left-0 md:left-12' />
-      <CarouselNext className='right-0 md:right-12' />
+      <CarouselPrevious className='left-2 sm:left-4 md:left-8 lg:left-12' />
+      <CarouselNext className='right-2 sm:right-4 md:right-8 lg:right-12' />
     </Carousel>
   )
 }

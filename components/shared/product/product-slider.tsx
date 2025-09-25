@@ -21,7 +21,7 @@ export default function ProductSlider({
   hideDetails?: boolean
 }) {
   return (
-    <div className='w-full bg-background'>
+    <div className='w-full'>
       <h2 className='h2-bold mb-5'>{title}</h2>
       <Carousel
         opts={{

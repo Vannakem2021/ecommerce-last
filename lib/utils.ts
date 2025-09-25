@@ -202,9 +202,6 @@ export const getFilterUrl = ({
 
 // Product pricing utility functions
 export const getEffectivePrice = (product: any, date?: Date): number => {
-  if (isProductOnSale(product, date) && product.salePrice != null) {
-    return product.salePrice
-  }
   return product.price
 }
 
@@ -218,34 +215,4 @@ export const isProductOnSale = (product: any, date?: Date): boolean => {
   return checkDate >= startDate && checkDate <= endDate
 }
 
-export const getSaleDiscountPercentage = (product: any): number => {
-  const effectivePrice = getEffectivePrice(product)
-  if (!product.listPrice || product.listPrice <= effectivePrice) {
-    return 0
-  }
-  return Math.round(((product.listPrice - effectivePrice) / product.listPrice) * 100)
-}
 
-export const formatSaleTimeRemaining = (endDate: Date): string => {
-  const now = new Date()
-  const timeLeft = endDate.getTime() - now.getTime()
-
-  if (timeLeft <= 0) {
-    return 'Sale ended'
-  }
-
-  const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24))
-  const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
-  const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60))
-  const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000)
-
-  if (days > 0) {
-    return `${days}d ${hours}h ${minutes}m`
-  } else if (hours > 0) {
-    return `${hours}h ${minutes}m`
-  } else if (minutes > 0) {
-    return `${minutes}m ${seconds}s`
-  } else {
-    return `${seconds}s`
-  }
-}

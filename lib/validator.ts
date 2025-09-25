@@ -61,7 +61,6 @@ const ProductBaseSchema = z.object({
   isPublished: z.boolean(),
   price: Price("Price"),
   listPrice: Price("List price"),
-  salePrice: Price("Sale price").optional(),
   countInStock: z.coerce
     .number()
     .int()
@@ -189,7 +188,6 @@ export const ProductInputLegacySchema = z.object({
   isPublished: z.boolean(),
   price: Price("Price"),
   listPrice: Price("List price"),
-  salePrice: Price("Sale price").optional(),
   countInStock: z.coerce
     .number()
     .int()

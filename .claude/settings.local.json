@@ -10,7 +10,8 @@
       "mcp__playwright__browser_click",
       "mcp__playwright__browser_wait_for",
       "Bash(npx tsc:*)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "mcp__playwright__browser_take_screenshot"
     ],
     "deny": [],
     "ask": []
