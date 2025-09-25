@@ -35,7 +35,7 @@ import { ICategory } from '@/lib/db/models/category.model'
 import { UploadButton } from '@/lib/uploadthing'
 import { ProductInputSchema, ProductUpdateSchema, ProductInputLegacySchema } from '@/lib/validator'
 import { Checkbox } from '@/components/ui/checkbox'
-import { toSlug, getSaleDiscountPercentage } from '@/lib/utils'
+import { toSlug } from '@/lib/utils'
 import { IProductInput } from '@/types'
 import { PRODUCT_TAGS } from '@/lib/constants'
 import { Calendar } from '@/components/ui/calendar'
@@ -56,7 +56,6 @@ const productDefaultValues: IProductInput =
         description: 'This is a sample description of the product.',
         price: 99.99,
         listPrice: 0,
-        salePrice: undefined,
         countInStock: 15,
         numReviews: 0,
         avgRating: 0,
@@ -80,7 +79,6 @@ const productDefaultValues: IProductInput =
         description: '',
         price: 0,
         listPrice: 0,
-        salePrice: undefined,
         countInStock: 0,
         numReviews: 0,
         avgRating: 0,
@@ -354,19 +352,6 @@ const ProductForm = ({
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name='salePrice'
-            render={({ field }) => (
-              <FormItem className='w-full'>
-                <FormLabel>Sale Price (Optional)</FormLabel>
-                <FormControl>
-                  <Input placeholder='Enter product sale price' {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
         </div>
         <div className='flex flex-col gap-5 md:flex-row'>
           <FormField
@@ -482,45 +467,6 @@ const ProductForm = ({
               />
             </div>
 
-            {/* Sale Preview */}
-            {form.watch('saleStartDate') && form.watch('saleEndDate') && form.watch('listPrice') > 0 && (
-              <div className='mt-4 p-4 bg-muted rounded-lg'>
-                <h4 className='font-medium mb-2'>Sale Preview</h4>
-                <p className='text-sm text-muted-foreground'>
-                  Discount: {getSaleDiscountPercentage({
-                    price: form.watch('price'),
-                    listPrice: form.watch('listPrice'),
-                    salePrice: form.watch('salePrice')
-                  })}% off
-                </p>
-                {form.watch('salePrice') && (
-                  <p className='text-sm text-muted-foreground'>
-                    Sale Price: ${form.watch('salePrice')} (Regular: ${form.watch('price')})
-                  </p>
-                )}
-                <p className='text-sm text-muted-foreground'>
-                  Sale Period: {format(form.watch('saleStartDate')!, 'PPP')} - {format(form.watch('saleEndDate')!, 'PPP')}
-                </p>
-              </div>
-            )}
-
-            {/* Clear Sale Button */}
-            {(form.watch('saleStartDate') || form.watch('saleEndDate')) && (
-              <div className='mt-4'>
-                <Button
-                  type='button'
-                  variant='outline'
-                  size='sm'
-                  onClick={() => {
-                    form.setValue('saleStartDate', undefined)
-                    form.setValue('saleEndDate', undefined)
-                  }}
-                >
-                  <X className='w-4 h-4 mr-2' />
-                  Remove Sale
-                </Button>
-              </div>
-            )}
           </CardContent>
         </Card>
 

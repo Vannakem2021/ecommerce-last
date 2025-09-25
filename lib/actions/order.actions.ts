@@ -62,7 +62,7 @@ export const createOrderFromCart = async (
   // Query products with pricing/sale fields
   const products = await Product.find(
     { _id: { $in: productIds } },
-    { _id: 1, price: 1, listPrice: 1, salePrice: 1, saleStartDate: 1, saleEndDate: 1 }
+    { _id: 1, price: 1, listPrice: 1, saleStartDate: 1, saleEndDate: 1 }
   )
 
   // Build product map for efficient lookup
@@ -496,7 +496,7 @@ export const calcDeliveryDateAndPrice = async ({
     const productIds = [...new Set(items.map(item => item.product))]
     const products = await Product.find(
       { _id: { $in: productIds } },
-      { saleStartDate: 1, saleEndDate: 1, price: 1, listPrice: 1, salePrice: 1 }
+      { saleStartDate: 1, saleEndDate: 1, price: 1, listPrice: 1 }
     )
 
     const productMap = new Map(products.map(p => [p._id.toString(), p]))

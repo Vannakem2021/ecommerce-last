@@ -4,11 +4,15 @@ import { HomeCarousel } from '@/components/shared/home/home-carousel'
 import ProductSlider from '@/components/shared/product/product-slider'
 import PromotionBanner from '@/components/shared/promotion/promotion-banner'
 import { Card, CardContent } from '@/components/ui/card'
+import Container from '@/components/shared/container'
 
 import {
   getProductsForCard,
-  getProductsByTag,
   getAllCategories,
+  getNewArrivalsForCard,
+  getBestSellersForCard,
+  getBestSellingProducts,
+  getTodaysDeals,
 } from '@/lib/actions/product.actions'
 import { getSetting } from '@/lib/actions/setting.actions'
 import { toSlug } from '@/lib/utils'
@@ -17,19 +21,15 @@ import { getTranslations } from 'next-intl/server'
 export default async function HomePage() {
   const t = await getTranslations('Home')
   const { carousels } = await getSetting()
-  const todaysDeals = await getProductsByTag({ tag: 'todays-deal' })
-  const bestSellingProducts = await getProductsByTag({ tag: 'best-seller' })
+  const todaysDeals = await getTodaysDeals({ limit: 10 })
+  const bestSellingProducts = await getBestSellingProducts({ limit: 10 })
 
   const categories = (await getAllCategories()).slice(0, 4)
-  const newArrivals = await getProductsForCard({
-    tag: 'new-arrival',
-  })
+  const newArrivals = await getNewArrivalsForCard({ limit: 4 })
   const featureds = await getProductsForCard({
     tag: 'featured',
   })
-  const bestSellers = await getProductsForCard({
-    tag: 'best-seller',
-  })
+  const bestSellers = await getBestSellersForCard({ limit: 4 })
   const cards = [
     {
       title: t('Categories to explore'),
@@ -48,7 +48,7 @@ export default async function HomePage() {
       items: newArrivals,
       link: {
         text: t('View All'),
-        href: '/search?tag=new-arrival',
+        href: '/search?sort=latest',
       },
     },
     {
@@ -56,7 +56,7 @@ export default async function HomePage() {
       items: bestSellers,
       link: {
         text: t('View All'),
-        href: '/search?tag=best-seller',
+        href: '/search?sort=best-selling',
       },
     },
     {
@@ -74,30 +74,27 @@ export default async function HomePage() {
       <HomeCarousel items={carousels} />
 
       {/* Promotion Banners */}
-      <div className='p-4 bg-background'>
-        <PromotionBanner limit={2} />
+      <div className='bg-secondary/30'>
+        <Container className='py-4'>
+          <PromotionBanner limit={2} />
+        </Container>
       </div>
 
-      <div className='md:p-4 md:space-y-4 bg-border'>
-        <HomeCard cards={cards} />
-        <Card className='w-full rounded-none'>
-          <CardContent className='p-4 items-center gap-3'>
-            <ProductSlider title={t("Today's Deals")} products={todaysDeals} />
-          </CardContent>
-        </Card>
-        <Card className='w-full rounded-none'>
-          <CardContent className='p-4 items-center gap-3'>
-            <ProductSlider
-              title={t('Best Selling Products')}
-              products={bestSellingProducts}
-              hideDetails
-            />
-          </CardContent>
-        </Card>
+      <div className='bg-background'>
+        <Container className='md:py-4 md:space-y-4'>
+          <HomeCard cards={cards} />
+          <Card className='w-full rounded-none bg-card border-border'>
+            <CardContent className='p-4 items-center gap-3'>
+              <ProductSlider title={t("Today's Deals")} products={todaysDeals} />
+            </CardContent>
+          </Card>
+        </Container>
       </div>
 
-      <div className='p-4 bg-background'>
-        <BrowsingHistoryList />
+      <div className='bg-secondary/30'>
+        <Container className='py-4'>
+          <BrowsingHistoryList />
+        </Container>
       </div>
     </>
   )

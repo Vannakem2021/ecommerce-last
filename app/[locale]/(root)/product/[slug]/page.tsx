@@ -7,7 +7,7 @@ import {
 } from '@/lib/actions/product.actions'
 
 import ReviewList from './review-list'
-import { generateId, round2, getEffectivePrice } from '@/lib/utils'
+import { generateId, round2 } from '@/lib/utils'
 import SelectVariant from '@/components/shared/product/select-variant'
 import ProductPrice from '@/components/shared/product/product-price'
 import ProductGallery from '@/components/shared/product/product-gallery'
@@ -97,9 +97,6 @@ export default async function ProductDetails(props: {
                   <ProductPrice
                     price={product.price}
                     listPrice={product.listPrice}
-                    salePrice={product.salePrice}
-                    saleStartDate={product.saleStartDate}
-                    saleEndDate={product.saleEndDate}
                     forListing={false}
                   />
                 </div>
@@ -128,9 +125,6 @@ export default async function ProductDetails(props: {
                 <ProductPrice
                   price={product.price}
                   listPrice={product.listPrice}
-                  salePrice={product.salePrice}
-                  saleStartDate={product.saleStartDate}
-                  saleEndDate={product.saleEndDate}
                 />
 
                 {product.countInStock > 0 && product.countInStock <= 3 && (
@@ -160,7 +154,7 @@ export default async function ProductDetails(props: {
                         name: product.name,
                         slug: product.slug,
                         category: typeof product.category === 'object' ? product.category.name : product.category,
-                        price: round2(getEffectivePrice(product)),
+                        price: round2(product.price),
                         quantity: 1,
                         image: product.images[0],
                         size: size || product.sizes[0],

@@ -3,6 +3,16 @@
 import { connectToDatabase } from '@/lib/db'
 import Product from '@/lib/db/models/product.model'
 
+/**
+ * Migration utility for transitioning from tag-based sales to simplified time-based sales
+ *
+ * SIMPLIFIED APPROACH:
+ * - Products use saleStartDate and saleEndDate for time-based sales
+ * - No complex salePrice field - regular price is used
+ * - Today's deals are determined by active sale periods (current date within sale window)
+ * - Migration converts 'todays-deal' tags to actual sale periods
+ */
+
 interface MigrationResult {
   success: boolean
   message: string
@@ -10,6 +20,18 @@ interface MigrationResult {
   errors: string[]
 }
 
+/**
+ * Migrates products from tag-based 'todays-deal' system to simplified time-based sales
+ *
+ * This migration:
+ * 1. Finds products with 'todays-deal' tag
+ * 2. Sets saleStartDate (now) and saleEndDate (30 days from now)
+ * 3. Removes the 'todays-deal' tag
+ * 4. Products become eligible for Today's Deals through time-based logic
+ *
+ * @param dryRun - If true, only previews changes without applying them
+ * @returns Migration result with success status and details
+ */
 export async function migrateProductSales(dryRun: boolean = false): Promise<MigrationResult> {
   const result: MigrationResult = {
     success: false,
@@ -20,7 +42,7 @@ export async function migrateProductSales(dryRun: boolean = false): Promise<Migr
 
   try {
     await connectToDatabase()
-    
+
     // Find all products with 'todays-deal' tag
     const productsWithTodaysDeal = await Product.find({
       tags: { $in: ['todays-deal'] }
@@ -41,7 +63,7 @@ export async function migrateProductSales(dryRun: boolean = false): Promise<Migr
       return result
     }
 
-    // Set sale dates for each product
+    // Set sale period for each product (simplified approach - no salePrice needed)
     const now = new Date()
     const saleEndDate = new Date(now.getTime() + (30 * 24 * 60 * 60 * 1000)) // 30 days from now
 
@@ -49,8 +71,8 @@ export async function migrateProductSales(dryRun: boolean = false): Promise<Migr
       try {
         // Remove 'todays-deal' from tags array
         const updatedTags = product.tags.filter((tag: string) => tag !== 'todays-deal')
-        
-        // Update the product
+
+        // Update the product with time-based sale logic (no salePrice needed)
         await Product.findByIdAndUpdate(
           product._id,
           {
@@ -86,6 +108,16 @@ export async function migrateProductSales(dryRun: boolean = false): Promise<Migr
   }
 }
 
+/**
+ * Rolls back the simplified sales migration by restoring 'todays-deal' tags
+ *
+ * This rollback:
+ * 1. Finds products with sale dates set
+ * 2. Removes saleStartDate and saleEndDate fields
+ * 3. Restores the 'todays-deal' tag
+ *
+ * @returns Rollback result with success status and details
+ */
 export async function rollbackProductSalesMigration(): Promise<MigrationResult> {
   const result: MigrationResult = {
     success: false,

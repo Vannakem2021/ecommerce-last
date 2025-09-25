@@ -3,6 +3,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import React from 'react'
 import { getSetting } from '@/lib/actions/setting.actions'
+import Container from '@/components/shared/container'
 
 export default async function CheckoutLayout({
   children,
@@ -11,9 +12,9 @@ export default async function CheckoutLayout({
 }) {
   const { site } = await getSetting()
   return (
-    <div className='p-4'>
+    <Container className='py-4'>
       <header className='bg-card mb-4 border-b'>
-        <div className='max-w-6xl mx-auto flex justify-between items-center'>
+        <div className='flex justify-between items-center'>
           <Link href='/'>
             <Image
               src={site.logo}
@@ -37,6 +38,6 @@ export default async function CheckoutLayout({
         </div>
       </header>
       {children}
-    </div>
+    </Container>
   )
 }

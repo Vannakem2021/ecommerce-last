@@ -20,7 +20,7 @@ import { getTranslations } from 'next-intl/server'
 const sortOrders = [
   { value: 'price-low-to-high', name: 'Price: Low to high' },
   { value: 'price-high-to-low', name: 'Price: High to low' },
-  { value: 'newest-arrivals', name: 'Newest arrivals' },
+  { value: 'latest', name: 'Newest arrivals' },
   { value: 'avg-customer-review', name: 'Avg. customer review' },
   { value: 'best-selling', name: 'Best selling' },
 ]

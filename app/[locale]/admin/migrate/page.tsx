@@ -92,18 +92,35 @@ export default function MigrationPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Product Sales System Migration</CardTitle>
+          <CardTitle>Simplified Sales System Migration</CardTitle>
         </CardHeader>
         <CardContent className='space-y-4'>
-          <p className='text-muted-foreground'>
-            This will migrate products from the tag-based "todays-deal" system to the new time-based sale system.
-            Products with "todays-deal" tag will get sale dates (30 days from now) and the tag will be removed.
-          </p>
+          <div className='space-y-2'>
+            <p className='text-muted-foreground'>
+              This migrates products from tag-based "todays-deal" system to simplified time-based sales.
+            </p>
+            <div className='text-sm text-muted-foreground space-y-1'>
+              <p><strong>What this does:</strong></p>
+              <ul className='list-disc list-inside space-y-1 ml-2'>
+                <li>Converts products with "todays-deal" tag to time-based sales</li>
+                <li>Sets sale period (30 days from migration date)</li>
+                <li>Removes the manual "todays-deal" tag</li>
+                <li>Products become eligible for Today's Deals through database logic</li>
+              </ul>
+              <p className='mt-2'><strong>Simplified approach:</strong> No complex salePrice field needed - uses regular price with time-based availability.</p>
+            </div>
+          </div>
+
+          <div className='bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-md p-4'>
+            <p className='text-sm text-blue-800 dark:text-blue-200'>
+              <strong>Migration Benefits:</strong> This simplifies your sales system by using database logic instead of manual tags.
+              Today's Deals will automatically update based on sale periods without manual intervention.
+            </p>
+          </div>
 
           <div className='bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-md p-4'>
             <p className='text-sm text-yellow-800 dark:text-yellow-200'>
-              <strong>Warning:</strong> Please backup your database before running this migration.
-              This operation modifies product data and cannot be easily undone without the rollback function.
+              <strong>Backup recommended:</strong> While this migration is reversible, backing up your database is recommended before proceeding.
             </p>
           </div>
 

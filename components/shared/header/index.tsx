@@ -8,6 +8,7 @@ import Sidebar from './sidebar'
 import { getSetting } from '@/lib/actions/setting.actions'
 import { getPublishedWebPagesForNavigation } from '@/lib/actions/web-page.actions'
 import { getTranslations } from 'next-intl/server'
+import Container from '@/components/shared/container'
 
 export default async function Header() {
   const categories = await getAllCategories()
@@ -22,13 +23,13 @@ export default async function Header() {
     href: `/page/${page.slug}`
   }))
   return (
-    <header className='bg-black  text-white'>
-      <div className='px-2'>
+    <header className='bg-black text-white'>
+      <Container padding='sm'>
         <div className='flex items-center justify-between'>
           <div className='flex items-center'>
             <Link
               href='/'
-              className='flex items-center header-button font-extrabold text-2xl m-1 '
+              className='flex items-center header-button font-extrabold text-2xl m-1'
             >
               <Image
                 src={site.logo}
@@ -48,29 +49,31 @@ export default async function Header() {
         <div className='md:hidden block py-2'>
           <Search />
         </div>
-      </div>
-      <div className='flex items-center px-3 mb-[1px]  bg-gray-800'>
-        <Sidebar categories={categories} />
-        <div className='flex items-center flex-wrap gap-3 overflow-hidden   max-h-[42px]'>
-          {staticMenus.map((menu) => (
-            <Link
-              href={menu.href}
-              key={menu.href}
-              className='header-button !p-2 '
-            >
-              {t('Header.' + menu.name)}
-            </Link>
-          ))}
-          {dynamicPageMenus.map((menu) => (
-            <Link
-              href={menu.href}
-              key={menu.href}
-              className='header-button !p-2 '
-            >
-              {menu.name}
-            </Link>
-          ))}
-        </div>
+      </Container>
+      <div className='bg-gray-800'>
+        <Container padding='sm' className='flex items-center mb-[1px]'>
+          <Sidebar categories={categories} />
+          <div className='flex items-center flex-wrap gap-3 overflow-hidden max-h-[42px]'>
+            {staticMenus.map((menu) => (
+              <Link
+                href={menu.href}
+                key={menu.href}
+                className='header-button !p-2'
+              >
+                {t('Header.' + menu.name)}
+              </Link>
+            ))}
+            {dynamicPageMenus.map((menu) => (
+              <Link
+                href={menu.href}
+                key={menu.href}
+                className='header-button !p-2'
+              >
+                {menu.name}
+              </Link>
+            ))}
+          </div>
+        </Container>
       </div>
     </header>
   )

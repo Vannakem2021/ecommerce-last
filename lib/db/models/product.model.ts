@@ -12,7 +12,6 @@ export interface IProduct extends Document {
   description: string
   price: number
   listPrice: number
-  salePrice?: number
   countInStock: number
   tags: string[]
   colors: string[]
@@ -72,10 +71,6 @@ const productSchema = new Schema<IProduct>(
     listPrice: {
       type: Number,
       required: true,
-    },
-    salePrice: {
-      type: Number,
-      required: false,
     },
     countInStock: {
       type: Number,

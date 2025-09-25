@@ -117,7 +117,7 @@ export default function BrowsingHistoryList({
   if (products.length === 0) return null
 
   return (
-    <div className='bg-background'>
+    <div className='bg-secondary/30'>
       <Separator className={cn('mb-4', className)} />
       {relatedData.length > 0 && (
         <ProductSlider

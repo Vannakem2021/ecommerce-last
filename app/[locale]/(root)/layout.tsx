@@ -2,6 +2,7 @@ import React from 'react'
 
 import Header from '@/components/shared/header'
 import Footer from '@/components/shared/footer'
+import Container from '@/components/shared/container'
 
 export default async function RootLayout({
   children,
@@ -11,7 +12,11 @@ export default async function RootLayout({
   return (
     <div className='flex flex-col min-h-screen'>
       <Header />
-      <main className='flex-1 flex flex-col p-4'>{children}</main>
+      <main className='flex-1 flex flex-col'>
+        <Container className='flex-1 flex flex-col py-4'>
+          {children}
+        </Container>
+      </main>
       <Footer />
     </div>
   )
