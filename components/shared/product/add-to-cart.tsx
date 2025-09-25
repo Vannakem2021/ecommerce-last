@@ -42,10 +42,21 @@ export default function AddToCart({
 
   const t = useTranslations()
 
+  // Check if product is in stock
+  const isInStock = item.countInStock > 0
+
   return minimal ? (
     <Button
       className='rounded-full w-auto'
+      disabled={!isInStock}
       onClick={async () => {
+        if (!isInStock) {
+          toast({
+            variant: 'destructive',
+            description: t('Product.Out of Stock'),
+          })
+          return
+        }
         try {
           await addItem(item, 1)
           toast({
@@ -69,75 +80,100 @@ export default function AddToCart({
         }
       }}
     >
-      {t('Product.Add to Cart')}
+      {isInStock ? t('Product.Add to Cart') : t('Product.Out of Stock')}
     </Button>
   ) : (
     <div className='w-full space-y-2'>
-      <Select
-        value={quantity.toString()}
-        onValueChange={(i) => setQuantity(Number(i))}
-      >
-        <SelectTrigger className=''>
-          <SelectValue>
-            {t('Product.Quantity')}: {quantity}
-          </SelectValue>
-        </SelectTrigger>
-        <SelectContent position='popper'>
-          {Array.from({ length: item.countInStock }).map((_, i) => (
-            <SelectItem key={i + 1} value={`${i + 1}`}>
-              {i + 1}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      {!isInStock ? (
+        <div className='text-center py-4'>
+          <p className='text-red-600 font-medium'>{t('Product.Out of Stock')}</p>
+        </div>
+      ) : (
+        <>
+          <Select
+            value={quantity.toString()}
+            onValueChange={(i) => setQuantity(Number(i))}
+            disabled={!isInStock}
+          >
+            <SelectTrigger className=''>
+              <SelectValue>
+                {t('Product.Quantity')}: {quantity}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent position='popper'>
+              {Array.from({ length: item.countInStock }).map((_, i) => (
+                <SelectItem key={i + 1} value={`${i + 1}`}>
+                  {i + 1}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-      <Button
-        className='rounded-full w-full'
-        type='button'
-        onClick={async () => {
-          try {
-            await addItem(item, quantity)
-            toast({
-              description: t('Product.Added to Cart'),
-              action: (
-                <Button
-                  onClick={() => {
-                    const cartPath = locale === 'en-US' ? '/cart' : `/${locale}/cart`
-                    router.push(cartPath)
-                  }}
-                >
-                  {t('Product.Go to Cart')}
-                </Button>
-              ),
-            })
-          } catch (error: any) {
-            toast({
-              variant: 'destructive',
-              description: error.message,
-            })
-          }
-        }}
-      >
-        {t('Product.Add to Cart')}
-      </Button>
-      <Button
-        variant='secondary'
-        onClick={async () => {
-          try {
-            await addItem(item, quantity)
-            const checkoutPath = locale === 'en-US' ? '/checkout' : `/${locale}/checkout`
-            router.push(checkoutPath)
-          } catch (error: any) {
-            toast({
-              variant: 'destructive',
-              description: error.message,
-            })
-          }
-        }}
-        className='w-full rounded-full '
-      >
-        {t('Product.Buy Now')}
-      </Button>
+          <Button
+            className='rounded-full w-full'
+            type='button'
+            disabled={!isInStock}
+            onClick={async () => {
+              if (!isInStock) {
+                toast({
+                  variant: 'destructive',
+                  description: t('Product.Out of Stock'),
+                })
+                return
+              }
+              try {
+                await addItem(item, quantity)
+                toast({
+                  description: t('Product.Added to Cart'),
+                  action: (
+                    <Button
+                      onClick={() => {
+                        const cartPath = locale === 'en-US' ? '/cart' : `/${locale}/cart`
+                        router.push(cartPath)
+                      }}
+                    >
+                      {t('Product.Go to Cart')}
+                    </Button>
+                  ),
+                })
+              } catch (error: any) {
+                toast({
+                  variant: 'destructive',
+                  description: error.message,
+                })
+              }
+            }}
+          >
+            {t('Product.Add to Cart')}
+          </Button>
+          <Button
+            variant='secondary'
+            disabled={!isInStock}
+            onClick={async () => {
+              if (!isInStock) {
+                toast({
+                  variant: 'destructive',
+                  description: t('Product.Out of Stock'),
+                })
+                return
+              }
+              try {
+                await addItem(item, quantity)
+                const checkoutPath = locale === 'en-US' ? '/checkout' : `/${locale}/checkout`
+                router.push(checkoutPath)
+              } catch (error: any) {
+                toast({
+                  variant: 'destructive',
+                  description: error.message,
+                })
+              }
+            }}
+            className='w-full rounded-full '
+          >
+            {t('Product.Buy Now')}
+          </Button>
+        </>
+      )}
     </div>
   )
 }

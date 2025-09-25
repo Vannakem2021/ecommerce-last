@@ -36,6 +36,7 @@ const ProductList = () => {
   const [inputValue, setInputValue] = useState<string>('')
   const [data, setData] = useState<ProductListDataProps>()
   const [isPending, startTransition] = useTransition()
+  const debounceRef = React.useRef<NodeJS.Timeout>()
 
   const handlePageChange = (changeType: 'next' | 'prev') => {
     const newPage = changeType === 'next' ? page + 1 : page - 1
@@ -57,16 +58,20 @@ const ProductList = () => {
     const value = e.target.value
     setInputValue(value)
     if (value) {
-      clearTimeout((window as any).debounce)
-      ;(window as any).debounce = setTimeout(() => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current)
+      }
+      debounceRef.current = setTimeout(() => {
+        setPage(1) // Reset page when searching
         startTransition(async () => {
           const data = await getAllProductsForAdmin({ query: value, page: 1 })
           setData(data)
         })
       }, 500)
     } else {
+      setPage(1) // Reset page when clearing search
       startTransition(async () => {
-        const data = await getAllProductsForAdmin({ query: '', page })
+        const data = await getAllProductsForAdmin({ query: '', page: 1 })
         setData(data)
       })
     }
@@ -76,6 +81,13 @@ const ProductList = () => {
       const data = await getAllProductsForAdmin({ query: '' })
       setData(data)
     })
+
+    // Cleanup debounce on unmount
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current)
+      }
+    }
   }, [])
 
   return (
