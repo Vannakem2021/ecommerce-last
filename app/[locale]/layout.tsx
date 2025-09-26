@@ -1,4 +1,4 @@
-import { Poppins, Kantumruy_Pro } from "next/font/google";
+import { Poppins, Kantumruy_Pro, Public_Sans } from "next/font/google";
 import "../globals.css";
 import ClientProviders from "@/components/shared/client-providers";
 import { getDirection } from "@/i18n-config";
@@ -12,7 +12,7 @@ import { SessionProvider } from "next-auth/react";
 import { auth } from "@/auth";
 
 // Google Fonts setup
-const poppins = Poppins({
+const poppins = Public_Sans({
   variable: "--font-poppins",
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
@@ -25,6 +25,7 @@ const hanuman = Kantumruy_Pro({
   weight: ["100", "300", "400", "700"],
   display: "swap",
 });
+
 
 export async function generateMetadata() {
   const {

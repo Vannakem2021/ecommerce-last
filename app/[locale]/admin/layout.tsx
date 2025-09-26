@@ -15,6 +15,9 @@ import { auth } from '@/auth'
 import { isSellerOrHigher } from '@/lib/rbac-utils'
 import { redirectInsufficientRole, redirectAuthenticationRequired } from '@/lib/unauthorized-redirect'
 import Script from 'next/script'
+import Container from '@/components/shared/container'
+import { SessionProvider } from 'next-auth/react'
+import AdminUserButton from '@/components/shared/header/admin-user-button'
 
 export default async function AdminLayout({
   children,
@@ -47,48 +50,60 @@ export default async function AdminLayout({
       <Script id="admin-layout-class" strategy="beforeInteractive">
         {`document.documentElement.classList.add('admin-layout');`}
       </Script>
-      <div className='flex min-h-screen'>
-        {/* Sidebar - Hidden on mobile, visible on desktop */}
-        <div className='hidden md:flex md:flex-shrink-0 fixed left-0 top-0 h-full z-10'>
-          <AdminNav userRole={session.user.role} />
-        </div>
-
-        {/* Main content area */}
-        <div className='flex flex-col flex-1 min-h-screen md:ml-64'>
-          {/* Header */}
-          <div className='bg-background text-foreground border-b border-border sticky top-0 z-20'>
-            <div className='flex h-16 items-center px-4'>
-              {/* Mobile sidebar trigger */}
-              <div className='md:hidden mr-3'>
-                <Sheet>
-                  <SheetTrigger asChild>
-                    <Button variant="ghost" size="icon" className="hover:bg-muted/10">
-                      <MenuIcon className="h-5 w-5" />
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent side="left" className="p-0 w-64">
+      <div className='flex flex-col min-h-screen'>
+        {/* Header - Full Width */}
+        <div className='bg-background text-foreground border-b border-border sticky top-0 z-20'>
+          <div className='flex h-16 items-center px-4'>
+            {/* Mobile sidebar trigger */}
+            <div className='md:hidden mr-3'>
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="hover:bg-muted/10">
+                    <MenuIcon className="h-5 w-5" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="p-0 w-64">
+                  <SessionProvider session={session}>
                     <AdminNav userRole={session.user.role} />
-                  </SheetContent>
-                </Sheet>
-              </div>
+                  </SessionProvider>
+                </SheetContent>
+              </Sheet>
+            </div>
 
-              <Link href='/'>
-                <Image
-                  src={site.logo}
-                  width={48}
-                  height={48}
-                  alt={`${site.name} logo`}
-                />
-              </Link>
+            {/* Logo */}
+            <Link href='/'>
+              <Image
+                src={site.logo}
+                width={48}
+                height={48}
+                alt={`${site.name} logo`}
+              />
+            </Link>
 
-              <div className='ml-auto flex items-center space-x-4'>
-                <Menu forAdmin />
-              </div>
+            <div className='ml-auto flex items-center space-x-4'>
+              <Menu forAdmin />
+              <SessionProvider session={session}>
+                <AdminUserButton />
+              </SessionProvider>
             </div>
           </div>
+        </div>
 
-          {/* Page content */}
-          <div className='flex-1 p-4 pb-20' data-main-content>{children}</div>
+        {/* Content area with sidebar */}
+        <div className='flex flex-1 relative'>
+          {/* Sidebar - Hidden on mobile, visible on desktop - Fixed positioning */}
+          <div className='hidden md:flex md:flex-shrink-0 w-64 fixed top-16 left-0 h-[calc(100vh-4rem)] z-10'>
+            <SessionProvider session={session}>
+              <AdminNav userRole={session.user.role} />
+            </SessionProvider>
+          </div>
+
+          {/* Page content - Scrollable with margin for sidebar */}
+          <div className='flex-1 md:ml-64 overflow-y-auto' data-main-content>
+            <Container padding='default' className='pt-6 pb-20'>
+              {children}
+            </Container>
+          </div>
         </div>
       </div>
     </>
