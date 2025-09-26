@@ -7,6 +7,7 @@ import {
   Package,
   ShoppingCart,
   Users,
+  User,
   FileText,
   Settings,
   Tag,
@@ -104,28 +105,31 @@ export function AdminNav({ className, userRole, ...props }: AdminNavProps) {
       )}
       {...props}
     >
-      <div className="flex flex-col space-y-1 p-4 overflow-y-auto h-full">
+      <div className="flex flex-col h-full">
         {/* Main Navigation Links */}
-        {visibleMainLinks.map((item) => {
-          const Icon = item.icon;
-          const isActive = pathname.includes(item.href);
+        <div className="flex-1 space-y-1 p-4 overflow-y-auto">
+          {visibleMainLinks.map((item) => {
+            const Icon = item.icon;
+            const isActive = pathname.includes(item.href);
 
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "admin-sidebar-link",
-                isActive
-                  ? "admin-sidebar-link-active"
-                  : "admin-sidebar-link-inactive"
-              )}
-            >
-              <Icon className="h-4 w-4" />
-              {t(item.title)}
-            </Link>
-          );
-        })}
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "admin-sidebar-link",
+                  isActive
+                    ? "admin-sidebar-link-active"
+                    : "admin-sidebar-link-inactive"
+                )}
+              >
+                <Icon className="h-4 w-4" />
+                {t(item.title)}
+              </Link>
+            );
+          })}
+        </div>
+
       </div>
     </nav>
   );

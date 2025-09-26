@@ -10,6 +10,7 @@ import { getPublishedWebPagesForNavigation } from '@/lib/actions/web-page.action
 import { getTranslations } from 'next-intl/server'
 import Container from '@/components/shared/container'
 import TopBar from './top-bar'
+import LanguageSwitcher from './language-switcher'
 
 export default async function Header() {
   const categories = await getAllCategories()
@@ -23,61 +24,54 @@ export default async function Header() {
     name: page.title,
     href: `/page/${page.slug}`
   }))
+
+  // Combine all menu items for the drawer
+  const allMenuItems = [...staticMenus, ...dynamicPageMenus]
+
   return (
     <header>
-      <TopBar />
       <div className='bg-black text-white'>
         <Container padding='sm'>
-          <div className='flex items-center justify-between'>
-            <div className='flex items-center'>
+          <div className='flex items-center justify-between h-16'>
+            {/* Left: Hamburger Menu + Logo */}
+            <div className='flex items-center gap-3'>
+              <Sidebar categories={categories} menuItems={allMenuItems} />
               <Link
                 href='/'
-                className='flex items-center header-button font-extrabold text-2xl m-1'
+                className='flex items-center header-button font-extrabold text-xl lg:text-2xl'
               >
                 <Image
                   src={site.logo}
-                  width={40}
-                  height={40}
+                  width={32}
+                  height={32}
                   alt={`${site.name} logo`}
+                  className='lg:w-10 lg:h-10'
                 />
-                {site.name}
+                <span className='hidden sm:block ml-2'>{site.name}</span>
               </Link>
             </div>
 
-            <div className='hidden md:block flex-1 max-w-xl'>
+            {/* Center: Search Bar */}
+            <div className='flex-1 max-w-2xl mx-4 hidden sm:block'>
               <Search />
             </div>
-            <Menu />
+
+            {/* Right: Utility Icons */}
+            <div className='flex items-center gap-2'>
+              <div className='hidden lg:flex items-center gap-2 text-sm'>
+                <LanguageSwitcher />
+                <span className='text-gray-300'>|</span>
+                <TopBar showPhoneOnly />
+              </div>
+              <Menu />
+            </div>
           </div>
-          <div className='md:hidden block py-2'>
+
+          {/* Mobile Search */}
+          <div className='sm:hidden pb-3'>
             <Search />
           </div>
         </Container>
-        <div className='bg-gray-800'>
-          <Container padding='sm' className='flex items-center mb-[1px]'>
-            <Sidebar categories={categories} />
-            <div className='flex items-center flex-wrap gap-3 overflow-hidden max-h-[42px]'>
-              {staticMenus.map((menu) => (
-                <Link
-                  href={menu.href}
-                  key={menu.href}
-                  className='header-button !p-2 text-sm'
-                >
-                  {t('Header.' + menu.name)}
-                </Link>
-              ))}
-              {dynamicPageMenus.map((menu) => (
-                <Link
-                  href={menu.href}
-                  key={menu.href}
-                  className='header-button !p-2 text-sm'
-                >
-                  {menu.name}
-                </Link>
-              ))}
-            </div>
-          </Container>
-        </div>
       </div>
     </header>
   )
