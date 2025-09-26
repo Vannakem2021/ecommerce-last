@@ -17,7 +17,6 @@ import { redirectInsufficientRole, redirectAuthenticationRequired } from '@/lib/
 import Script from 'next/script'
 import Container from '@/components/shared/container'
 import { SessionProvider } from 'next-auth/react'
-import AdminUserButton from '@/components/shared/header/admin-user-button'
 
 export default async function AdminLayout({
   children,
@@ -82,9 +81,6 @@ export default async function AdminLayout({
 
             <div className='ml-auto flex items-center space-x-4'>
               <Menu forAdmin />
-              <SessionProvider session={session}>
-                <AdminUserButton />
-              </SessionProvider>
             </div>
           </div>
         </div>

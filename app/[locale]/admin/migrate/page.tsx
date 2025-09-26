@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useState } from 'react'
-import { runCompleteMigration } from '@/lib/db/migrate-brands-categories'
+// import { runCompleteMigration } from '@/lib/db/migrate-brands-categories'
 import { migrateProductSales, rollbackProductSalesMigration } from '@/lib/migrations/migrate-product-sales'
 
 export default function MigrationPage() {
@@ -17,8 +17,9 @@ export default function MigrationPage() {
     setResult('Running migration...')
 
     try {
-      const migrationResult = await runCompleteMigration()
-      setResult(migrationResult.message)
+      // const migrationResult = await runCompleteMigration()
+      // setResult(migrationResult.message)
+      setResult('Migration feature temporarily disabled')
     } catch (error) {
       setResult(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {

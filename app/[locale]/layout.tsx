@@ -1,4 +1,4 @@
-import { Poppins, Kantumruy_Pro, Public_Sans } from "next/font/google";
+import { Inter, Kantumruy_Pro } from "next/font/google";
 import "../globals.css";
 import ClientProviders from "@/components/shared/client-providers";
 import { getDirection } from "@/i18n-config";
@@ -12,8 +12,8 @@ import { SessionProvider } from "next-auth/react";
 import { auth } from "@/auth";
 
 // Google Fonts setup
-const poppins = Public_Sans({
-  variable: "--font-poppins",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
   display: "swap",
@@ -64,7 +64,7 @@ export default async function AppLayout({
   const messages = await getMessages();
 
   // Determine font based on locale
-  const fontClass = locale === 'kh' ? 'font-hanuman' : 'font-poppins';
+  const fontClass = locale === 'kh' ? 'font-hanuman' : 'font-inter';
 
   return (
     <html
@@ -73,7 +73,7 @@ export default async function AppLayout({
       suppressHydrationWarning
     >
       <body
-        className={`min-h-screen ${poppins.variable} ${hanuman.variable} antialiased ${fontClass}`}
+        className={`min-h-screen ${inter.variable} ${hanuman.variable} antialiased ${fontClass}`}
       >
         <NextIntlClientProvider locale={locale} messages={messages}>
           <SessionProvider session={session}>

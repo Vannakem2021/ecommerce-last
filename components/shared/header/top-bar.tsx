@@ -3,8 +3,21 @@ import { getSetting } from '@/lib/actions/setting.actions'
 import LanguageSwitcher from './language-switcher'
 import UserButton from './user-button'
 
-export default async function TopBar() {
+export default async function TopBar({ showPhoneOnly = false }: { showPhoneOnly?: boolean }) {
   const setting = await getSetting()
+
+  if (showPhoneOnly) {
+    return (
+      <>
+        {setting.site?.phone && (
+          <>
+            <span className="text-xs">📞</span>
+            <span className="text-xs">{setting.site.phone}</span>
+          </>
+        )}
+      </>
+    )
+  }
 
   return (
     <div className="bg-green-600 text-white">
