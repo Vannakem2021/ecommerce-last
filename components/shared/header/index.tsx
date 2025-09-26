@@ -9,6 +9,7 @@ import { getSetting } from '@/lib/actions/setting.actions'
 import { getPublishedWebPagesForNavigation } from '@/lib/actions/web-page.actions'
 import { getTranslations } from 'next-intl/server'
 import Container from '@/components/shared/container'
+import TopBar from './top-bar'
 
 export default async function Header() {
   const categories = await getAllCategories()
@@ -23,57 +24,60 @@ export default async function Header() {
     href: `/page/${page.slug}`
   }))
   return (
-    <header className='bg-black text-white'>
-      <Container padding='sm'>
-        <div className='flex items-center justify-between'>
-          <div className='flex items-center'>
-            <Link
-              href='/'
-              className='flex items-center header-button font-extrabold text-2xl m-1'
-            >
-              <Image
-                src={site.logo}
-                width={40}
-                height={40}
-                alt={`${site.name} logo`}
-              />
-              {site.name}
-            </Link>
-          </div>
+    <header>
+      <TopBar />
+      <div className='bg-black text-white'>
+        <Container padding='sm'>
+          <div className='flex items-center justify-between'>
+            <div className='flex items-center'>
+              <Link
+                href='/'
+                className='flex items-center header-button font-extrabold text-2xl m-1'
+              >
+                <Image
+                  src={site.logo}
+                  width={40}
+                  height={40}
+                  alt={`${site.name} logo`}
+                />
+                {site.name}
+              </Link>
+            </div>
 
-          <div className='hidden md:block flex-1 max-w-xl'>
+            <div className='hidden md:block flex-1 max-w-xl'>
+              <Search />
+            </div>
+            <Menu />
+          </div>
+          <div className='md:hidden block py-2'>
             <Search />
           </div>
-          <Menu />
-        </div>
-        <div className='md:hidden block py-2'>
-          <Search />
-        </div>
-      </Container>
-      <div className='bg-gray-800'>
-        <Container padding='sm' className='flex items-center mb-[1px]'>
-          <Sidebar categories={categories} />
-          <div className='flex items-center flex-wrap gap-3 overflow-hidden max-h-[42px]'>
-            {staticMenus.map((menu) => (
-              <Link
-                href={menu.href}
-                key={menu.href}
-                className='header-button !p-2 text-sm'
-              >
-                {t('Header.' + menu.name)}
-              </Link>
-            ))}
-            {dynamicPageMenus.map((menu) => (
-              <Link
-                href={menu.href}
-                key={menu.href}
-                className='header-button !p-2 text-sm'
-              >
-                {menu.name}
-              </Link>
-            ))}
-          </div>
         </Container>
+        <div className='bg-gray-800'>
+          <Container padding='sm' className='flex items-center mb-[1px]'>
+            <Sidebar categories={categories} />
+            <div className='flex items-center flex-wrap gap-3 overflow-hidden max-h-[42px]'>
+              {staticMenus.map((menu) => (
+                <Link
+                  href={menu.href}
+                  key={menu.href}
+                  className='header-button !p-2 text-sm'
+                >
+                  {t('Header.' + menu.name)}
+                </Link>
+              ))}
+              {dynamicPageMenus.map((menu) => (
+                <Link
+                  href={menu.href}
+                  key={menu.href}
+                  className='header-button !p-2 text-sm'
+                >
+                  {menu.name}
+                </Link>
+              ))}
+            </div>
+          </Container>
+        </div>
       </div>
     </header>
   )

@@ -1,4 +1,4 @@
-import { Manrope, Kantumruy_Pro } from "next/font/google";
+import { Poppins, Kantumruy_Pro } from "next/font/google";
 import "../globals.css";
 import ClientProviders from "@/components/shared/client-providers";
 import { getDirection } from "@/i18n-config";
@@ -12,9 +12,10 @@ import { SessionProvider } from "next-auth/react";
 import { auth } from "@/auth";
 
 // Google Fonts setup
-const manrope = Manrope({
-  variable: "--font-manrope",
+const poppins = Poppins({
+  variable: "--font-poppins",
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
   display: "swap",
 });
 
@@ -62,7 +63,7 @@ export default async function AppLayout({
   const messages = await getMessages();
 
   // Determine font based on locale
-  const fontClass = locale === 'kh' ? 'font-hanuman' : 'font-manrope';
+  const fontClass = locale === 'kh' ? 'font-hanuman' : 'font-poppins';
 
   return (
     <html
@@ -71,7 +72,7 @@ export default async function AppLayout({
       suppressHydrationWarning
     >
       <body
-        className={`min-h-screen ${manrope.variable} ${hanuman.variable} antialiased ${fontClass}`}
+        className={`min-h-screen ${poppins.variable} ${hanuman.variable} antialiased ${fontClass}`}
       >
         <NextIntlClientProvider locale={locale} messages={messages}>
           <SessionProvider session={session}>

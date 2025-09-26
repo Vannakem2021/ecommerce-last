@@ -8,7 +8,6 @@ interface SettingState {
   setting: ClientSetting
   setSetting: (newSetting: ClientSetting) => void
   getCurrency: () => SiteCurrency
-  setCurrency: (currency: string) => void
 }
 
 const useSettingStore = create<SettingState>((set, get) => ({
@@ -20,19 +19,12 @@ const useSettingStore = create<SettingState>((set, get) => ({
     set({
       setting: {
         ...newSetting,
-        currency: newSetting.currency || get().setting.currency,
+        currency: data.settings[0].defaultCurrency, // Always keep USD
       },
     })
   },
   getCurrency: () => {
-    return (
-      get().setting.availableCurrencies.find(
-        (c) => c.code === get().setting.currency
-      ) || data.settings[0].availableCurrencies[0]
-    )
-  },
-  setCurrency: async (currency: string) => {
-    set({ setting: { ...get().setting, currency } })
+    return get().setting.availableCurrencies[0] // Always return first (USD)
   },
 }))
 
