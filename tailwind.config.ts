@@ -12,7 +12,7 @@ const config: Config = withUt({
     extend: {
       fontFamily: {
         sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
-        manrope: ['var(--font-manrope)', 'sans-serif'],
+        poppins: ['var(--font-poppins)', 'sans-serif'],
         hanuman: ['var(--font-hanuman)', 'serif'],
       },
       colors: {

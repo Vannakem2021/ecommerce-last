@@ -1,11 +1,9 @@
-import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import {
@@ -16,9 +14,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { ISettingInput } from '@/types'
-import { TrashIcon } from 'lucide-react'
-import React, { useEffect } from 'react'
-import { useFieldArray, UseFormReturn } from 'react-hook-form'
+import React from 'react'
+import { UseFormReturn } from 'react-hook-form'
 
 export default function CurrencyForm({
   form,
@@ -27,27 +24,7 @@ export default function CurrencyForm({
   form: UseFormReturn<ISettingInput>
   id: string
 }) {
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: 'availableCurrencies',
-  })
-  const {
-    setValue,
-    watch,
-    control,
-    formState: { errors },
-  } = form
-
-  const availableCurrencies = watch('availableCurrencies')
-  const defaultCurrency = watch('defaultCurrency')
-
-  useEffect(() => {
-    const validCodes = availableCurrencies.map((lang) => lang.code)
-    if (!validCodes.includes(defaultCurrency)) {
-      setValue('defaultCurrency', '')
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(availableCurrencies)])
+  const { control } = form
 
   return (
     <Card id={id}>
@@ -56,100 +33,59 @@ export default function CurrencyForm({
       </CardHeader>
       <CardContent className='space-y-4'>
         <div className='space-y-4'>
-          {fields.map((field, index) => (
-            <div key={field.id} className='flex   gap-2'>
-              <FormField
-                control={form.control}
-                name={`availableCurrencies.${index}.name`}
-                render={({ field }) => (
-                  <FormItem>
-                    {' '}
-                    {index == 0 && <FormLabel>Name</FormLabel>}
-                    <FormControl>
-                      <Input {...field} placeholder='Name' />
-                    </FormControl>
-                    <FormMessage>
-                      {errors.availableCurrencies?.[index]?.name?.message}
-                    </FormMessage>
-                  </FormItem>
-                )}
-              />
+          <div className='flex gap-2'>
+            <FormField
+              control={form.control}
+              name={`availableCurrencies.0.name`}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Input {...field} value="United States Dollar" disabled />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
 
-              <FormField
-                control={form.control}
-                name={`availableCurrencies.${index}.code`}
-                render={({ field }) => (
-                  <FormItem>
-                    {index == 0 && <FormLabel>Code</FormLabel>}
-                    <FormControl>
-                      <Input {...field} placeholder='Code' />
-                    </FormControl>
-                    <FormMessage>
-                      {errors.availableCurrencies?.[index]?.code?.message}
-                    </FormMessage>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name={`availableCurrencies.${index}.symbol`}
-                render={({ field }) => (
-                  <FormItem>
-                    {index == 0 && <FormLabel>Symbol</FormLabel>}
-                    <FormControl>
-                      <Input {...field} placeholder='Symbol' />
-                    </FormControl>
-                    <FormMessage>
-                      {errors.availableCurrencies?.[index]?.symbol?.message}
-                    </FormMessage>
-                  </FormItem>
-                )}
-              />
+            <FormField
+              control={form.control}
+              name={`availableCurrencies.0.code`}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Code</FormLabel>
+                  <FormControl>
+                    <Input {...field} value="USD" disabled />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
 
-              <FormField
-                control={form.control}
-                name={`availableCurrencies.${index}.convertRate`}
-                render={({ field }) => (
-                  <FormItem>
-                    {index == 0 && <FormLabel>Convert Rate</FormLabel>}
-                    <FormControl>
-                      <Input {...field} placeholder='Convert Rate' />
-                    </FormControl>
-                    <FormMessage>
-                      {
-                        errors.availableCurrencies?.[index]?.convertRate
-                          ?.message
-                      }
-                    </FormMessage>
-                  </FormItem>
-                )}
-              />
-              <div>
-                {index == 0 && <div>Action</div>}
-                <Button
-                  type='button'
-                  disabled={fields.length === 1}
-                  variant='outline'
-                  className={index == 0 ? 'mt-2' : ''}
-                  onClick={() => {
-                    remove(index)
-                  }}
-                >
-                  <TrashIcon className='w-4 h-4' />
-                </Button>
-              </div>
-            </div>
-          ))}
+            <FormField
+              control={form.control}
+              name={`availableCurrencies.0.symbol`}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Symbol</FormLabel>
+                  <FormControl>
+                    <Input {...field} value="$" disabled />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
 
-          <Button
-            type='button'
-            variant={'outline'}
-            onClick={() =>
-              append({ name: '', code: '', symbol: '', convertRate: 1 })
-            }
-          >
-            Add Currency
-          </Button>
+            <FormField
+              control={form.control}
+              name={`availableCurrencies.0.convertRate`}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Convert Rate</FormLabel>
+                  <FormControl>
+                    <Input {...field} value="1" disabled />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
         </div>
 
         <FormField
@@ -160,27 +96,26 @@ export default function CurrencyForm({
               <FormLabel>Default Currency</FormLabel>
               <FormControl>
                 <Select
-                  value={field.value || ''}
-                  onValueChange={(value) => field.onChange(value)}
+                  value="USD"
+                  disabled
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder='Select a currency' />
+                    <SelectValue placeholder="USD" />
                   </SelectTrigger>
                   <SelectContent>
-                    {availableCurrencies
-                      .filter((x) => x.code)
-                      .map((lang, index) => (
-                        <SelectItem key={index} value={lang.code}>
-                          {lang.name} ({lang.code})
-                        </SelectItem>
-                      ))}
+                    <SelectItem value="USD">
+                      United States Dollar (USD)
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </FormControl>
-              <FormMessage>{errors.defaultCurrency?.message}</FormMessage>
             </FormItem>
           )}
         />
+
+        <div className="text-sm text-muted-foreground">
+          Currency is fixed to USD and managed by code. Contact system administrator for changes.
+        </div>
       </CardContent>
     </Card>
   )
