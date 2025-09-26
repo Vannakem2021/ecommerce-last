@@ -369,7 +369,7 @@ const products: IProductInput[] = [
     countInStock: 52,
     description: "iPhone 15 with A16 Bionic chip, USB-C, and Dynamic Island for an enhanced user experience.",
     sizes: ["128GB", "256GB", "512GB"],
-    colors: ["Pink", "Yellow", "Green", "Blue", "Black"],
+    colors: ["Pink", "Green", "Blue", "Black"],
     reviews: [],
   },
   {
@@ -504,7 +504,7 @@ const products: IProductInput[] = [
     countInStock: 25,
     description: "Compact foldable phone with improved hinge, enhanced cameras, and all-day battery life.",
     sizes: ["256GB", "512GB"],
-    colors: ["Silver Shadow", "Yellow", "Mint", "Blue", "Peach"],
+    colors: ["Silver Shadow", "Mint", "Blue", "Peach"],
     reviews: [],
   },
   {
@@ -531,7 +531,7 @@ const products: IProductInput[] = [
     countInStock: 58,
     description: "Fan Edition Galaxy with flagship features, excellent value, and long-term software support.",
     sizes: ["128GB", "256GB"],
-    colors: ["Graphite", "Blue", "Mint", "Yellow"],
+    colors: ["Graphite", "Blue", "Mint", "Green"],
     reviews: [],
   },
   {

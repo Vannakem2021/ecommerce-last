@@ -84,7 +84,7 @@ export type Permission =
   | typeof ROLE_PERMISSIONS.seller[number]
   | typeof ROLE_PERMISSIONS.user[number]
 
-export const COLORS = ['Gold', 'Green', 'Red']
+export const COLORS = ['Green']
 export const THEMES = ['Light', 'Dark', 'System']
 
 // Predefined product tags - matching home page sections

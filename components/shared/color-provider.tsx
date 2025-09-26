@@ -9,6 +9,23 @@ export function ColorProvider({
 }: React.ComponentProps<typeof NextThemesProvider>) {
   const { theme } = useTheme()
   const { color, updateCssVariables } = useColorStore(theme)
+  // Handle legacy color preferences
+  React.useEffect(() => {
+    const storedData = localStorage.getItem('colorStore')
+    if (storedData) {
+      try {
+        const parsed = JSON.parse(storedData)
+        if (parsed.state?.userColor === 'Red' || parsed.state?.userColor === 'Gold') {
+          // Migrate Red and Gold users to Green
+          localStorage.removeItem('colorStore')
+        }
+      } catch (e) {
+        // Invalid stored data, clear it
+        localStorage.removeItem('colorStore')
+      }
+    }
+  }, [])
+
   React.useEffect(() => {
     updateCssVariables()
     // eslint-disable-next-line react-hooks/exhaustive-deps
