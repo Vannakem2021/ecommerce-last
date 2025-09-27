@@ -2,7 +2,6 @@
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Table,
   TableBody,
@@ -14,7 +13,8 @@ import {
 import { deleteBrand } from '@/lib/actions/brand.actions'
 import { IBrand } from '@/lib/db/models/brand.model'
 import { formatDateTime } from '@/lib/utils'
-import { Edit, Trash } from 'lucide-react'
+import { Edit, TagIcon, ImageIcon } from 'lucide-react'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useTransition } from 'react'
@@ -52,71 +52,94 @@ export default function BrandList({
   }
 
   return (
-    <div className='space-y-2'>
-      <Card>
-        <CardHeader>
-          <CardTitle>Brands</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className='overflow-x-auto'>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Logo</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Created At</TableHead>
-                  <TableHead className='w-[100px]'>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {data.map((brand) => (
-                  <TableRow key={brand._id}>
-                    <TableCell>
-                      {brand.logo ? (
+    <div className='overflow-x-auto'>
+      <Table>
+        <TableHeader>
+          <TableRow className='bg-muted/30 hover:bg-muted/50 border-b'>
+            <TableHead className='font-semibold text-foreground'>LOGO</TableHead>
+            <TableHead className='font-semibold text-foreground'>NAME</TableHead>
+            <TableHead className='font-semibold text-foreground'>STATUS</TableHead>
+            <TableHead className='font-semibold text-foreground'>CREATED AT</TableHead>
+            <TableHead className='w-[100px] font-semibold text-foreground'>ACTIONS</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {data.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={5} className='text-center py-8 text-muted-foreground'>
+                <div className='flex flex-col items-center gap-2'>
+                  <TagIcon className='h-8 w-8 text-muted-foreground/50' />
+                  <p>No brands found</p>
+                  <p className='text-sm'>Create your first brand to get started</p>
+                </div>
+              </TableCell>
+            </TableRow>
+          ) : (
+            data.map((brand) => (
+              <TableRow key={brand._id} className='hover:bg-muted/30 transition-colors border-b border-border/50'>
+                <TableCell className='py-3'>
+                  <div className='flex items-center'>
+                    {brand.logo ? (
+                      <div className='relative w-10 h-10 rounded-lg overflow-hidden border border-border/50'>
                         <Image
                           src={brand.logo}
                           alt={`${brand.name} logo`}
-                          width={40}
-                          height={40}
-                          className='rounded object-contain'
+                          fill
+                          className='object-contain p-1'
                         />
-                      ) : (
-                        <div className='w-10 h-10 bg-muted rounded flex items-center justify-center text-xs text-muted-foreground'>
-                          No Logo
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell className='font-medium'>{brand.name}</TableCell>
-                    <TableCell>
-                      <Badge variant={brand.active ? 'default' : 'secondary'}>
-                        {brand.active ? 'Active' : 'Inactive'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{formatDateTime(brand.createdAt).dateTime}</TableCell>
-                    <TableCell className='flex gap-1'>
-                      <Button asChild variant='outline' size='sm'>
-                        <Link href={`/admin/brands/${brand._id}`}>
-                          <Edit className='w-4 h-4' />
-                        </Link>
-                      </Button>
-                      <DeleteDialog id={brand._id} action={handleDelete} />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-          <div className='flex items-center justify-between mt-4'>
-            <div className='text-sm text-muted-foreground'>
-              Showing {data.length} of {totalBrands} brands
-            </div>
-            <div className='text-sm text-muted-foreground'>
-              Page {page} of {totalPages}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+                      </div>
+                    ) : (
+                      <div className='w-10 h-10 bg-muted rounded-lg flex items-center justify-center border border-border/50'>
+                        <ImageIcon className='h-4 w-4 text-muted-foreground' />
+                      </div>
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell className='font-medium py-3'>
+                  <div className='flex items-center gap-3'>
+                    <div className='p-1.5 rounded-md bg-emerald-50 dark:bg-emerald-950'>
+                      <TagIcon className='h-3.5 w-3.5 text-emerald-600' />
+                    </div>
+                    <div>
+                      <div className='font-medium text-foreground'>{brand.name}</div>
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell className='py-3'>
+                  <Badge
+                    variant={brand.active ? 'default' : 'secondary'}
+                    className={brand.active ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : ''}
+                  >
+                    {brand.active ? 'Active' : 'Inactive'}
+                  </Badge>
+                </TableCell>
+                <TableCell className='py-3 text-muted-foreground'>
+                  {formatDateTime(brand.createdAt).dateTime}
+                </TableCell>
+                <TableCell className='py-3'>
+                  <div className='flex items-center gap-1'>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button asChild variant='ghost' size='sm' className='h-8 w-8 p-0 hover:bg-muted'>
+                            <Link href={`/admin/brands/${brand._id}`}>
+                              <Edit className='h-3.5 w-3.5' />
+                            </Link>
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Edit brand</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    <DeleteDialog id={brand._id} action={handleDelete} />
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
     </div>
   )
 }

@@ -30,6 +30,7 @@ export const BrandUpdateSchema = BrandInputSchema.extend({
 // CATEGORY
 export const CategoryInputSchema = z.object({
   name: z.string().min(1, "Category name is required"),
+  description: z.string().optional(),
   active: z.boolean().default(true),
 });
 

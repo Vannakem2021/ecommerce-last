@@ -3,6 +3,7 @@ import { Document, Model, model, models, Schema } from 'mongoose'
 export interface ICategory extends Document {
   _id: string
   name: string
+  description?: string
   active: boolean
   createdAt: Date
   updatedAt: Date
@@ -13,6 +14,10 @@ const categorySchema = new Schema<ICategory>(
     name: {
       type: String,
       required: true,
+      trim: true,
+    },
+    description: {
+      type: String,
       trim: true,
     },
     active: {
