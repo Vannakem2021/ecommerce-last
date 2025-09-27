@@ -2,7 +2,6 @@
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Table,
   TableBody,
@@ -13,7 +12,8 @@ import {
 } from '@/components/ui/table'
 import { IInventoryProduct } from '@/types'
 import { formatDateTime, formatCurrency } from '@/lib/utils'
-import { Edit, History, Package, AlertTriangle } from 'lucide-react'
+import { Edit, History, Package, AlertTriangle, Plus, Minus, Eye } from 'lucide-react'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
@@ -22,11 +22,32 @@ import StockHistoryDialog from './stock-history-dialog'
 
 function getStockStatus(stock: number) {
   if (stock === 0) {
-    return { label: 'Out of Stock', variant: 'destructive' as const, icon: AlertTriangle }
+    return {
+      label: 'Out of Stock',
+      variant: 'destructive' as const,
+      icon: AlertTriangle,
+      textColor: 'text-red-600',
+      bgColor: 'bg-red-50 dark:bg-red-950',
+      dotColor: 'bg-red-500'
+    }
   } else if (stock <= 5) {
-    return { label: 'Low Stock', variant: 'secondary' as const, icon: AlertTriangle }
+    return {
+      label: 'Low Stock',
+      variant: 'secondary' as const,
+      icon: AlertTriangle,
+      textColor: 'text-amber-600',
+      bgColor: 'bg-amber-50 dark:bg-amber-950',
+      dotColor: 'bg-amber-500'
+    }
   } else {
-    return { label: 'In Stock', variant: 'default' as const, icon: Package }
+    return {
+      label: 'In Stock',
+      variant: 'default' as const,
+      icon: Package,
+      textColor: 'text-green-600',
+      bgColor: 'bg-green-50 dark:bg-green-950',
+      dotColor: 'bg-green-500'
+    }
   }
 }
 
@@ -57,131 +78,172 @@ export default function InventoryList({
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <CardTitle>Inventory Overview</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className='overflow-x-auto'>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Product</TableHead>
-                  <TableHead>SKU</TableHead>
-                  <TableHead>Brand</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Stock</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className='w-[150px]'>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {products.map((product) => {
-                  const stockStatus = getStockStatus(product.countInStock)
-                  const StatusIcon = stockStatus.icon
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-muted/50">
+            <TableHead className="w-16">IMAGE</TableHead>
+            <TableHead>PRODUCT</TableHead>
+            <TableHead>SKU</TableHead>
+            <TableHead>BRAND</TableHead>
+            <TableHead>CATEGORY</TableHead>
+            <TableHead>STOCK LEVEL</TableHead>
+            <TableHead className="text-right">PRICE</TableHead>
+            <TableHead>STATUS</TableHead>
+            <TableHead>UPDATED</TableHead>
+            <TableHead className="w-32 text-center">ACTIONS</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {products.map((product) => {
+            const stockStatus = getStockStatus(product.countInStock)
 
-                  return (
-                    <TableRow key={product._id}>
-                      <TableCell>
-                        <div className='flex items-center gap-3'>
-                          {product.images && product.images.length > 0 ? (
-                            <Image
-                              src={product.images[0]}
-                              alt={product.name}
-                              width={40}
-                              height={40}
-                              className='rounded object-cover'
-                            />
-                          ) : (
-                            <div className='w-10 h-10 bg-muted rounded flex items-center justify-center'>
-                              <Package className='w-4 h-4 text-muted-foreground' />
-                            </div>
-                          )}
-                          <div>
-                            <div className='font-medium'>{product.name}</div>
-                            <div className='text-sm text-muted-foreground'>
-                              {formatDateTime(product.createdAt).dateOnly}
-                            </div>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <code className='bg-muted px-2 py-1 rounded text-sm'>
-                          {product.sku}
-                        </code>
-                      </TableCell>
-                      <TableCell>{typeof product.brand === 'object' ? product.brand.name : product.brand}</TableCell>
-                      <TableCell>{typeof product.category === 'object' ? product.category.name : product.category}</TableCell>
-                      <TableCell>
-                        <div className='flex items-center gap-2'>
-                          <span className='font-medium'>{product.countInStock}</span>
-                          <StatusIcon className='w-4 h-4 text-muted-foreground' />
-                        </div>
-                      </TableCell>
-                      <TableCell>{formatCurrency(product.price)}</TableCell>
-                      <TableCell>
-                        <div className='flex flex-col gap-1'>
-                          <Badge variant={stockStatus.variant}>
-                            {stockStatus.label}
-                          </Badge>
-                          <Badge variant={product.isPublished ? 'default' : 'secondary'}>
-                            {product.isPublished ? 'Published' : 'Draft'}
-                          </Badge>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className='flex gap-1'>
+            return (
+              <TableRow key={product._id} className="hover:bg-muted/30 transition-colors">
+                {/* Product Image */}
+                <TableCell className="p-2">
+                  <div className="relative w-12 h-12 rounded-md overflow-hidden bg-muted">
+                    {product.images && product.images.length > 0 ? (
+                      <Image
+                        src={product.images[0]}
+                        alt={product.name}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Package className="w-4 h-4 text-muted-foreground" />
+                      </div>
+                    )}
+                  </div>
+                </TableCell>
+
+                {/* Product Info */}
+                <TableCell>
+                  <div className="space-y-1">
+                    <Link
+                      href={`/admin/products/${product._id}`}
+                      className="font-semibold hover:text-primary transition-colors line-clamp-1"
+                    >
+                      {product.name}
+                    </Link>
+                    <div className="text-xs text-muted-foreground">
+                      ID: {product._id.slice(-6).toUpperCase()}
+                    </div>
+                  </div>
+                </TableCell>
+
+                {/* SKU */}
+                <TableCell>
+                  <code className="bg-muted px-2 py-1 rounded text-xs font-mono">
+                    {product.sku}
+                  </code>
+                </TableCell>
+
+                {/* Brand */}
+                <TableCell>
+                  <Badge variant="outline">
+                    {typeof product.brand === 'object' ? product.brand.name : product.brand}
+                  </Badge>
+                </TableCell>
+
+                {/* Category */}
+                <TableCell>
+                  <Badge variant="outline">
+                    {typeof product.category === 'object' ? product.category.name : product.category}
+                  </Badge>
+                </TableCell>
+
+                {/* Stock Level with Status */}
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${stockStatus.dotColor}`}></div>
+                    <span className="font-medium">{product.countInStock}</span>
+                    <span className={`text-xs ${stockStatus.textColor}`}>
+                      {stockStatus.label}
+                    </span>
+                  </div>
+                </TableCell>
+
+                {/* Price */}
+                <TableCell className="text-right font-semibold">
+                  {formatCurrency(product.price)}
+                </TableCell>
+
+                {/* Published Status */}
+                <TableCell>
+                  <Badge
+                    variant={product.isPublished ? "default" : "secondary"}
+                    className={product.isPublished ? "bg-green-600 hover:bg-green-700" : ""}
+                  >
+                    {product.isPublished ? "Published" : "Draft"}
+                  </Badge>
+                </TableCell>
+
+                {/* Last Update */}
+                <TableCell className="text-sm text-muted-foreground">
+                  {formatDateTime(product.updatedAt || product.createdAt).dateOnly}
+                </TableCell>
+
+                {/* Actions */}
+                <TableCell>
+                  <TooltipProvider>
+                    <div className="flex items-center gap-1">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
                           <Button
-                            variant='outline'
-                            size='sm'
+                            variant="outline"
+                            size="sm"
+                            className="h-8 w-8 p-0"
                             onClick={() => handleStockAdjustment(product)}
-                            title='Adjust Stock'
                           >
-                            <Edit className='w-4 h-4' />
+                            <Edit className="h-3 w-3" />
                           </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Adjust stock</TooltipContent>
+                      </Tooltip>
+
+                      <Tooltip>
+                        <TooltipTrigger asChild>
                           <Button
-                            variant='outline'
-                            size='sm'
+                            variant="outline"
+                            size="sm"
+                            className="h-8 w-8 p-0"
                             onClick={() => handleViewHistory(product)}
-                            title='View Stock History'
                           >
-                            <History className='w-4 h-4' />
+                            <History className="h-3 w-3" />
                           </Button>
-                          <Button asChild variant='outline' size='sm' title='Edit Product'>
+                        </TooltipTrigger>
+                        <TooltipContent>View history</TooltipContent>
+                      </Tooltip>
+
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button asChild variant="outline" size="sm" className="h-8 w-8 p-0">
                             <Link href={`/admin/products/${product._id}`}>
-                              <Package className='w-4 h-4' />
+                              <Eye className="h-3 w-3" />
                             </Link>
                           </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
-          </div>
-          
-          {products.length === 0 && (
-            <div className='text-center py-8'>
-              <Package className='w-12 h-12 text-muted-foreground mx-auto mb-4' />
-              <h3 className='text-lg font-medium mb-2'>No products found</h3>
-              <p className='text-muted-foreground'>
-                Try adjusting your search criteria or add some products first.
-              </p>
-            </div>
-          )}
+                        </TooltipTrigger>
+                        <TooltipContent>Edit product</TooltipContent>
+                      </Tooltip>
+                    </div>
+                  </TooltipProvider>
+                </TableCell>
+              </TableRow>
+            )
+          })}
+        </TableBody>
+      </Table>
 
-          <div className='flex items-center justify-between mt-4'>
-            <div className='text-sm text-muted-foreground'>
-              Showing {products.length} of {totalProducts} products
-            </div>
-            <div className='text-sm text-muted-foreground'>
-              Page {page} of {totalPages}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {products.length === 0 && (
+        <div className="text-center py-12">
+          <Package className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-medium mb-2">No products found</h3>
+          <p className="text-muted-foreground">
+            Try adjusting your search criteria or add some products first.
+          </p>
+        </div>
+      )}
 
       {/* Stock Adjustment Dialog */}
       {selectedProduct && (

@@ -2,18 +2,10 @@ import { Metadata } from 'next'
 import Link from 'next/link'
 import { getAllProductsForInventory } from '@/lib/actions/inventory.actions'
 import InventoryList from './inventory-list'
-import Pagination from '@/components/shared/pagination'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
+import InventoryOverviewCards from '@/components/shared/inventory/inventory-overview-cards'
+import InventoryFilters, { InventoryFilterState } from '@/components/shared/inventory/inventory-filters'
 import { Button } from '@/components/ui/button'
-import { Search, Filter } from 'lucide-react'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { Upload, Download, Plus, ChevronLeft, ChevronRight } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'Admin Inventory',
@@ -43,124 +35,132 @@ export default async function AdminInventoryPage(props: {
     sort: sort as 'latest' | 'oldest' | 'name-asc' | 'name-desc' | 'stock-low' | 'stock-high',
   })
 
+  // Calculate inventory metrics
+  const inventoryMetrics = {
+    totalProducts: data.success ? data.totalProducts : 0,
+    lowStockCount: data.success ? data.products.filter(p => p.countInStock > 0 && p.countInStock <= 5).length : 0,
+    outOfStockCount: data.success ? data.products.filter(p => p.countInStock === 0).length : 0,
+    totalInventoryValue: data.success ? data.products.reduce((sum, product) => sum + (product.price * product.countInStock), 0) : 0,
+    averageStockLevel: data.success && data.totalProducts > 0 ? data.products.reduce((sum, product) => sum + product.countInStock, 0) / data.totalProducts : 0,
+    inStockCount: data.success ? data.products.filter(p => p.countInStock > 5).length : 0
+  }
+
+  const currentPage = Number(page)
+  const startItem = ((currentPage - 1) * 20) + 1
+  const endItem = Math.min(currentPage * 20, data.success ? data.totalProducts : 0)
+
   if (!data.success) {
     return (
-      <div className='space-y-2'>
-        <h1 className='h1-bold'>Inventory Management</h1>
-        <Card>
-          <CardContent className='p-6'>
-            <p className='text-destructive'>Error loading inventory: {data.message}</p>
-          </CardContent>
-        </Card>
+      <div className="space-y-6">
+        {/* Professional Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Inventory Management</h1>
+            <p className="text-muted-foreground mt-1">
+              Monitor and manage product stock levels
+            </p>
+          </div>
+        </div>
+
+        <div className="border rounded-lg p-6">
+          <p className="text-destructive">Error loading inventory: {data.message}</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className='space-y-4'>
-      <div className='flex-between'>
-        <h1 className='h1-bold'>Inventory Management</h1>
-        <div className='text-sm text-muted-foreground'>
-          {data.totalProducts} products
+    <div className="space-y-6">
+      {/* Professional Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Inventory Management</h1>
+          <p className="text-muted-foreground mt-1">
+            Monitor and manage product stock levels
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" className="flex items-center gap-2">
+            <Download className="h-4 w-4" />
+            Export
+          </Button>
+          <Button variant="outline" className="flex items-center gap-2">
+            <Upload className="h-4 w-4" />
+            Import
+          </Button>
+          <Button asChild className="flex items-center gap-2">
+            <Link href="/admin/products/create">
+              <Plus className="h-4 w-4" />
+              Add Product
+            </Link>
+          </Button>
         </div>
       </div>
 
-      {/* Search and Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle className='flex items-center gap-2'>
-            <Filter className='w-4 h-4' />
-            Search & Filters
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form method='GET' className='space-y-4'>
-            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
-              {/* Search */}
-              <div className='relative'>
-                <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4' />
-                <Input
-                  name='query'
-                  placeholder='Search by name, SKU, brand...'
-                  defaultValue={searchText}
-                  className='pl-10'
-                />
-              </div>
+      {/* Inventory Overview Cards */}
+      <InventoryOverviewCards metrics={inventoryMetrics} />
 
-              {/* Brand Filter */}
-              <Select name='brand' defaultValue={selectedBrand || 'all'}>
-                <SelectTrigger>
-                  <SelectValue placeholder='All Brands' />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value='all'>All Brands</SelectItem>
-                  {data.brands.map((brand) => (
-                    <SelectItem key={brand} value={brand}>
-                      {brand}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {/* Category Filter */}
-              <Select name='category' defaultValue={selectedCategory || 'all'}>
-                <SelectTrigger>
-                  <SelectValue placeholder='All Categories' />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value='all'>All Categories</SelectItem>
-                  {data.categories.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {/* Sort */}
-              <Select name='sort' defaultValue={sort}>
-                <SelectTrigger>
-                  <SelectValue placeholder='Sort by' />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value='latest'>Latest First</SelectItem>
-                  <SelectItem value='oldest'>Oldest First</SelectItem>
-                  <SelectItem value='name-asc'>Name A-Z</SelectItem>
-                  <SelectItem value='name-desc'>Name Z-A</SelectItem>
-                  <SelectItem value='stock-low'>Stock Low-High</SelectItem>
-                  <SelectItem value='stock-high'>Stock High-Low</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className='flex gap-2'>
-              <Button type='submit' variant='default'>
-                <Search className='w-4 h-4 mr-2' />
-                Search
-              </Button>
-              <Button type='button' variant='outline' asChild>
-                <Link href='/admin/inventory'>Clear Filters</Link>
-              </Button>
-            </div>
-
-            {/* Hidden fields to preserve other params */}
-            <input type='hidden' name='page' value='1' />
-          </form>
-        </CardContent>
-      </Card>
-
-      {/* Inventory List */}
-      <InventoryList
-        products={data.products}
-        totalProducts={data.totalProducts}
-        page={page}
-        totalPages={data.totalPages}
+      {/* Advanced Filtering */}
+      <InventoryFilters
+        brands={data.brands}
+        categories={data.categories}
+        totalResults={data.totalProducts}
+        currentRange={data.totalProducts === 0 ? 'No' : `${startItem}-${endItem} of ${data.totalProducts}`}
       />
 
-      {/* Pagination */}
-      {data.totalPages > 1 && (
-        <Pagination page={page} totalPages={data.totalPages} />
-      )}
+      {/* Enhanced Inventory Table */}
+      <div className="border rounded-lg">
+        <InventoryList
+          products={data.products}
+          totalProducts={data.totalProducts}
+          page={page}
+          totalPages={data.totalPages}
+        />
+
+        {/* Enhanced Pagination */}
+        {data.totalPages > 1 && (
+          <div className="flex items-center justify-between border-t px-4 py-3">
+            <div className="text-sm text-muted-foreground">
+              Showing {startItem} to {endItem} of {data.totalProducts} products
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-1"
+                disabled={currentPage <= 1}
+              >
+                <Link
+                  href={currentPage <= 1 ? '#' : `?page=${currentPage - 1}&query=${searchText}&brand=${selectedBrand}&category=${selectedCategory}&sort=${sort}`}
+                  className={currentPage <= 1 ? 'pointer-events-none opacity-50' : ''}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Previous
+                </Link>
+              </Button>
+              <div className="text-sm font-medium">
+                Page {currentPage} of {data.totalPages}
+              </div>
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-1"
+                disabled={currentPage >= data.totalPages}
+              >
+                <Link
+                  href={currentPage >= data.totalPages ? '#' : `?page=${currentPage + 1}&query=${searchText}&brand=${selectedBrand}&category=${selectedCategory}&sort=${sort}`}
+                  className={currentPage >= data.totalPages ? 'pointer-events-none opacity-50' : ''}
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
