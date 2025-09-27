@@ -202,8 +202,7 @@ export function ViewInvoiceButton({
       onClick={handleView}
       className={`flex items-center ${className}`}
     >
-      <NotebookText className="h-4 w-4 mr-1" />
-      <span className="text-xs uppercase">INVOICE</span>
+      <NotebookText className="h-3 w-3" />
     </Button>
   )
 }
