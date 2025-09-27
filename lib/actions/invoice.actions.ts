@@ -5,13 +5,14 @@ import { connectToDatabase } from '@/lib/db'
 import Order, { IOrder } from '@/lib/db/models/order.model'
 import User from '@/lib/db/models/user.model'
 import { formatError } from '@/lib/utils'
-import { 
-  validateOrderForInvoice, 
+import {
+  validateOrderForInvoice,
   generateInvoiceNumber,
   getInvoiceCustomerInfo,
   getInvoiceItems,
   getInvoiceTotals
 } from '@/lib/utils/invoice-utils'
+import { generateOrderNumber } from '@/lib/utils/order-utils'
 import { getSetting } from './setting.actions'
 import { hasPermission } from '@/lib/rbac-utils'
 
@@ -67,7 +68,8 @@ export async function getInvoiceData(orderId: string) {
       invoiceDate: order.paidAt || order.createdAt,
 
       // Order information
-      orderId: order._id.toString(),
+      orderId: order._id.toString(), // Keep MongoDB ID for internal use
+      orderNumber: generateOrderNumber(order._id.toString(), order.createdAt), // User-friendly order number
       orderDate: order.createdAt,
       paymentMethod: order.paymentMethod,
       expectedDeliveryDate: order.expectedDeliveryDate,

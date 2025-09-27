@@ -42,36 +42,59 @@ export default async function AdminInvoicePage(props: AdminInvoicePageProps) {
   return (
     <InvoicePrintWrapper isPrintMode={isPrintMode}>
       <div className={`max-w-6xl mx-auto p-4 ${isPrintMode ? 'invoice-print-area' : ''}`}>
-        {/* Navigation - hidden in print mode */}
+        {/* Enhanced Navigation - hidden in print mode */}
         {!isPrintMode && (
           <div className="no-print mb-6">
-            <div className="flex gap-2 text-sm text-gray-600 mb-4">
-              <Link href="/admin/orders" className="hover:text-gray-900">
-                Orders
-              </Link>
-              <span>›</span>
-              <Link href={`/admin/orders/${id}`} className="hover:text-gray-900">
-                Order {formatId(id)}
-              </Link>
-              <span>›</span>
-              <span>Invoice</span>
+            {/* Professional Breadcrumb */}
+            <div className="flex items-center gap-3 mb-6">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Link href="/admin/orders" className="hover:text-foreground transition-colors">
+                  Orders
+                </Link>
+                <span>›</span>
+                <Link href={`/admin/orders/${id}`} className="hover:text-foreground transition-colors">
+                  {invoiceData.orderNumber}
+                </Link>
+                <span>›</span>
+                <span className="text-foreground font-medium">Invoice</span>
+              </div>
             </div>
 
-            <div className="flex justify-between items-center mb-6">
-              <div>
-                <h1 className="h1-bold">
-                  Invoice {invoiceData.invoiceNumber}
-                </h1>
-                <p className="text-gray-600 mt-2">
-                  Customer: {invoiceData.customer.name}
-                  {invoiceData.customer.email && ` (${invoiceData.customer.email})`}
-                </p>
+            {/* Professional Header Section */}
+            <div className="bg-card border rounded-lg p-6 mb-6">
+              <div className="flex justify-between items-start">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <h1 className="text-2xl font-bold text-foreground">
+                      Invoice {invoiceData.invoiceNumber}
+                    </h1>
+                    {invoiceData.isPaid && (
+                      <div className="px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full text-sm font-medium">
+                        ✅ PAID
+                      </div>
+                    )}
+                  </div>
+                  <div className="space-y-1 text-sm text-muted-foreground">
+                    <p>
+                      <span className="font-medium">Customer:</span> {invoiceData.customer.name}
+                      {invoiceData.customer.email && ` (${invoiceData.customer.email})`}
+                    </p>
+                    <p>
+                      <span className="font-medium">Total:</span> {invoiceData.totals?.total ? `$${invoiceData.totals.total.toLocaleString()}` : 'N/A'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <InvoiceActions
+                    invoiceNumber={invoiceData.invoiceNumber}
+                    orderId={id}
+                    showLabels={true}
+                    variant="outline"
+                    size="default"
+                  />
+                </div>
               </div>
-              <InvoiceActions
-                invoiceNumber={invoiceData.invoiceNumber}
-                orderId={id}
-                showLabels={true}
-              />
             </div>
           </div>
         )}
