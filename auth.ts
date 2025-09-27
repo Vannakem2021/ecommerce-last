@@ -107,9 +107,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     signIn: async ({ user, account, profile }) => {
       try {
-        if (account?.provider === "google") {
-          await connectToDatabase();
+        await connectToDatabase();
 
+        if (account?.provider === "google") {
           // Check if user already exists with this email
           const existingUser = await User.findOne({ email: user.email });
 
@@ -117,9 +117,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             // Preserve existing role and user data for OAuth account linking
             user.role = existingUser.role;
             user.name = existingUser.name || user.name;
+
+            // Update last login timestamp
+            await User.findByIdAndUpdate(existingUser._id, {
+              lastLoginAt: new Date()
+            });
           } else {
             // New OAuth user - set default role
             user.role = "user";
+          }
+        } else {
+          // For credentials provider, update last login
+          const existingUser = await User.findOne({ email: user.email });
+          if (existingUser) {
+            await User.findByIdAndUpdate(existingUser._id, {
+              lastLoginAt: new Date()
+            });
           }
         }
         return true;

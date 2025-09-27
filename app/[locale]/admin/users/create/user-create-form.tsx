@@ -4,8 +4,10 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
+import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Form,
   FormControl,
@@ -13,6 +15,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import {
@@ -22,12 +25,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Checkbox } from '@/components/ui/checkbox'
+import { Switch } from '@/components/ui/switch'
 import { useToast } from '@/hooks/use-toast'
 import { createUserByAdmin } from '@/lib/actions/user.actions'
 import { AdminUserCreateSchema } from '@/lib/validator'
 import { getAssignableRoles } from '@/lib/rbac-utils'
 import { UserRole } from '@/lib/constants'
+import { UserIcon, ShieldIcon, MailIcon, KeyIcon, CrownIcon, UserCogIcon, UsersIcon } from 'lucide-react'
 
 interface UserCreateFormProps {
   currentUserRole: string
@@ -37,19 +41,39 @@ const UserCreateForm = ({ currentUserRole }: UserCreateFormProps) => {
   const router = useRouter()
   const { toast } = useToast()
 
-  // Get roles that current user can assign
-  const assignableRoles = getAssignableRoles(currentUserRole)
+  // Get roles that current user can assign (excluding 'user' role for admin creation)
+  const allAssignableRoles = getAssignableRoles(currentUserRole)
+  const assignableRoles = allAssignableRoles.filter(role => role !== 'user')
 
   const form = useForm<z.infer<typeof AdminUserCreateSchema>>({
     resolver: zodResolver(AdminUserCreateSchema),
     defaultValues: {
       name: '',
       email: '',
-      role: 'user',
+      role: assignableRoles[0] || 'seller', // Default to first available role or seller
       password: '',
-      sendWelcomeEmail: false,
+      sendWelcomeEmail: true, // Default to true for system users
     },
   })
+
+  // Watch the selected role to show/hide relevant fields
+  const selectedRole = form.watch('role')
+  const isAdminRole = selectedRole === 'admin'
+  const isManagerRole = selectedRole === 'manager'
+  const isSellerRole = selectedRole === 'seller'
+
+  const getRoleIcon = (role: string) => {
+    switch (role) {
+      case 'admin':
+        return <CrownIcon className="h-4 w-4 text-red-600" />
+      case 'manager':
+        return <UserCogIcon className="h-4 w-4 text-amber-600" />
+      case 'seller':
+        return <UsersIcon className="h-4 w-4 text-emerald-600" />
+      default:
+        return <UserIcon className="h-4 w-4 text-blue-600" />
+    }
+  }
 
   async function onSubmit(values: z.infer<typeof AdminUserCreateSchema>) {
     try {
@@ -79,126 +103,231 @@ const UserCreateForm = ({ currentUserRole }: UserCreateFormProps) => {
   }
 
   return (
-    <Form {...form}>
-      <form
-        method='post'
-        onSubmit={form.handleSubmit(onSubmit)}
-        className='space-y-8'
-      >
-        <div className='flex flex-col gap-5 md:flex-row'>
-          <FormField
-            control={form.control}
-            name='name'
-            render={({ field }) => (
-              <FormItem className='w-full'>
-                <FormLabel>Name</FormLabel>
-                <FormControl>
-                  <Input placeholder='Enter user name' {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name='email'
-            render={({ field }) => (
-              <FormItem className='w-full'>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input 
-                    type='email' 
-                    placeholder='Enter user email' 
-                    {...field} 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        
-        <div className='flex flex-col gap-5 md:flex-row'>
-          <FormField
-            control={form.control}
-            name='password'
-            render={({ field }) => (
-              <FormItem className='w-full'>
-                <FormLabel>Password</FormLabel>
-                <FormControl>
-                  <Input 
-                    type='password' 
-                    placeholder='Enter password' 
-                    {...field} 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name='role'
-            render={({ field }) => (
-              <FormItem className='w-full'>
-                <FormLabel>Role</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  value={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder='Select a role' />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {assignableRoles.map((role) => (
-                      <SelectItem key={role} value={role}>
-                        {role.charAt(0).toUpperCase() + role.slice(1)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <FormField
-          control={form.control}
-          name='sendWelcomeEmail'
-          render={({ field }) => (
-            <FormItem className='flex flex-row items-start space-x-3 space-y-0'>
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
+    <div className="space-y-6">
+      <Form {...form}>
+        <form
+          method='post'
+          onSubmit={form.handleSubmit(onSubmit)}
+          className='space-y-6'
+        >
+          {/* Basic Information Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <div className="p-1.5 rounded-md bg-blue-50 dark:bg-blue-950">
+                  <UserIcon className="h-4 w-4 text-blue-600" />
+                </div>
+                Basic Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className='space-y-6'>
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                <FormField
+                  control={form.control}
+                  name='name'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium">Full Name *</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder='Enter full name (e.g., John Doe)'
+                          className="h-10"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        User's display name for the system
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </FormControl>
-              <div className='space-y-1 leading-none'>
-                <FormLabel>
-                  Send welcome email to user
-                </FormLabel>
+                <FormField
+                  control={form.control}
+                  name='email'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium">Email Address *</FormLabel>
+                      <FormControl>
+                        <Input
+                          type='email'
+                          placeholder='Enter email address'
+                          className="h-10"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Used for login and notifications
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
-            </FormItem>
-          )}
-        />
+            </CardContent>
+          </Card>
 
-        <div className='flex-between'>
-          <Button type='submit' disabled={form.formState.isSubmitting}>
-            {form.formState.isSubmitting ? 'Creating...' : 'Create User'}
-          </Button>
-          <Button
-            variant='outline'
-            type='button'
-            onClick={() => router.push('/admin/users')}
-          >
-            Cancel
-          </Button>
-        </div>
-      </form>
-    </Form>
+          {/* Authentication Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <div className="p-1.5 rounded-md bg-green-50 dark:bg-green-950">
+                  <KeyIcon className="h-4 w-4 text-green-600" />
+                </div>
+                Authentication & Access
+              </CardTitle>
+            </CardHeader>
+            <CardContent className='space-y-6'>
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                <FormField
+                  control={form.control}
+                  name='password'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium">Password *</FormLabel>
+                      <FormControl>
+                        <Input
+                          type='password'
+                          placeholder='Enter secure password'
+                          className="h-10"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription className="text-xs">
+                        Password must contain: • 8+ characters • Uppercase letter • Lowercase letter • Number • Special character
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name='role'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium">User Role *</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="h-10">
+                            <SelectValue placeholder='Select user role' />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {assignableRoles.map((role) => (
+                            <SelectItem key={role} value={role}>
+                              <div className="flex items-center gap-2">
+                                {getRoleIcon(role)}
+                                <span>{role.charAt(0).toUpperCase() + role.slice(1)}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        {selectedRole === 'seller' && 'Can manage products, inventory, and view orders'}
+                        {selectedRole === 'manager' && 'Can manage products, orders, and view analytics'}
+                        {selectedRole === 'admin' && 'Full system access with all administrative privileges'}
+                        {!['seller', 'manager', 'admin'].includes(selectedRole) && 'Select a role to see permissions'}
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Notification Settings Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <div className="p-1.5 rounded-md bg-amber-50 dark:bg-amber-950">
+                  <MailIcon className="h-4 w-4 text-amber-600" />
+                </div>
+                Notification Settings
+              </CardTitle>
+            </CardHeader>
+            <CardContent className='space-y-6'>
+              <FormField
+                control={form.control}
+                name='sendWelcomeEmail'
+                render={({ field }) => (
+                  <FormItem className='flex flex-row items-center justify-between rounded-lg border p-4'>
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-sm font-medium">Send Welcome Email</FormLabel>
+                      <FormDescription>
+                        Send welcome email with login credentials and system access information
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              {/* Role-specific security notices */}
+              <div className="rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30 p-4">
+                <div className="flex items-start gap-3">
+                  <ShieldIcon className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                      System User Access
+                    </p>
+                    <p className="text-sm text-blue-700 dark:text-blue-200">
+                      {isAdminRole && 'This user will have full administrative access. Ensure proper security protocols are followed.'}
+                      {isManagerRole && 'This user will have management-level access to products, orders, and analytics.'}
+                      {isSellerRole && 'This user will have access to product and inventory management features.'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Action Buttons */}
+          <Card>
+            <CardContent className="pt-6">
+              <div className='flex items-center justify-between'>
+                <div className="text-sm text-muted-foreground">
+                  {form.formState.isSubmitting ? (
+                    <span className="flex items-center gap-2">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                      Creating user account...
+                    </span>
+                  ) : (
+                    'Review all information before creating the user account'
+                  )}
+                </div>
+                <div className='flex items-center gap-3'>
+                  <Button
+                    variant='outline'
+                    type='button'
+                    onClick={() => router.push('/admin/users')}
+                    disabled={form.formState.isSubmitting}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type='submit'
+                    disabled={form.formState.isSubmitting}
+                    className="min-w-[140px]"
+                  >
+                    {form.formState.isSubmitting ? 'Creating...' : 'Create User'}
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </form>
+      </Form>
+    </div>
   )
 }
 

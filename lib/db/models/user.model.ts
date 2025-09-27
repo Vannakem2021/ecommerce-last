@@ -5,6 +5,7 @@ export interface IUser extends Document, IUserInput {
   _id: string;
   createdAt: Date;
   updatedAt: Date;
+  lastLoginAt?: Date;
 }
 
 const userSchema = new Schema<IUser>(
@@ -16,6 +17,7 @@ const userSchema = new Schema<IUser>(
     password: { type: String },
     image: { type: String },
     emailVerified: { type: Boolean, default: false },
+    lastLoginAt: { type: Date },
 
     // Customer-specific fields (optional during registration, required for checkout)
     paymentMethod: {
