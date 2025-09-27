@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { PrinterIcon, DownloadIcon, EyeIcon } from 'lucide-react'
+import { PrinterIcon, DownloadIcon, EyeIcon, NotebookText } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 
 interface InvoiceActionsProps {
@@ -200,10 +200,10 @@ export function ViewInvoiceButton({
       variant={variant}
       size={size}
       onClick={handleView}
-      className={`flex items-center gap-2 ${className}`}
+      className={`flex items-center ${className}`}
     >
-      <EyeIcon className="h-4 w-4" />
-      <span>Invoice</span>
+      <NotebookText className="h-4 w-4 mr-1" />
+      <span className="text-xs uppercase">INVOICE</span>
     </Button>
   )
 }
