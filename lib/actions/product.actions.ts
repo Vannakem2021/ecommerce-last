@@ -95,6 +95,46 @@ export async function getProductById(productId: string) {
   return JSON.parse(JSON.stringify(product)) as IProduct
 }
 
+// GET PRODUCT METRICS (for overview cards)
+export async function getProductMetrics() {
+  await connectToDatabase()
+
+  // Get total counts
+  const totalProducts = await Product.countDocuments({})
+  const publishedProducts = await Product.countDocuments({ isPublished: true })
+  const draftProducts = totalProducts - publishedProducts
+  const lowStockCount = await Product.countDocuments({
+    countInStock: { $lte: 10, $gt: 0 }
+  })
+  const outOfStockCount = await Product.countDocuments({ countInStock: 0 })
+
+  // Calculate total inventory value and average rating
+  const aggregateData = await Product.aggregate([
+    {
+      $group: {
+        _id: null,
+        totalValue: {
+          $sum: { $multiply: ["$price", "$countInStock"] }
+        },
+        avgRating: { $avg: "$avgRating" }
+      }
+    }
+  ])
+
+  const totalValue = aggregateData[0]?.totalValue || 0
+  const avgRating = aggregateData[0]?.avgRating || 0
+
+  return {
+    totalProducts,
+    publishedProducts,
+    draftProducts,
+    lowStockCount,
+    outOfStockCount,
+    totalValue,
+    avgRating: Math.round(avgRating * 10) / 10 // Round to 1 decimal
+  }
+}
+
 // GET ALL PRODUCTS FOR ADMIN
 export async function getAllProductsForAdmin({
   query,
@@ -150,12 +190,17 @@ export async function getAllProductsForAdmin({
   const countProducts = await Product.countDocuments({
     ...queryFilter,
   })
+
+  // Get global metrics for overview cards
+  const metrics = await getProductMetrics()
+
   return {
     products: JSON.parse(JSON.stringify(products)) as IProduct[],
     totalPages: Math.ceil(countProducts / pageSize),
     totalProducts: countProducts,
     from: pageSize * (Number(page) - 1) + 1,
     to: pageSize * (Number(page) - 1) + products.length,
+    metrics, // Add global metrics
   }
 }
 
