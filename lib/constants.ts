@@ -28,7 +28,7 @@ export const ROLE_PERMISSIONS = {
     // Product management
     'products.create', 'products.read', 'products.update', 'products.delete',
     // Order management
-    'orders.read', 'orders.update', 'orders.delete',
+    'orders.create', 'orders.read', 'orders.update', 'orders.delete',
     // Category management
     'categories.create', 'categories.read', 'categories.update', 'categories.delete',
     // Brand management
@@ -48,7 +48,7 @@ export const ROLE_PERMISSIONS = {
     // Product management (no delete)
     'products.create', 'products.read', 'products.update',
     // Order management (no delete)
-    'orders.read', 'orders.update',
+    'orders.create', 'orders.read', 'orders.update',
     // Read-only access to categories and brands
     'categories.read', 'brands.read',
     // Inventory management
@@ -62,7 +62,7 @@ export const ROLE_PERMISSIONS = {
     // Product management (read and update only)
     'products.read', 'products.update',
     // Order management (read and update only)
-    'orders.read', 'orders.update',
+    'orders.create', 'orders.read', 'orders.update',
     // Inventory read access
     'inventory.read',
     // Promotion read access

@@ -17,6 +17,7 @@ import { getSetting } from './setting.actions'
 import { createSaleStockMovement } from './inventory.actions'
 import { recordPromotionUsage } from './promotion.actions'
 import StockMovement from '@/lib/db/models/stock-movement.model'
+import { requirePermission } from '../rbac'
 
 // CREATE
 export const createOrder = async (clientSideCart: Cart) => {
@@ -790,4 +791,130 @@ async function getTopSalesCategories(date: DateRange, limit = 5) {
   ])
 
   return result
+}
+
+// CREATE MANUAL ORDER (for admin offline orders)
+export const createManualOrder = async (orderData: any) => {
+  try {
+    // Check if current user has permission to create orders
+    await requirePermission('orders.create')
+
+    await connectToDatabase()
+
+    // Create or find user by email/phone
+    let user
+    const existingUser = await User.findOne({
+      $or: [
+        { email: orderData.customerInfo.email },
+        { phone: orderData.customerInfo.phone }
+      ]
+    })
+
+    if (existingUser) {
+      user = existingUser
+    } else {
+      // Create new user for the customer
+      user = await User.create({
+        name: orderData.customerInfo.name,
+        email: orderData.customerInfo.email || `${orderData.customerInfo.phone}@temp.com`,
+        phone: orderData.customerInfo.phone,
+        role: 'user',
+        emailVerified: false,
+      })
+    }
+
+    // Validate stock availability
+    for (const item of orderData.items) {
+      const product = await Product.findById(item.product)
+      if (!product) {
+        throw new Error(`Product ${item.name} not found`)
+      }
+      if (product.countInStock < item.quantity) {
+        throw new Error(`Insufficient stock for ${item.name}. Available: ${product.countInStock}`)
+      }
+    }
+
+    // Calculate expected delivery date (default to 3 days from now)
+    const expectedDeliveryDate = new Date()
+    expectedDeliveryDate.setDate(expectedDeliveryDate.getDate() + 3)
+
+    // Prepare order data
+    const order = {
+      user: user._id,
+      items: orderData.items.map((item: any) => ({
+        product: item.product,
+        clientId: `admin-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        name: item.name,
+        slug: item.slug,
+        image: item.image,
+        category: item.category,
+        price: item.price,
+        quantity: item.quantity,
+        countInStock: item.countInStock,
+      })),
+      shippingAddress: {
+        fullName: orderData.shippingAddress.fullName,
+        phone: orderData.shippingAddress.phone,
+        city: orderData.shippingAddress.city,
+        province: orderData.shippingAddress.city, // Simplified
+        country: orderData.shippingAddress.country,
+        postalCode: orderData.shippingAddress.postalCode,
+        // For legacy compatibility, use address as street
+        street: orderData.shippingAddress.address,
+      },
+      expectedDeliveryDate,
+      paymentMethod: orderData.paymentMethod,
+      itemsPrice: orderData.itemsPrice,
+      shippingPrice: orderData.shippingPrice,
+      taxPrice: orderData.taxPrice,
+      totalPrice: orderData.totalPrice,
+      isPaid: orderData.isPaid,
+      paidAt: orderData.isPaid ? new Date() : undefined,
+      isDelivered: false,
+    }
+
+    // Create the order
+    const createdOrder = await Order.create(order)
+
+    // Update product stock
+    for (const item of orderData.items) {
+      await Product.findByIdAndUpdate(
+        item.product,
+        {
+          $inc: {
+            countInStock: -item.quantity,
+            numSales: item.quantity,
+          },
+        }
+      )
+
+      // Create stock movement record
+      await createSaleStockMovement(
+        item.product,
+        item.quantity,
+        `Manual order: ${createdOrder._id}`,
+        user._id
+      )
+    }
+
+    // Send notifications if order is paid
+    if (orderData.isPaid) {
+      try {
+        await sendPurchaseReceipt({ order: createdOrder })
+        await sendOrderPaidNotification(createdOrder)
+      } catch (emailError) {
+        console.warn('Failed to send email notifications:', emailError)
+      }
+    }
+
+    revalidatePath('/admin/orders')
+
+    return {
+      success: true,
+      message: 'Order created successfully',
+      data: { orderId: createdOrder._id.toString() },
+    }
+  } catch (error) {
+    return { success: false, message: formatError(error) }
+  }
 }

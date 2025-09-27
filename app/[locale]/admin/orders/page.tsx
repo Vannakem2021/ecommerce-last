@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { auth } from '@/auth'
 import { hasPermission } from '@/lib/rbac-utils'
 import DeleteDialog from '@/components/shared/delete-dialog'
-import Pagination from '@/components/shared/pagination'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -20,9 +19,9 @@ import { formatDateTime, formatId } from '@/lib/utils'
 import { IOrderList } from '@/types'
 import ProductPrice from '@/components/shared/product/product-price'
 import { ViewInvoiceButton } from '@/components/shared/invoice/invoice-actions'
-import BulkInvoiceActions from '@/components/shared/invoice/bulk-invoice-actions'
-import OrderStatusFilters from '@/components/admin/order-status-filters'
-import { Eye, NotebookText, Trash2 } from 'lucide-react'
+import OrderOverviewCards from '@/components/shared/order/order-overview-cards'
+import OrderFilters, { OrderFilterState } from '@/components/shared/order/order-filters'
+import { Eye, NotebookText, Trash2, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 export const metadata: Metadata = {
@@ -93,37 +92,64 @@ export default async function OrdersPage(props: {
     page: Number(page),
   })
 
+  // Calculate order metrics for overview cards
+  const orderMetrics = {
+    totalOrders: orders.totalOrders,
+    paidOrders: orders.totalPaidOrders,
+    unpaidOrders: orders.totalOrders - orders.totalPaidOrders,
+    deliveredOrders: orders.data.filter(order => order.isDelivered).length,
+    totalRevenue: orders.data.reduce((sum, order) => sum + (order.isPaid ? order.totalPrice : 0), 0),
+    averageOrderValue: orders.totalOrders > 0 ? orders.data.reduce((sum, order) => sum + order.totalPrice, 0) / orders.totalOrders : 0
+  }
+
+  const currentPage = Number(page)
+  const startItem = ((currentPage - 1) * 10) + 1
+  const endItem = Math.min(currentPage * 10, orders.totalOrders)
+
   return (
-    <div className='space-y-4'>
-      <h1 className='h1-bold'>Orders</h1>
+    <div className="space-y-6">
+      {/* Professional Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Orders</h1>
+          <p className="text-muted-foreground mt-1">
+            Manage customer orders and track deliveries
+          </p>
+        </div>
+        <Button asChild className="flex items-center gap-2">
+          <Link href="/admin/orders/create">
+            <Plus className="h-4 w-4" />
+            Create Order
+          </Link>
+        </Button>
+      </div>
 
-      {/* Bulk Invoice Management */}
-      <BulkInvoiceActions
-        totalOrders={orders.totalOrders}
-        paidOrders={orders.totalPaidOrders}
+      {/* Order Overview Cards */}
+      <OrderOverviewCards metrics={orderMetrics} />
+
+      {/* Advanced Filtering */}
+      <OrderFilters
+        totalResults={orders.totalOrders}
+        currentRange={orders.totalOrders === 0 ? 'No' : `${startItem}-${endItem} of ${orders.totalOrders}`}
       />
 
-      {/* Status Filters */}
-      <OrderStatusFilters
-        totalOrders={orders.totalOrders}
-        paidOrders={orders.totalPaidOrders}
-      />
-
-      <div className='overflow-x-auto'>
+      {/* Enhanced Orders Table */}
+      <div className="border rounded-lg">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className="bg-muted/50">
               <TableHead>ORDER ID</TableHead>
               <TableHead>DATE</TableHead>
-              <TableHead>BUYER</TableHead>
-              <TableHead>TOTAL</TableHead>
+              <TableHead>CUSTOMER</TableHead>
+              <TableHead className="text-right">TOTAL</TableHead>
+              <TableHead>PAYMENT</TableHead>
               <TableHead>STATUS</TableHead>
-              <TableHead>ACTIONS</TableHead>
+              <TableHead className="w-32 text-center">ACTIONS</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {orders.data.map((order: IOrderList) => (
-              <TableRow key={order._id} className="hover:bg-muted/50 transition-colors">
+              <TableRow key={order._id} className="hover:bg-muted/30 transition-colors">
                 <TableCell className="font-mono text-sm">
                   <span className="font-semibold" title={order._id}>
                     {generateOrderNumber(order._id, order.createdAt!)}
@@ -142,8 +168,16 @@ export default async function OrdersPage(props: {
                 <TableCell className="font-medium">
                   {order.user ? order.user.name : 'Deleted User'}
                 </TableCell>
-                <TableCell>
+                <TableCell className="text-right font-semibold">
                   <ProductPrice price={order.totalPrice} plain />
+                </TableCell>
+                <TableCell>
+                  <Badge
+                    variant={order.isPaid ? "default" : "destructive"}
+                    className={order.isPaid ? "bg-green-600 hover:bg-green-700" : ""}
+                  >
+                    {order.isPaid ? "Paid" : "Unpaid"}
+                  </Badge>
                 </TableCell>
                 <TableCell>
                   <StatusBadge
@@ -155,19 +189,16 @@ export default async function OrdersPage(props: {
                 </TableCell>
                 <TableCell>
                   <TooltipProvider>
-                    <div className='flex gap-2 items-center'>
+                    <div className="flex items-center gap-1">
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button asChild variant='outline' size='sm' className='hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700'>
+                          <Button asChild variant="outline" size="sm" className="h-8 w-8 p-0">
                             <Link href={`/admin/orders/${order._id}`}>
-                              <Eye className='h-4 w-4 mr-1' />
-                              <span className='text-xs uppercase'>DETAILS</span>
+                              <Eye className="h-3 w-3" />
                             </Link>
                           </Button>
                         </TooltipTrigger>
-                        <TooltipContent>
-                          <p>View order details and items</p>
-                        </TooltipContent>
+                        <TooltipContent>View order details</TooltipContent>
                       </Tooltip>
 
                       {order.isPaid && (
@@ -178,22 +209,20 @@ export default async function OrdersPage(props: {
                               variant="outline"
                               size="sm"
                               isAdmin={true}
-                              className='hover:bg-green-50 hover:border-green-300 hover:text-green-700'
+                              className="h-8 w-8 p-0"
                             />
                           </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Download invoice PDF</p>
-                          </TooltipContent>
+                          <TooltipContent>Download invoice</TooltipContent>
                         </Tooltip>
                       )}
 
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <DeleteDialog id={order._id} action={deleteOrder} />
+                          <div>
+                            <DeleteDialog id={order._id} action={deleteOrder} />
+                          </div>
                         </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Delete this order permanently</p>
-                        </TooltipContent>
+                        <TooltipContent>Delete order</TooltipContent>
                       </Tooltip>
                     </div>
                   </TooltipProvider>
@@ -202,8 +231,49 @@ export default async function OrdersPage(props: {
             ))}
           </TableBody>
         </Table>
+
+        {/* Enhanced Pagination */}
         {orders.totalPages > 1 && (
-          <Pagination page={page} totalPages={orders.totalPages!} />
+          <div className="flex items-center justify-between border-t px-4 py-3">
+            <div className="text-sm text-muted-foreground">
+              Showing {startItem} to {endItem} of {orders.totalOrders} orders
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-1"
+                disabled={currentPage <= 1}
+              >
+                <Link
+                  href={currentPage <= 1 ? '#' : `?page=${currentPage - 1}`}
+                  className={currentPage <= 1 ? 'pointer-events-none opacity-50' : ''}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Previous
+                </Link>
+              </Button>
+              <div className="text-sm font-medium">
+                Page {currentPage} of {orders.totalPages}
+              </div>
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-1"
+                disabled={currentPage >= orders.totalPages}
+              >
+                <Link
+                  href={currentPage >= orders.totalPages ? '#' : `?page=${currentPage + 1}`}
+                  className={currentPage >= orders.totalPages ? 'pointer-events-none opacity-50' : ''}
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+          </div>
         )}
       </div>
     </div>
