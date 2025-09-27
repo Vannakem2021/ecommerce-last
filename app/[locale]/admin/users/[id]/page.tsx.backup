@@ -1,22 +1,35 @@
+import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import Link from 'next/link'
+
+import { getUserById } from '@/lib/actions/user.actions'
 import { auth } from '@/auth'
 import { hasPermission } from '@/lib/rbac-utils'
-import UserCreateForm from './user-create-form'
+import UserEditForm from './user-edit-form'
 import { Button } from '@/components/ui/button'
-import { ChevronLeft, UserPlus } from 'lucide-react'
+import { ChevronLeft, UserCog } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Create System User',
+  title: 'Edit User',
 }
 
-export default async function CreateUserPage() {
+export default async function UserEditPage(props: {
+  params: Promise<{
+    id: string
+  }>
+}) {
+  const params = await props.params
+  const { id } = params
+
   const session = await auth()
 
-  // Check if user has permission to create users
-  if (!session?.user?.role || !hasPermission(session.user.role, 'users.create')) {
-    throw new Error('Insufficient permissions to create users')
+  // Check if user has permission to update users
+  if (!session?.user?.role || !hasPermission(session.user.role, 'users.update')) {
+    throw new Error('Insufficient permissions to edit users')
   }
+
+  const user = await getUserById(id)
+  if (!user) notFound()
 
   return (
     <div className="space-y-6">
@@ -31,29 +44,32 @@ export default async function CreateUserPage() {
             </Link>
           </Button>
           <span>/</span>
-          <span className="text-foreground">Create System User</span>
+          <span className="text-foreground">Edit User</span>
         </div>
 
         {/* Page Header */}
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-violet-50 dark:bg-violet-950">
-                <UserPlus className="h-6 w-6 text-violet-600" />
+              <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-950">
+                <UserCog className="h-6 w-6 text-blue-600" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-foreground">Create System User</h1>
+                <h1 className="text-3xl font-bold text-foreground">Edit User</h1>
                 <p className="text-muted-foreground mt-1">
-                  Add a new system user with administrative privileges
+                  Update user information and permissions
                 </p>
               </div>
             </div>
+          </div>
+          <div className="text-sm text-muted-foreground">
+            User ID: {user._id}
           </div>
         </div>
       </div>
 
       {/* Form Content */}
-      <UserCreateForm currentUserRole={session.user.role} />
+      <UserEditForm user={user} currentUserRole={session.user.role} />
     </div>
   )
 }
