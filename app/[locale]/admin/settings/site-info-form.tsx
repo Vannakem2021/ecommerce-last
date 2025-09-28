@@ -13,7 +13,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/hooks/use-toast'
 import { UploadButton } from '@/lib/uploadthing'
 import { ISettingInput } from '@/types'
-import { TrashIcon } from 'lucide-react'
+import { TrashIcon, Globe } from 'lucide-react'
 import React from 'react'
 import { UseFormReturn } from 'react-hook-form'
 
@@ -30,7 +30,12 @@ export default function SiteInfoForm({
   return (
     <Card id={id}>
       <CardHeader>
-        <CardTitle>Site Info</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <div className="p-1.5 rounded-md bg-blue-50 dark:bg-blue-950">
+            <Globe className="h-4 w-4 text-blue-600" />
+          </div>
+          Site Information
+        </CardTitle>
       </CardHeader>
       <CardContent className='space-y-4'>
         <div className='flex flex-col gap-5 md:flex-row'>

@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/select'
 import { COLORS, THEMES } from '@/lib/constants'
 import { ISettingInput } from '@/types'
+import { Settings } from 'lucide-react'
 import React from 'react'
 import { UseFormReturn } from 'react-hook-form'
 
@@ -32,7 +33,12 @@ export default function CommonForm({
   return (
     <Card id={id}>
       <CardHeader>
-        <CardTitle>Common Settings</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <div className="p-1.5 rounded-md bg-emerald-50 dark:bg-emerald-950">
+            <Settings className="h-4 w-4 text-emerald-600" />
+          </div>
+          Common Settings
+        </CardTitle>
       </CardHeader>
       <CardContent className='space-y-4'>
         <div className='flex flex-col gap-5 md:flex-row'>
