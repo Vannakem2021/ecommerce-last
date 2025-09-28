@@ -3,16 +3,18 @@
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { 
-  Edit, 
-  Trash2, 
-  Eye, 
-  Search, 
+import {
+  Edit,
+  Trash2,
+  Eye,
+  EyeOff,
+  Search,
   Filter,
   Calendar,
   Percent,
   DollarSign,
-  Truck
+  Truck,
+  Tag
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -36,7 +38,8 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import DeleteDialog from '@/components/shared/delete-dialog'
 import Pagination from '@/components/shared/pagination'
-import { formatDateTime, formatId } from '@/lib/utils'
+import { formatDateTime } from '@/lib/utils'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { deletePromotion } from '@/lib/actions/promotion.actions'
 import { IPromotionDetails } from '@/types'
 import { hasPermission } from '@/lib/rbac-utils'
@@ -133,32 +136,39 @@ export default function PromotionList({
   }
 
   return (
-    <div className='space-y-4'>
-      {/* Filters */}
+    <div className='space-y-6'>
+      {/* Filters and Search */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            Filters
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className='flex flex-col sm:flex-row gap-4'>
-            <div className='flex-1'>
-              <div className='flex gap-2'>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Filter className="h-5 w-5" />
+                Promotions Overview
+              </CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">
+                Showing {totalPromotions} promotion{totalPromotions !== 1 ? 's' : ''}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder='Search by code or name...'
+                  placeholder="Search promotions..."
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  className='flex-1'
+                  className="pl-8 w-[250px]"
                 />
-                <Button onClick={handleSearch} disabled={isPending}>
-                  <Search className='h-4 w-4' />
-                </Button>
               </div>
+              <Button onClick={handleSearch} disabled={isPending} size="sm">
+                Search
+              </Button>
             </div>
-            
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className='flex flex-col sm:flex-row gap-4'>
             <Select value={sort} onValueChange={handleSortChange}>
               <SelectTrigger className='w-[180px]'>
                 <SelectValue placeholder='Sort by' />
@@ -185,110 +195,165 @@ export default function PromotionList({
         </CardContent>
       </Card>
 
-      {/* Promotions Table */}
+      {/* Enhanced Promotions Table */}
       <Card>
-        <CardHeader>
-          <CardTitle>
-            Promotions ({totalPromotions})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className='overflow-x-auto'>
+        <CardContent className="p-0">
+          <div className="rounded-lg border">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Code</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Value</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Usage</TableHead>
-                  <TableHead>Valid Period</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead className='w-[120px]'>Actions</TableHead>
+                <TableRow className="bg-muted/30 hover:bg-muted/50 border-b">
+                  <TableHead className="font-semibold text-foreground">PROMOTION</TableHead>
+                  <TableHead className="font-semibold text-foreground">TYPE & VALUE</TableHead>
+                  <TableHead className="font-semibold text-foreground">STATUS</TableHead>
+                  <TableHead className="font-semibold text-foreground">USAGE</TableHead>
+                  <TableHead className="font-semibold text-foreground">VALID PERIOD</TableHead>
+                  <TableHead className="font-semibold text-foreground">CREATED</TableHead>
+                  <TableHead className="w-[120px] font-semibold text-foreground">ACTIONS</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {data.map((promotion) => (
-                  <TableRow key={promotion._id}>
-                    <TableCell className='font-mono font-medium'>
-                      {promotion.code}
-                    </TableCell>
-                    <TableCell className='font-medium'>
-                      {promotion.name}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {getPromotionIcon(promotion.type)}
-                        <span className="capitalize">{promotion.type.replace('_', ' ')}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className='font-medium'>
-                      {getPromotionValue(promotion)}
-                    </TableCell>
-                    <TableCell>
-                      <Badge 
-                        variant={isPromotionActive(promotion) ? 'default' : 'secondary'}
-                      >
-                        {isPromotionActive(promotion) ? 'Active' : 'Inactive'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-sm">
-                        {promotion.usedCount}
-                        {promotion.usageLimit > 0 && ` / ${promotion.usageLimit}`}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        <div>{formatDateTime(promotion.startDate).dateOnly}</div>
-                        <div className="text-muted-foreground">
-                          to {formatDateTime(promotion.endDate).dateOnly}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {formatDateTime(promotion.createdAt).dateOnly}
-                    </TableCell>
-                    <TableCell>
-                      <div className='flex gap-1'>
-                        <Button
-                          variant='ghost'
-                          size='sm'
-                          asChild
-                        >
-                          <Link href={`/admin/promotions/${promotion._id}`}>
-                            <Eye className='h-4 w-4' />
-                          </Link>
-                        </Button>
-                        
-                        {canUpdate && (
-                          <Button
-                            variant='ghost'
-                            size='sm'
-                            asChild
-                          >
-                            <Link href={`/admin/promotions/${promotion._id}/edit`}>
-                              <Edit className='h-4 w-4' />
-                            </Link>
-                          </Button>
-                        )}
-                        
-                        {canDelete && (
-                          <DeleteDialog
-                            id={promotion._id}
-                            action={deletePromotion}
-                            trigger={
-                              <Button variant='ghost' size='sm'>
-                                <Trash2 className='h-4 w-4' />
-                              </Button>
-                            }
-                          />
-                        )}
+                {data.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                      <div className="flex flex-col items-center gap-2">
+                        <Tag className="h-8 w-8 text-muted-foreground/50" />
+                        <p>No promotions found</p>
+                        <p className="text-sm">Create your first promotion to get started</p>
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  data.map((promotion) => (
+                    <TableRow key={promotion._id} className="hover:bg-muted/30 transition-colors border-b border-border/50">
+                      <TableCell className="py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="p-1.5 rounded-md bg-purple-50 dark:bg-purple-950">
+                            <Tag className="h-3.5 w-3.5 text-purple-600" />
+                          </div>
+                          <div>
+                            <div className="font-medium text-foreground">{promotion.name}</div>
+                            <div className="text-sm text-muted-foreground font-mono">
+                              {promotion.code}
+                            </div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="py-3">
+                        <div className="flex items-center gap-2">
+                          {getPromotionIcon(promotion.type)}
+                          <div>
+                            <div className="font-medium">
+                              {getPromotionValue(promotion)}
+                            </div>
+                            <div className="text-sm text-muted-foreground capitalize">
+                              {promotion.type.replace('_', ' ')}
+                            </div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="py-3">
+                        <Badge
+                          variant={isPromotionActive(promotion) ? 'default' : 'secondary'}
+                          className={isPromotionActive(promotion)
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                            : 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200'
+                          }
+                        >
+                          {isPromotionActive(promotion) ? (
+                            <>
+                              <Eye className="h-3 w-3 mr-1" />
+                              Active
+                            </>
+                          ) : (
+                            <>
+                              <EyeOff className="h-3 w-3 mr-1" />
+                              Inactive
+                            </>
+                          )}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="py-3">
+                        <div className="text-sm">
+                          <div className="font-medium">
+                            {promotion.usedCount}
+                            {promotion.usageLimit > 0 && ` / ${promotion.usageLimit}`}
+                          </div>
+                          <div className="text-muted-foreground">
+                            {promotion.usageLimit === 0 ? 'Unlimited' : 'uses'}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="py-3">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                          <div className="text-sm">
+                            <div>{formatDateTime(promotion.startDate).dateOnly}</div>
+                            <div className="text-muted-foreground">
+                              to {formatDateTime(promotion.endDate).dateOnly}
+                            </div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="py-3 text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-3.5 w-3.5" />
+                          <div className="text-sm">
+                            {formatDateTime(promotion.createdAt).dateOnly}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="py-3">
+                        <div className="flex items-center gap-1">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0 hover:bg-muted"
+                                  asChild
+                                >
+                                  <Link href={`/admin/promotions/${promotion._id}`}>
+                                    <Eye className="h-3.5 w-3.5" />
+                                  </Link>
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>View details</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+
+                          {canUpdate && (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 w-8 p-0 hover:bg-muted"
+                                    asChild
+                                  >
+                                    <Link href={`/admin/promotions/${promotion._id}/edit`}>
+                                      <Edit className="h-3.5 w-3.5" />
+                                    </Link>
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Edit promotion</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
+
+                          {canDelete && (
+                            <DeleteDialog id={promotion._id} action={deletePromotion} />
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>

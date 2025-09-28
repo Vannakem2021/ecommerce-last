@@ -4,7 +4,7 @@ import { useState, useTransition, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { CalendarIcon, Loader2 } from 'lucide-react'
+import { CalendarIcon, Loader2, Tag, Percent, DollarSign, Truck, Clock, Users, ShoppingCart, Target, Settings } from 'lucide-react'
 import { format } from 'date-fns'
 
 import { Button } from '@/components/ui/button'
@@ -177,29 +177,40 @@ export default function PromotionForm({
 
   return (
     <div className='space-y-6'>
-      <div className='flex items-center justify-between'>
-        <h1 className='h1-bold'>
-          {type} Promotion
-        </h1>
-      </div>
-
-      {/* Form Description */}
-      <div className='p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg'>
-        <h2 className='text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2'>
-          Checkout-Level Promotions
-        </h2>
-        <p className='text-sm text-blue-800 dark:text-blue-200'>
-          Promotions are discount codes that customers enter at checkout to receive discounts on their entire order or specific products/categories.
-          These are different from product-level sales, which are time-limited price reductions managed in the product settings.
-        </p>
-      </div>
+      {/* Professional Description */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <div className="p-1.5 rounded-md bg-purple-50 dark:bg-purple-950">
+              <Tag className="h-4 w-4 text-purple-600" />
+            </div>
+            Promotion Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className='p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg'>
+            <h3 className='text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2'>
+              Checkout-Level Promotions
+            </h3>
+            <p className='text-sm text-blue-800 dark:text-blue-200'>
+              Promotions are discount codes that customers enter at checkout to receive discounts on their entire order or specific products/categories.
+              These are different from product-level sales, which are time-limited price reductions managed in the product settings.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
           {/* Basic Information */}
           <Card>
             <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <div className="p-1.5 rounded-md bg-blue-50 dark:bg-blue-950">
+                  <Tag className="h-4 w-4 text-blue-600" />
+                </div>
+                Basic Information
+              </CardTitle>
             </CardHeader>
             <CardContent className='space-y-4'>
               <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
@@ -286,7 +297,12 @@ export default function PromotionForm({
           {/* Discount Configuration */}
           <Card>
             <CardHeader>
-              <CardTitle>Discount Configuration</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <div className="p-1.5 rounded-md bg-green-50 dark:bg-green-950">
+                  <Percent className="h-4 w-4 text-green-600" />
+                </div>
+                Discount Configuration
+              </CardTitle>
             </CardHeader>
             <CardContent className='space-y-4'>
               <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
@@ -349,7 +365,12 @@ export default function PromotionForm({
           {/* Validity Period */}
           <Card>
             <CardHeader>
-              <CardTitle>Validity Period</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <div className="p-1.5 rounded-md bg-amber-50 dark:bg-amber-950">
+                  <Clock className="h-4 w-4 text-amber-600" />
+                </div>
+                Validity Period
+              </CardTitle>
             </CardHeader>
             <CardContent className='space-y-4'>
               <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
@@ -443,7 +464,12 @@ export default function PromotionForm({
           {/* Usage Limits */}
           <Card>
             <CardHeader>
-              <CardTitle>Usage Limits</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <div className="p-1.5 rounded-md bg-rose-50 dark:bg-rose-950">
+                  <Users className="h-4 w-4 text-rose-600" />
+                </div>
+                Usage Limits
+              </CardTitle>
             </CardHeader>
             <CardContent className='space-y-4'>
               <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
@@ -523,7 +549,12 @@ export default function PromotionForm({
           {/* Application Scope */}
           <Card>
             <CardHeader>
-              <CardTitle>Application Scope</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <div className="p-1.5 rounded-md bg-indigo-50 dark:bg-indigo-950">
+                  <Target className="h-4 w-4 text-indigo-600" />
+                </div>
+                Application Scope
+              </CardTitle>
             </CardHeader>
             <CardContent className='space-y-4'>
               <div className='p-3 bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-md'>
@@ -607,20 +638,40 @@ export default function PromotionForm({
             </CardContent>
           </Card>
 
-          {/* Submit Button */}
-          <div className='flex justify-end space-x-4'>
-            <Button
-              type='button'
-              variant='outline'
-              onClick={() => router.back()}
-            >
-              Cancel
-            </Button>
-            <Button type='submit' disabled={isPending}>
-              {isPending && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
-              {type} Promotion
-            </Button>
-          </div>
+          {/* Action Buttons */}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-muted-foreground">
+                  {isPending ? (
+                    <span className="flex items-center gap-2">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                      {type === 'Create' ? 'Creating promotion...' : 'Updating promotion...'}
+                    </span>
+                  ) : (
+                    'Review all information before saving the promotion'
+                  )}
+                </div>
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant="outline"
+                    type="button"
+                    onClick={() => router.back()}
+                    disabled={isPending}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={isPending}
+                    className="min-w-[140px]"
+                  >
+                    {isPending ? (type === 'Create' ? 'Creating...' : 'Updating...') : `${type} Promotion`}
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </form>
       </Form>
     </div>
