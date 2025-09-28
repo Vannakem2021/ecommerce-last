@@ -73,7 +73,9 @@ export default function TelegramForm({
     <Card id={id}>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <MessageSquare className="h-5 w-5" />
+          <div className="p-1.5 rounded-md bg-cyan-50 dark:bg-cyan-950">
+            <MessageSquare className="h-4 w-4 text-cyan-600" />
+          </div>
           Telegram Notifications
         </CardTitle>
       </CardHeader>

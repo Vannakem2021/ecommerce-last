@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { SettingInputSchema } from "@/lib/validator";
 import { ClientSetting, ISettingInput } from "@/types";
@@ -12,6 +13,7 @@ import { updateSetting } from "@/lib/actions/setting.actions";
 import useSetting from "@/hooks/use-setting-store";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Settings2, ShoppingCart, FileText, Zap, Loader2 } from "lucide-react";
 import LanguageForm from "./language-form";
 import CurrencyForm from "./currency-form";
 import PaymentMethodForm from "./payment-method-form";
@@ -176,79 +178,119 @@ const TabSettingsForm = ({ setting }: { setting: ISettingInput }) => {
   }
 
   return (
-    <Form {...form}>
-      <form
-        className="space-y-6 max-w-none"
-        method="post"
-        onSubmit={form.handleSubmit(onSubmit)}
-      >
-        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <div className="space-y-4">
-            <TabsList className="grid w-full grid-cols-4 mb-6 bg-muted p-1 rounded-lg">
-              <TabsTrigger value="general">General</TabsTrigger>
-              <TabsTrigger value="commerce">Commerce</TabsTrigger>
-              <TabsTrigger value="content">Content</TabsTrigger>
-              <TabsTrigger value="integrations">Integrations</TabsTrigger>
-            </TabsList>
-
-            {/* Save Status Indicator */}
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                {saveStatus === 'saving' && (
-                  <>
-                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                    Auto-saving...
-                  </>
-                )}
-                {saveStatus === 'saved' && (
-                  <>
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    All changes saved
-                  </>
-                )}
-                {saveStatus === 'error' && (
-                  <>
-                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                    Save failed
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <TabsContent value="general" className="space-y-6 mt-6">
-            <SiteInfoForm id="setting-site-info" form={form} />
-            <CommonForm id="setting-common" form={form} />
-          </TabsContent>
-
-          <TabsContent value="commerce" className="space-y-6 mt-6">
-            <CurrencyForm id="setting-currencies" form={form} />
-            <PaymentMethodForm id="setting-payment-methods" form={form} />
-            <DeliveryDateForm id="setting-delivery-dates" form={form} />
-          </TabsContent>
-
-          <TabsContent value="content" className="space-y-6 mt-6">
-            <CarouselForm id="setting-carousels" form={form} />
-            <LanguageForm id="setting-languages" form={form} />
-          </TabsContent>
-
-          <TabsContent value="integrations" className="space-y-6 mt-6">
-            <TelegramForm id="setting-telegram" form={form} />
-          </TabsContent>
-        </Tabs>
-
-        <div className="mt-8 mb-6">
-          <Button
-            type="submit"
-            size="default"
-            disabled={isSubmitting || saveStatus === 'saving'}
-            className="w-full"
+    <Card>
+      <CardContent className="p-6">
+        <Form {...form}>
+          <form
+            className="space-y-6 max-w-none"
+            method="post"
+            onSubmit={form.handleSubmit(onSubmit)}
           >
-            {isSubmitting || saveStatus === 'saving' ? "Saving..." : "Save Now"}
-          </Button>
-        </div>
-      </form>
-    </Form>
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+              <div className="space-y-6">
+                {/* Enhanced Tab List with Icons */}
+                <div className="space-y-4">
+                  <TabsList className="grid w-full grid-cols-4 h-12 bg-muted/50 p-1 rounded-xl">
+                    <TabsTrigger value="general" className="flex items-center gap-2 h-10">
+                      <Settings2 className="h-4 w-4" />
+                      <span className="hidden sm:inline">General</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="commerce" className="flex items-center gap-2 h-10">
+                      <ShoppingCart className="h-4 w-4" />
+                      <span className="hidden sm:inline">Commerce</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="content" className="flex items-center gap-2 h-10">
+                      <FileText className="h-4 w-4" />
+                      <span className="hidden sm:inline">Content</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="integrations" className="flex items-center gap-2 h-10">
+                      <Zap className="h-4 w-4" />
+                      <span className="hidden sm:inline">Integrations</span>
+                    </TabsTrigger>
+                  </TabsList>
+
+                  {/* Save Status Indicator */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      {saveStatus === 'saving' && (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+                          <span>Auto-saving changes...</span>
+                        </>
+                      )}
+                      {saveStatus === 'saved' && (
+                        <>
+                          <div className="h-4 w-4 rounded-full bg-green-500 flex items-center justify-center">
+                            <div className="h-2 w-2 bg-white rounded-full"></div>
+                          </div>
+                          <span className="text-green-700 dark:text-green-400">All changes saved automatically</span>
+                        </>
+                      )}
+                      {saveStatus === 'error' && (
+                        <>
+                          <div className="h-4 w-4 rounded-full bg-red-500 flex items-center justify-center">
+                            <div className="h-1 w-1 bg-white rounded-full"></div>
+                          </div>
+                          <span className="text-red-700 dark:text-red-400">Failed to save changes</span>
+                        </>
+                      )}
+                      {saveStatus === 'idle' && (
+                        <span>Changes are automatically saved as you type</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <TabsContent value="general" className="space-y-6 mt-6">
+                  <SiteInfoForm id="setting-site-info" form={form} />
+                  <CommonForm id="setting-common" form={form} />
+                </TabsContent>
+
+                <TabsContent value="commerce" className="space-y-6 mt-6">
+                  <CurrencyForm id="setting-currencies" form={form} />
+                  <PaymentMethodForm id="setting-payment-methods" form={form} />
+                  <DeliveryDateForm id="setting-delivery-dates" form={form} />
+                </TabsContent>
+
+                <TabsContent value="content" className="space-y-6 mt-6">
+                  <CarouselForm id="setting-carousels" form={form} />
+                  <LanguageForm id="setting-languages" form={form} />
+                </TabsContent>
+
+                <TabsContent value="integrations" className="space-y-6 mt-6">
+                  <TelegramForm id="setting-telegram" form={form} />
+                </TabsContent>
+              </div>
+            </Tabs>
+
+            {/* Professional Action Buttons */}
+            <Card className="mt-8">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-muted-foreground">
+                    {isSubmitting || saveStatus === 'saving' ? (
+                      <span className="flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Saving all settings...
+                      </span>
+                    ) : (
+                      'Manual save will override auto-save and sync all settings'
+                    )}
+                  </div>
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting || saveStatus === 'saving'}
+                    className="min-w-[140px]"
+                  >
+                    {isSubmitting || saveStatus === 'saving' ? 'Saving...' : 'Save All Settings'}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
   );
 };
 

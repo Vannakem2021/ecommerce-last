@@ -54,7 +54,12 @@ export default function PaymentMethodForm({
   return (
     <Card id={id}>
       <CardHeader>
-        <CardTitle>Payment Methods</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <div className="p-1.5 rounded-md bg-violet-50 dark:bg-violet-950">
+            <CreditCard className="h-4 w-4 text-violet-600" />
+          </div>
+          Payment Methods
+        </CardTitle>
       </CardHeader>
       <CardContent className='space-y-4'>
         <div className='space-y-4'>
