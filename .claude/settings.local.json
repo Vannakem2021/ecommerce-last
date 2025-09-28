@@ -17,7 +17,8 @@
       "mcp__playwright__browser_close",
       "mcp__playwright__browser_hover",
       "mcp__playwright__browser_console_messages",
-      "mcp__playwright__browser_file_upload"
+      "mcp__playwright__browser_file_upload",
+      "Bash(node:*)"
     ],
     "deny": [],
     "ask": []
