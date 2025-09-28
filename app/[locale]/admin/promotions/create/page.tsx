@@ -1,7 +1,10 @@
 import { Metadata } from 'next'
+import Link from 'next/link'
 import { auth } from '@/auth'
 import { hasPermission } from '@/lib/rbac-utils'
 import PromotionForm from '../promotion-form'
+import { Button } from '@/components/ui/button'
+import { ChevronLeft, Tag } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'Create Promotion',
@@ -14,23 +17,41 @@ export default async function CreatePromotionPage() {
     throw new Error('Insufficient permissions to create promotions')
   }
 
-  // Debugging: log who is creating the promotion (server-side log)
-  console.log('[CreatePromotionPage] user:', session.user.id, session.user.email, session.user.role)
-
   return (
     <div className="space-y-6">
-      <div className="rounded-md border p-4 text-sm text-muted-foreground">
-        <p className="font-medium mb-2">Quick Test Scenarios</p>
-        <ul className="list-disc pl-5 space-y-1">
-          <li>Percentage promo: type=percentage, value=20 (1-100 only)</li>
-          <li>Fixed promo: type=fixed, value=10.00 (must be > 0)</li>
-          <li>Free shipping: type=free_shipping (value auto-set to 0)</li>
-          <li>End date must be after start date (>= 1 minute)</li>
-          <li>Scope products/categories require at least one selection</li>
-          <li>Fixed discount: min order must be >= discount amount</li>
-          <li>Duplicate code check (case-insensitive)</li>
-        </ul>
+      {/* Professional Header */}
+      <div className="space-y-4">
+        {/* Breadcrumb Navigation */}
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Button asChild variant="ghost" size="sm" className="h-auto p-0 hover:bg-transparent">
+            <Link href="/admin/promotions" className="flex items-center gap-1 hover:text-foreground">
+              <ChevronLeft className="h-4 w-4" />
+              Promotions
+            </Link>
+          </Button>
+          <span>/</span>
+          <span className="text-foreground">Create Promotion</span>
+        </div>
+
+        {/* Page Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-purple-50 dark:bg-purple-950">
+                <Tag className="h-6 w-6 text-purple-600" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-foreground">Create Promotion</h1>
+                <p className="text-muted-foreground mt-1">
+                  Set up a new discount code for your customers
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
+
+      {/* Form Content */}
       <PromotionForm type="Create" />
     </div>
   )
