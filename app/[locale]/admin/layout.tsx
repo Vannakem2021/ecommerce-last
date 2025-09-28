@@ -17,6 +17,9 @@ import { redirectInsufficientRole, redirectAuthenticationRequired } from '@/lib/
 import Script from 'next/script'
 import Container from '@/components/shared/container'
 import { SessionProvider } from 'next-auth/react'
+import NotificationBell from '@/components/shared/header/notification-bell'
+import GlobalSearch from '@/components/shared/header/global-search'
+import QuickAddButton from '@/components/shared/header/quick-add-button'
 
 export default async function AdminLayout({
   children,
@@ -53,6 +56,10 @@ export default async function AdminLayout({
         {/* Header - Full Width */}
         <div className='bg-background text-foreground border-b border-border sticky top-0 z-20'>
           <div className='flex h-16 items-center px-4'>
+            {/* Mobile Search Row - Hidden by default, shown when search is needed */}
+            <div className='md:hidden absolute top-16 left-0 right-0 bg-background border-b border-border p-4 z-10 hidden' id='mobile-search'>
+              <GlobalSearch />
+            </div>
             {/* Mobile sidebar trigger */}
             <div className='md:hidden mr-3'>
               <Sheet>
@@ -79,7 +86,20 @@ export default async function AdminLayout({
               />
             </Link>
 
-            <div className='ml-auto flex items-center space-x-4'>
+            {/* Global Search - Center */}
+            <div className='flex-1 max-w-md mx-8 hidden md:block'>
+              <GlobalSearch />
+            </div>
+
+            {/* Right side actions */}
+            <div className='ml-auto flex items-center space-x-2'>
+              {/* Quick Add Button */}
+              <QuickAddButton />
+
+              {/* Notification Bell */}
+              <NotificationBell />
+
+              {/* Original Menu */}
               <Menu forAdmin />
             </div>
           </div>
