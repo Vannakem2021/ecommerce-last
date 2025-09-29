@@ -19,7 +19,9 @@
       "mcp__playwright__browser_console_messages",
       "mcp__playwright__browser_file_upload",
       "Bash(node:*)",
-      "mcp__playwright__browser_press_key"
+      "mcp__playwright__browser_press_key",
+      "Bash(pkill:*)",
+      "Bash(taskkill:*)"
     ],
     "deny": [],
     "ask": []

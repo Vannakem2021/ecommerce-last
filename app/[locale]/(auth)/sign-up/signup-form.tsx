@@ -4,6 +4,8 @@ import { redirect, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import Link from 'next/link'
+import { Loader2 } from 'lucide-react'
+import { useState } from 'react'
 import useSettingStore from '@/hooks/use-setting-store'
 import {
   Form,
@@ -37,12 +39,13 @@ const signUpDefaultValues =
         confirmPassword: '',
       }
 
-export default function CredentialsSignInForm() {
+export default function SignUpForm() {
   const {
     setting: { site },
   } = useSettingStore()
   const searchParams = useSearchParams()
   const callbackUrl = searchParams.get('callbackUrl') || '/'
+  const [isLoading, setIsLoading] = useState(false)
 
   const form = useForm<IUserSignUp>({
     resolver: zodResolver(UserSignUpSchema),
@@ -52,9 +55,11 @@ export default function CredentialsSignInForm() {
   const { control, handleSubmit } = form
 
   const onSubmit = async (data: IUserSignUp) => {
+    setIsLoading(true)
     try {
       const res = await registerUser(data)
       if (!res.success) {
+        setIsLoading(false)
         toast({
           title: 'Error',
           description: res.error,
@@ -68,6 +73,7 @@ export default function CredentialsSignInForm() {
       })
       redirect(callbackUrl)
     } catch (error) {
+      setIsLoading(false)
       if (isRedirectError(error)) {
         throw error
       }
@@ -83,7 +89,7 @@ export default function CredentialsSignInForm() {
     <Form {...form}>
       <form onSubmit={handleSubmit(onSubmit)}>
         <input type='hidden' name='callbackUrl' value={callbackUrl} />
-        <div className='space-y-6'>
+        <div className='space-y-4'>
           <FormField
             control={control}
             name='name'
@@ -91,7 +97,7 @@ export default function CredentialsSignInForm() {
               <FormItem className='w-full'>
                 <FormLabel>Name</FormLabel>
                 <FormControl>
-                  <Input placeholder='Enter name address' {...field} />
+                  <Input placeholder='Enter your full name' {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -105,7 +111,7 @@ export default function CredentialsSignInForm() {
               <FormItem className='w-full'>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input placeholder='Enter Gmail address' {...field} />
+                  <Input placeholder='Enter email address' {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -121,7 +127,7 @@ export default function CredentialsSignInForm() {
                 <FormControl>
                   <Input
                     type='password'
-                    placeholder='Min 8 chars with uppercase, lowercase, number & special char'
+                    placeholder='Enter password'
                     {...field}
                   />
                 </FormControl>
@@ -147,17 +153,35 @@ export default function CredentialsSignInForm() {
             )}
           />
           <div>
-            <Button type='submit'>Sign Up</Button>
+            <Button type='submit' disabled={isLoading} className='w-full'>
+              {isLoading ? (
+                <>
+                  <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                  Creating account...
+                </>
+              ) : (
+                'Create Account'
+              )}
+            </Button>
           </div>
-          <div className='text-sm'>
+
+          <div className='text-xs text-muted-foreground text-center'>
             By creating an account, you agree to {site.name}&apos;s{' '}
-            <Link href='/page/conditions-of-use'>Conditions of Use</Link> and{' '}
-            <Link href='/page/privacy-policy'> Privacy Notice. </Link>
+            <Link href='/page/conditions-of-use' className='text-primary hover:underline'>
+              Conditions of Use
+            </Link>{' '}
+            and{' '}
+            <Link href='/page/privacy-policy' className='text-primary hover:underline'>
+              Privacy Notice.
+            </Link>
           </div>
-          <Separator className='mb-4' />
-          <div className='text-sm'>
-            Already have an account?{' '}
-            <Link className='link' href={`/sign-in?callbackUrl=${callbackUrl}`}>
+
+          <div className='text-center'>
+            <span className='text-sm text-muted-foreground'>Already have an account? </span>
+            <Link
+              className='text-sm text-primary hover:underline'
+              href={`/sign-in?callbackUrl=${callbackUrl}`}
+            >
               Sign In
             </Link>
           </div>

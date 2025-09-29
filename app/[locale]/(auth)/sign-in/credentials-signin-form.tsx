@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import Link from 'next/link'
+import { Loader2 } from 'lucide-react'
 import useSettingStore from '@/hooks/use-setting-store'
 import {
   Form,
@@ -114,7 +115,7 @@ export default function CredentialsSignInForm() {
     <Form {...form}>
       <form onSubmit={handleSubmit(onSubmit)}>
         <input type='hidden' name='callbackUrl' value={callbackUrl} />
-        <div className='space-y-6'>
+        <div className='space-y-4'>
           <FormField
             control={control}
             name='email'
@@ -148,24 +149,36 @@ export default function CredentialsSignInForm() {
           />
 
           <div>
-            <Button type='submit' disabled={isLoading}>
-              {isLoading ? 'Signing in...' : 'Sign In'}
+            <Button type='submit' disabled={isLoading} className='w-full'>
+              {isLoading ? (
+                <>
+                  <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                  Signing in...
+                </>
+              ) : (
+                'Sign In'
+              )}
             </Button>
           </div>
 
           <div className='text-center'>
             <Link
               href='/forgot-password'
-              className='text-sm text-blue-600 hover:underline'
+              className='text-sm text-primary hover:underline'
             >
               Forgot your password?
             </Link>
           </div>
 
-          <div className='text-sm'>
+          <div className='text-xs text-muted-foreground text-center'>
             By signing in, you agree to {site.name}&apos;s{' '}
-            <Link href='/page/conditions-of-use'>Conditions of Use</Link> and{' '}
-            <Link href='/page/privacy-policy'>Privacy Notice.</Link>
+            <Link href='/page/conditions-of-use' className='text-primary hover:underline'>
+              Conditions of Use
+            </Link>{' '}
+            and{' '}
+            <Link href='/page/privacy-policy' className='text-primary hover:underline'>
+              Privacy Notice.
+            </Link>
           </div>
         </div>
       </form>
