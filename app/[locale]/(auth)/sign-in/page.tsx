@@ -34,28 +34,31 @@ export default async function SignInPage(props: {
   }
 
   return (
-    <div className='w-full'>
-      <Card>
-        <CardHeader>
-          <CardTitle className='text-2xl'>Sign In</CardTitle>
+    <div className='w-full space-y-6'>
+      <Card className='border-border/50 shadow-sm'>
+        <CardHeader className='space-y-1 pb-4'>
+          <CardTitle className='text-2xl font-semibold text-center'>Sign In</CardTitle>
+          <p className='text-sm text-muted-foreground text-center'>
+            Enter your credentials to access your account
+          </p>
         </CardHeader>
-        <CardContent>
-          <div>
-            <CredentialsSignInForm />
-            <SeparatorWithOr />
-            <div className='mt-4'>
-              <GoogleSignInForm />
-            </div>
-          </div>
+        <CardContent className='space-y-4'>
+          <CredentialsSignInForm />
+          <SeparatorWithOr />
+          <GoogleSignInForm />
         </CardContent>
       </Card>
-      <SeparatorWithOr>New to {site.name}?</SeparatorWithOr>
 
-      <Link href={`/sign-up?callbackUrl=${encodeURIComponent(callbackUrl)}`}>
-        <Button className='w-full' variant='outline'>
-          Create your {site.name} account
-        </Button>
-      </Link>
+      <div className='text-center'>
+        <p className='text-sm text-muted-foreground mb-3'>
+          New to {site.name}?
+        </p>
+        <Link href={`/sign-up?callbackUrl=${encodeURIComponent(callbackUrl)}`}>
+          <Button className='w-full' variant='outline'>
+            Create your {site.name} account
+          </Button>
+        </Link>
+      </div>
     </div>
   )
 }

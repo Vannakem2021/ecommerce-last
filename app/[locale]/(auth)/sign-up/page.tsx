@@ -26,9 +26,12 @@ export default async function SignUpPage(props: {
 
   return (
     <div className='w-full'>
-      <Card>
-        <CardHeader>
-          <CardTitle className='text-2xl'>Create account</CardTitle>
+      <Card className='border-border/50 shadow-sm'>
+        <CardHeader className='space-y-1 pb-4'>
+          <CardTitle className='text-2xl font-semibold text-center'>Create Account</CardTitle>
+          <p className='text-sm text-muted-foreground text-center'>
+            Join ElectroHub to start shopping with us
+          </p>
         </CardHeader>
         <CardContent>
           <SignUpForm />
