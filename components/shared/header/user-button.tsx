@@ -24,19 +24,19 @@ export default async function UserButton() {
     <div className='flex gap-2 items-center'>
       <DropdownMenu>
         <DropdownMenuTrigger className='header-button' asChild>
-          <div className='flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors'>
+          <div className='flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-muted transition-colors'>
             {/* Avatar Icon */}
             <div className='w-7 h-7 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-sm'>
               <UserRound className='h-5 w-5 text-white' />
             </div>
 
             {/* User Name */}
-            <span className='text-sm font-medium text-gray-900 dark:text-gray-100'>
+            <span className='text-sm font-medium text-foreground'>
               {session ? session.user.name : t('Header.sign in')}
             </span>
 
             {/* Smaller Arrow */}
-            <ChevronDownIcon className='h-3 w-3 text-gray-500 dark:text-gray-400' />
+            <ChevronDownIcon className='h-3 w-3 text-muted-foreground' />
           </div>
         </DropdownMenuTrigger>
         {session ? (
@@ -104,9 +104,9 @@ export default async function UserButton() {
                 <DropdownMenuGroup>
                   <Link href='/admin/overview'>
                     <DropdownMenuItem className='flex items-center gap-3 cursor-pointer p-3'>
-                      <Shield className='h-4 w-4 text-blue-600' />
+                      <Shield className='h-4 w-4 text-blue-600 dark:text-blue-400' />
                       <div className='flex flex-col'>
-                        <span className='font-medium text-sm text-blue-600'>{t('Header.Admin')}</span>
+                        <span className='font-medium text-sm text-blue-600 dark:text-blue-400'>{t('Header.Admin')}</span>
                         <span className='text-xs text-muted-foreground'>Access admin dashboard</span>
                       </div>
                     </DropdownMenuItem>
@@ -129,7 +129,7 @@ export default async function UserButton() {
 
             {/* Sign Out */}
             <DropdownMenuItem className='p-0'>
-              <UserSignOutButton className='w-full flex items-center gap-3 p-3 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950 rounded-none justify-start h-auto'>
+              <UserSignOutButton className='w-full flex items-center gap-3 p-3 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/50 rounded-none justify-start h-auto'>
                 <LogOut className='h-4 w-4' />
                 <div className='flex flex-col items-start'>
                   <span className='font-medium text-sm'>{t('Header.Sign out')}</span>
@@ -142,10 +142,10 @@ export default async function UserButton() {
           <DropdownMenuContent className='w-64' align='end' forceMount>
             <DropdownMenuLabel className='p-3'>
               <div className='text-center'>
-                <div className='w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-2'>
-                  <UserRound className='h-6 w-6 text-gray-500' />
+                <div className='w-12 h-12 bg-muted rounded-full flex items-center justify-center mx-auto mb-2'>
+                  <UserRound className='h-6 w-6 text-muted-foreground' />
                 </div>
-                <p className='text-sm font-medium'>Welcome!</p>
+                <p className='text-sm font-medium text-foreground'>Welcome!</p>
                 <p className='text-xs text-muted-foreground'>Sign in to access your account</p>
               </div>
             </DropdownMenuLabel>
