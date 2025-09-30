@@ -10,13 +10,13 @@ export const metadata: Metadata = {
 }
 
 interface ResetPasswordPageProps {
-  params: {
+  params: Promise<{
     token: string
-  }
+  }>
 }
 
 export default async function ResetPasswordPage({ params }: ResetPasswordPageProps) {
-  const { token } = params
+  const { token } = await params
 
   // Validate the token before showing the form
   const tokenValidation = await validateResetToken(token)

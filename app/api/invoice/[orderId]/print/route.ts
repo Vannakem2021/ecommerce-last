@@ -42,7 +42,26 @@ export async function GET(
   }
 }
 
-function generatePrintableHTML(invoiceData: any, isDownload: boolean = false): string {
+interface InvoiceItem {
+  name: string;
+  quantity: number;
+  price: number;
+  total: number;
+  lineNumber?: number;
+}
+
+interface InvoiceData {
+  company: { name: string; address: string; phone: string; email: string };
+  customer: { name: string; address: string; phone: string; email: string };
+  items: InvoiceItem[];
+  totals: { subtotal: number; tax: number; shipping: number; total: number };
+  invoiceNumber: string;
+  invoiceDate: string;
+  orderId: string;
+  paymentMethod: string;
+}
+
+function generatePrintableHTML(invoiceData: InvoiceData, isDownload: boolean = false): string {
   const { company, customer, items, totals, invoiceNumber, invoiceDate, orderId, paymentMethod } = invoiceData
   
   return `
@@ -112,7 +131,7 @@ function generatePrintableHTML(invoiceData: any, isDownload: boolean = false): s
                     </tr>
                 </thead>
                 <tbody>
-                    ${items.map((item: any, index: number) => `
+                    ${items.map((item: InvoiceItem, index: number) => `
                     <tr class="${index % 2 === 1 ? 'bg-gray-50' : 'bg-white'}">
                         <td class="border border-gray-400 px-3 py-3">${item.lineNumber}</td>
                         <td class="border border-gray-400 px-3 py-3">

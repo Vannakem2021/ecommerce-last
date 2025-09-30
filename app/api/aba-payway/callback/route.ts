@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
   try {
     // Parse the callback data from ABA PayWay (they send JSON, not form data)
     const contentType = req.headers.get("content-type") || "";
-    let callbackParams: Record<string, any> = {};
+    let callbackParams: Record<string, string> = {};
 
     if (contentType.includes("application/json")) {
       callbackParams = await req.json();
@@ -160,7 +160,7 @@ export async function POST(req: NextRequest) {
           status: "COMPLETED",
           // email_address omitted to avoid persisting empty string without populated user
           pricePaid: order.totalPrice.toFixed(2),
-        } as any);
+        });
         console.log("[ABA PayWay] updateOrderToPaid result:", updateResult);
 
         if (updateResult.success) {
@@ -197,7 +197,7 @@ export async function POST(req: NextRequest) {
           statusCode === ABA_PAYWAY_STATUS_CODES.CANCELLED
             ? "CANCELLED"
             : "FAILED",
-        email_address: (order.user as any)?.email || "",
+        email_address: (order.user && typeof order.user === 'object' && 'email' in order.user ? order.user.email as string : "") || "",
         pricePaid: "0.00",
       };
       await order.save();

@@ -21,6 +21,10 @@ import NotificationBell from '@/components/shared/header/notification-bell'
 import GlobalSearch from '@/components/shared/header/global-search'
 import QuickAddButton from '@/components/shared/header/quick-add-button'
 
+// Enable dynamic rendering with caching for better performance
+export const dynamic = 'force-dynamic'
+export const revalidate = 60 // Revalidate every 60 seconds
+
 export default async function AdminLayout({
   children,
 }: {
@@ -48,7 +52,7 @@ export default async function AdminLayout({
 
   const { site } = await getSetting()
   return (
-    <>
+    <SessionProvider session={session}>
       <Script id="admin-layout-class" strategy="beforeInteractive">
         {`document.documentElement.classList.add('admin-layout');`}
       </Script>
@@ -69,9 +73,7 @@ export default async function AdminLayout({
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="left" className="p-0 w-64">
-                  <SessionProvider session={session}>
-                    <AdminNav userRole={session.user.role} />
-                  </SessionProvider>
+                  <AdminNav userRole={session.user.role} />
                 </SheetContent>
               </Sheet>
             </div>
@@ -109,9 +111,7 @@ export default async function AdminLayout({
         <div className='flex flex-1 relative'>
           {/* Sidebar - Hidden on mobile, visible on desktop - Fixed positioning */}
           <div className='hidden md:flex md:flex-shrink-0 w-64 fixed top-16 left-0 h-[calc(100vh-4rem)] z-10'>
-            <SessionProvider session={session}>
-              <AdminNav userRole={session.user.role} />
-            </SessionProvider>
+            <AdminNav userRole={session.user.role} />
           </div>
 
           {/* Page content - Scrollable with margin for sidebar */}
@@ -122,6 +122,6 @@ export default async function AdminLayout({
           </div>
         </div>
       </div>
-    </>
+    </SessionProvider>
   )
 }

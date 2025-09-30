@@ -21,7 +21,6 @@ import { registerUser, signInWithCredentials } from '@/lib/actions/user.actions'
 import { toast } from '@/hooks/use-toast'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { UserSignUpSchema } from '@/lib/validator'
-import { Separator } from '@/components/ui/separator'
 import { isRedirectError } from 'next/dist/client/components/redirect-error'
 import { createSecureFormDefaults, validateFormDefaults, getSecurePlaceholder } from '@/lib/utils/form-security'
 

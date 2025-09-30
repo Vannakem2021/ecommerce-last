@@ -21,7 +21,7 @@ export default async function FavoritesPage(props: {
     <div>
       <div className='flex gap-2'>
         <Link href='/account'>{t('Header.Your account')}</Link>
-        <span>></span>
+        <span>&gt;</span>
         <span>{t('Favorites.Your Favorites', { fallback: 'Your Favorites' })}</span>
       </div>
       <h1 className='h1-bold pt-4'>{t('Favorites.Your Favorites', { fallback: 'Your Favorites' })}</h1>

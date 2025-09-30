@@ -37,7 +37,6 @@ export default function CredentialsSignInForm() {
   const searchParams = useSearchParams()
   const callbackUrl = searchParams.get('callbackUrl') || '/'
   const [isLoading, setIsLoading] = useState(false)
-  const { update } = useSession()
   const router = useRouter()
 
   const form = useForm<IUserSignIn>({
@@ -101,7 +100,7 @@ export default function CredentialsSignInForm() {
           router.replace('/')
         }
       }
-    } catch (error) {
+    } catch {
       setIsLoading(false)
       toast({
         title: 'Error',

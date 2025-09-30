@@ -45,7 +45,7 @@ export default function ForgotPasswordForm() {
       } else {
         setMessage({ type: 'error', text: result.error || 'An error occurred' })
       }
-    } catch (error) {
+    } catch {
       setMessage({ type: 'error', text: 'An unexpected error occurred' })
     } finally {
       setIsLoading(false)
@@ -97,7 +97,7 @@ export default function ForgotPasswordForm() {
             </Link>
           </p>
           <p className="text-sm text-muted-foreground">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Link href="/sign-up" className="text-primary hover:underline">
               Sign up
             </Link>

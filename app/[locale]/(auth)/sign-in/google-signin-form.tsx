@@ -7,7 +7,6 @@ import { useLocale } from 'next-intl'
 
 import { Button } from '@/components/ui/button'
 import { toast } from '@/hooks/use-toast'
-import { getPostLoginRedirectUrl } from '@/lib/auth-redirect'
 import { Loader2 } from 'lucide-react'
 
 export function GoogleSignInForm() {

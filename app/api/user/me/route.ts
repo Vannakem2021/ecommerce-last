@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { getUserById } from '@/lib/actions/user.actions'
 
-// Rate limiting could be implemented here with a proper rate limiting library
-const RATE_LIMIT_WINDOW = 60 * 1000 // 1 minute
-const RATE_LIMIT_MAX_REQUESTS = 30 // 30 requests per minute
+// Rate limiting configuration (for future implementation)
+// const RATE_LIMIT_WINDOW = 60 * 1000 // 1 minute
+// const RATE_LIMIT_MAX_REQUESTS = 30 // 30 requests per minute
 
 export async function GET(request: NextRequest) {
   try {

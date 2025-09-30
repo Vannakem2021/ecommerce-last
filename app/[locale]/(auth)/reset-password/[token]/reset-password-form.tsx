@@ -38,8 +38,7 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
     },
   })
 
-  const { control, handleSubmit, watch } = form
-  const password = watch('password')
+  const { control, handleSubmit } = form
 
   const onSubmit = async (data: IResetPassword) => {
     setIsLoading(true)
@@ -57,7 +56,7 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
       } else {
         setMessage({ type: 'error', text: result.error || 'An error occurred' })
       }
-    } catch (error) {
+    } catch {
       setMessage({ type: 'error', text: 'An unexpected error occurred' })
     } finally {
       setIsLoading(false)
