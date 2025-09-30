@@ -9,9 +9,7 @@ import { useTranslations } from 'next-intl'
 import Container from '@/components/shared/container'
 
 export default function Footer() {
-  const {
-    setting: { site },
-  } = useSettingStore()
+  useSettingStore()
   const t = useTranslations()
   const [showBackToTop, setShowBackToTop] = useState(false)
 

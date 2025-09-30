@@ -1,13 +1,20 @@
-import { IPromotionUsageInput } from '@/types'
 import { Document, Model, model, models, Schema } from 'mongoose'
 
-export interface IPromotionUsage extends Document, IPromotionUsageInput {
+export interface IPromotionUsage extends Document {
   _id: string
+  promotion: string
+  user: string
+  order: string
+  usedAt: Date
+  discountAmount: number
+  originalTotal: number
+  finalTotal: number
   createdAt: Date
   updatedAt: Date
 }
 
-const promotionUsageSchema = new Schema<IPromotionUsage>(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const promotionUsageSchema = new Schema<any>(
   {
     promotion: {
       type: Schema.Types.ObjectId,

@@ -26,7 +26,7 @@ interface Product {
   name: string
   slug: string
   price: number
-  listPrice: number
+  listPrice?: number
   isPublished: boolean
 }
 
@@ -93,7 +93,7 @@ export default function ProductSelector({ value, onChange }: ProductSelectorProp
                 isPublished: Boolean(prod.isPublished),
               }
               return [id, mapped]
-            } catch (e) {
+            } catch {
               // Ignore fetch failures for individual IDs
               return [id, null]
             }
@@ -132,7 +132,7 @@ export default function ProductSelector({ value, onChange }: ProductSelectorProp
       if (!result || !Array.isArray(result.products)) {
         throw new Error('Unexpected response while fetching products')
       }
-      setProducts((result.products as any[]).filter((p: any) => p.isPublished))
+      setProducts((result.products as Array<{ _id: string; name: string; slug: string; price: number; listPrice?: number; isPublished: boolean }>).filter((p) => p.isPublished))
     } catch (error) {
       const msg =
         error instanceof Error

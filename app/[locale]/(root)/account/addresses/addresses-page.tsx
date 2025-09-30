@@ -29,15 +29,15 @@ export default function AddressesPage({ user }: AddressesPageProps) {
     defaultValues: {
       fullName: user.address?.fullName || '',
       phone: user.address?.phone || '',
-      provinceId: user.address?.provinceId || undefined,
-      districtId: user.address?.districtId || undefined,
-      communeCode: user.address?.communeCode || '',
-      houseNumber: user.address?.houseNumber || '',
+      provinceId: (user.address && 'provinceId' in user.address) ? user.address.provinceId : undefined,
+      districtId: (user.address && 'districtId' in user.address) ? user.address.districtId : undefined,
+      communeCode: (user.address && 'communeCode' in user.address) ? user.address.communeCode : '',
+      houseNumber: (user.address && 'houseNumber' in user.address) ? user.address.houseNumber : '',
       street: user.address?.street || '',
       postalCode: user.address?.postalCode || '',
-      provinceName: user.address?.provinceName || '',
-      districtName: user.address?.districtName || '',
-      communeName: user.address?.communeName || '',
+      provinceName: (user.address && 'provinceName' in user.address) ? user.address.provinceName : '',
+      districtName: (user.address && 'districtName' in user.address) ? user.address.districtName : '',
+      communeName: (user.address && 'communeName' in user.address) ? user.address.communeName : '',
     },
   })
 
@@ -52,7 +52,7 @@ export default function AddressesPage({ user }: AddressesPageProps) {
       setIsDialogOpen(false)
       // Refresh the page to show updated data
       window.location.reload()
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'Failed to update address',

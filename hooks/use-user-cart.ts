@@ -14,7 +14,7 @@ import { useAuthSession } from './use-auth-session'
 export function useUserCart() {
   const cartStore = useCartStore()
   const { user, status } = useAuthSession()
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>()
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   // Debounced initialization to prevent excessive calls
   const debouncedInitialize = useCallback((userId: string | null) => {

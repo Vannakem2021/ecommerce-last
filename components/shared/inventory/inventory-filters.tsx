@@ -45,7 +45,7 @@ export default function InventoryFilters({
   className = ''
 }: InventoryFiltersProps) {
   const [searchValue, setSearchValue] = useState('')
-  const [isPending, setIsPending] = useState(false)
+  const [isPending] = useState(false)
   const [filters, setFilters] = useState<InventoryFilterState>({
     brand: 'all',
     category: 'all',

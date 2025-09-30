@@ -4,7 +4,6 @@ import data from '../data'
 import Setting from '../db/models/setting.model'
 import { connectToDatabase } from '../db'
 import { formatError } from '../utils'
-import { cookies } from 'next/headers'
 import { requirePermission } from '../rbac'
 
 const globalForSettings = global as unknown as {

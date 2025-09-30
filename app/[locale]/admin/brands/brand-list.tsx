@@ -23,9 +23,6 @@ import DeleteDialog from '@/components/shared/delete-dialog'
 
 export default function BrandList({
   data,
-  totalBrands,
-  page,
-  totalPages,
 }: {
   data: IBrand[]
   totalBrands: number
@@ -33,21 +30,24 @@ export default function BrandList({
   totalPages: number
 }) {
   const { toast } = useToast()
-  const [isPending, startTransition] = useTransition()
+  const [, startTransition] = useTransition()
 
-  const handleDelete = async (id: string) => {
-    startTransition(async () => {
-      const res = await deleteBrand(id)
-      if (res.success) {
-        toast({
-          description: res.message,
-        })
-      } else {
-        toast({
-          variant: 'destructive',
-          description: res.message,
-        })
-      }
+  const handleDelete = async (id: string): Promise<{ success: boolean; message: string }> => {
+    return new Promise((resolve) => {
+      startTransition(async () => {
+        const res = await deleteBrand(id)
+        if (res.success) {
+          toast({
+            description: res.message,
+          })
+        } else {
+          toast({
+            variant: 'destructive',
+            description: res.message,
+          })
+        }
+        resolve(res)
+      })
     })
   }
 

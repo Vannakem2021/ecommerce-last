@@ -7,7 +7,6 @@ import {
   Package,
   ShoppingCart,
   Users,
-  User,
   FileText,
   Settings,
   Tag,

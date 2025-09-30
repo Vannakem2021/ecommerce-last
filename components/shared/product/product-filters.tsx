@@ -17,7 +17,6 @@ import {
   FilterIcon,
   XIcon,
   PackageIcon,
-  TagIcon,
   DollarSignIcon,
   StarIcon
 } from 'lucide-react'

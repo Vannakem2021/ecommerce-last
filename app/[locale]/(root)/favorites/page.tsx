@@ -3,6 +3,7 @@ import Link from 'next/link'
 import Pagination from '@/components/shared/pagination'
 import FavoritesListClient from '@/components/shared/product/favorites-list-client'
 import { getMyFavorites } from '@/lib/actions/favorite.actions'
+import { IProduct } from '@/lib/db/models/product.model'
 import { getTranslations } from 'next-intl/server'
 
 export const metadata = {

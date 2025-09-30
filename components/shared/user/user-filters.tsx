@@ -52,7 +52,7 @@ export default function UserFilters({
   className = ''
 }: UserFiltersProps) {
   const [searchValue, setSearchValue] = useState('')
-  const [isPending, setIsPending] = useState(false)
+  const [isPending] = useState(false)
   const [showAdvanced, setShowAdvanced] = useState(false)
 
   // Customer filters

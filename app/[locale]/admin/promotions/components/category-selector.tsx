@@ -79,7 +79,7 @@ export default function CategorySelector({ value, onChange }: CategorySelectorPr
                 active: Boolean(cat.active),
               }
               return [id, mapped]
-            } catch (e) {
+            } catch {
               return [id, null]
             }
           })

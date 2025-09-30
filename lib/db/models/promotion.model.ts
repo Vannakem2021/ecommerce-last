@@ -1,13 +1,29 @@
-import { IPromotionInput } from '@/types'
 import { Document, Model, model, models, Schema } from 'mongoose'
 
-export interface IPromotion extends Document, IPromotionInput {
+export interface IPromotion extends Document {
   _id: string
+  code: string
+  name: string
+  description?: string
+  type: 'percentage' | 'fixed' | 'free_shipping'
+  value: number
+  minOrderValue: number
+  maxDiscount?: number
+  startDate: Date
+  endDate: Date
+  usageLimit: number
+  userUsageLimit: number
+  usedCount: number
+  active: boolean
+  appliesTo: 'all' | 'products' | 'categories'
+  applicableProducts: string[]
+  applicableCategories: string[]
   createdAt: Date
   updatedAt: Date
 }
 
-const promotionSchema = new Schema<IPromotion>(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const promotionSchema = new Schema<any>(
   {
     code: {
       type: String,

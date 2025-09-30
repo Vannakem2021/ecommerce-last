@@ -16,7 +16,6 @@ import {
   SearchIcon,
   FilterIcon,
   XIcon,
-  TagIcon,
   CheckCircleIcon,
   SortAscIcon,
   ImageIcon
@@ -40,7 +39,7 @@ export default function BrandFilters({
   className = ''
 }: BrandFiltersProps) {
   const [searchValue, setSearchValue] = useState('')
-  const [isPending, setIsPending] = useState(false)
+  const [isPending] = useState(false)
   const [filters, setFilters] = useState<BrandFilterState>({
     status: 'all',
     logoStatus: 'all',

@@ -64,7 +64,7 @@ export async function getAllProductsForInventory(filters: IInventoryFilters) {
     }
 
     // Build sort query
-    let sortQuery: Record<string, number> = {}
+    let sortQuery: { [key: string]: 1 | -1 } = {}
     switch (sort) {
       case 'latest':
         sortQuery = { createdAt: -1 }
@@ -113,8 +113,8 @@ export async function getAllProductsForInventory(filters: IInventoryFilters) {
       _id: product._id.toString(),
       name: product.name,
       sku: product.sku,
-      brand: typeof product.brand === 'object' ? product.brand.name : product.brand,
-      category: typeof product.category === 'object' ? product.category.name : product.category,
+      brand: typeof product.brand === 'object' ? (product.brand as unknown as { name: string }).name : product.brand,
+      category: typeof product.category === 'object' ? (product.category as unknown as { name: string }).name : product.category,
       countInStock: product.countInStock,
       price: product.price,
       isPublished: product.isPublished,
@@ -276,8 +276,8 @@ export async function getStockMovements(productId: string, page: number = 1) {
       notes: movement.notes,
       createdAt: movement.createdAt.toISOString(),
       createdBy: {
-        name: movement.createdBy?.name || 'Unknown User',
-        email: movement.createdBy?.email || 'unknown@example.com'
+        name: typeof movement.createdBy === 'object' && movement.createdBy ? (movement.createdBy as { name?: string }).name || 'Unknown User' : 'Unknown User',
+        email: typeof movement.createdBy === 'object' && movement.createdBy ? (movement.createdBy as { email?: string }).email || 'unknown@example.com' : 'unknown@example.com'
       }
     }))
 

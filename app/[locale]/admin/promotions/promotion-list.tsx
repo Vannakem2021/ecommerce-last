@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
   Edit,
-  Trash2,
   Eye,
   EyeOff,
   Search,

@@ -30,9 +30,6 @@ interface CustomerWithStats extends IUser {
 
 export default function CustomerList({
   data,
-  totalCustomers,
-  page,
-  totalPages,
 }: {
   data: CustomerWithStats[]
   totalCustomers: number
@@ -40,21 +37,24 @@ export default function CustomerList({
   totalPages: number
 }) {
   const { toast } = useToast()
-  const [isPending, startTransition] = useTransition()
+  const [, startTransition] = useTransition()
 
-  const handleDelete = async (id: string) => {
-    startTransition(async () => {
-      const res = await deleteUser(id)
-      if (res.success) {
-        toast({
-          description: res.message,
-        })
-      } else {
-        toast({
-          variant: 'destructive',
-          description: res.message,
-        })
-      }
+  const handleDelete = async (id: string): Promise<{ success: boolean; message: string }> => {
+    return new Promise((resolve) => {
+      startTransition(async () => {
+        const res = await deleteUser(id)
+        if (res.success) {
+          toast({
+            description: res.message,
+          })
+        } else {
+          toast({
+            variant: 'destructive',
+            description: res.message,
+          })
+        }
+        resolve(res)
+      })
     })
   }
 

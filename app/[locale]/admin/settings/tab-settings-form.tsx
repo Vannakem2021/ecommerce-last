@@ -85,7 +85,7 @@ const TabSettingsForm = ({ setting }: { setting: ISettingInput }) => {
             description: res.message,
           });
         }
-      } catch (error) {
+      } catch {
         setSaveStatus('error');
         toast({
           variant: "destructive",
@@ -143,6 +143,7 @@ const TabSettingsForm = ({ setting }: { setting: ISettingInput }) => {
     return () => {
       window.removeEventListener("hashchange", handleHashChange);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Handle URL-based tab routing

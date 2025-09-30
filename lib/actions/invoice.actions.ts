@@ -3,7 +3,6 @@
 import { auth } from '@/auth'
 import { connectToDatabase } from '@/lib/db'
 import Order, { IOrder } from '@/lib/db/models/order.model'
-import User from '@/lib/db/models/user.model'
 import { formatError } from '@/lib/utils'
 import {
   validateOrderForInvoice,
@@ -40,10 +39,10 @@ export async function getInvoiceData(orderId: string) {
 
     // Check permissions - users can only access their own orders, admins can access all
     const isAdmin = hasPermission(session.user.role || '', 'orders.read')
-    const isOwner = order.user && 
-      typeof order.user === 'object' && 
-      '_id' in order.user && 
-      order.user._id.toString() === session.user.id
+    const isOwner = order.user &&
+      typeof order.user === 'object' &&
+      '_id' in order.user &&
+      (order.user as { _id: { toString: () => string } })._id.toString() === session.user.id
 
     if (!isAdmin && !isOwner) {
       return { success: false, message: 'Access denied' }

@@ -17,7 +17,7 @@ import { IOrder } from "@/lib/db/models/order.model";
 import { AddressDisplay } from "@/components/shared/address/address-display";
 
 // Extended order type with ABA PayWay fields
-interface OrderWithABAPayWay extends IOrder {
+interface OrderWithABAPayWay extends Omit<IOrder, 'abaLastStatusCheck' | 'abaPaymentStatus' | 'abaStatusHistory'> {
   abaPaymentStatus?: string;
   abaStatusCode?: number;
   abaLastStatusCheck?: string;
@@ -137,7 +137,10 @@ export default function OrderDetailsForm({
           {/* ABA PayWay Payment Status History */}
           {paymentMethod === "ABA PayWay" && (
             <PaymentStatusHistory
-              history={(order.abaStatusHistory || []).filter(entry => entry.source !== "api_check")}
+              history={(order.abaStatusHistory || [])
+                .filter((entry): entry is { status: string; statusCode: number; timestamp: string; source: "callback" | "manual"; details?: string } =>
+                  entry.source === "callback" || entry.source === "manual"
+                )}
             />
           )}
         </div>
@@ -250,7 +253,6 @@ export default function OrderDetailsForm({
                 Download or print your invoice for this order.
               </p>
               <InvoiceActions
-                invoiceNumber={generateInvoiceNumber(order)}
                 orderId={order._id}
                 variant="outline"
                 size="default"

@@ -8,7 +8,7 @@ import Brand from './models/brand.model'
 import Category from './models/category.model'
 import { cwd } from 'process'
 import { loadEnvConfig } from '@next/env'
-import { isProduction, logEnvironmentStatus, validateProductionSafety } from '../utils/environment'
+import { isProduction, validateProductionSafety } from '../utils/environment'
 import { validateStartupConfiguration } from '../utils/startup-validator'
 import Order from './models/order.model'
 import {
@@ -261,12 +261,16 @@ const generateOrder = async (
     },
   ]
 
-  const order = {
+  const mappedItems = items.map((item) => ({
+    ...item,
+    category: item.category.toString(),
+    product: item.product,
+  }))
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const order: any = {
     user: users[i % users.length],
-    items: items.map((item) => ({
-      ...item,
-      product: item.product,
-    })),
+    items: mappedItems,
     shippingAddress: data.users[i % users.length].address,
     paymentMethod: data.users[i % users.length].paymentMethod,
     isPaid: true,
@@ -276,8 +280,9 @@ const generateOrder = async (
     createdAt: calculatePastDate(i),
     expectedDeliveryDate: calculateFutureDate(i % 2),
     ...calcDeliveryDateAndPriceForSeed({
-      items: items,
-      shippingAddress: data.users[i % users.length].address,
+      items: mappedItems,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      shippingAddress: data.users[i % users.length].address as any,
       deliveryDateIndex: i % 2,
     }),
   }

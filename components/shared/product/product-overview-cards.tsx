@@ -7,8 +7,7 @@ import {
   CheckCircleIcon,
   AlertTriangleIcon,
   DollarSignIcon,
-  TrendingUpIcon,
-  BarChart3Icon
+  TrendingUpIcon
 } from 'lucide-react'
 
 interface ProductMetrics {
@@ -32,9 +31,7 @@ export default function ProductOverviewCards({ metrics, className = '' }: Produc
     publishedProducts,
     draftProducts,
     lowStockCount,
-    totalValue,
-    avgRating,
-    totalRevenue
+    totalValue
   } = metrics
 
   const cards = [

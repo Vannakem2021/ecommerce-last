@@ -1,6 +1,6 @@
 import { auth } from '@/auth'
 
-import { Button, buttonVariants } from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,8 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
-import { ChevronDownIcon, UserRound, User, ShoppingBag, Heart, Settings, Shield, Eye, LogOut } from 'lucide-react'
+import { ChevronDownIcon, UserRound, User, ShoppingBag, Heart, Shield, Eye, LogOut } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
 import UserSignOutButton from './user-sign-out-button'

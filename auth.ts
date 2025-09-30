@@ -86,7 +86,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    redirect: async ({ url, baseUrl, request }) => {
+    redirect: async ({ url, baseUrl }) => {
       try {
         // Only allow same-origin redirects for security
         if (!url.startsWith("/") && !url.startsWith(baseUrl)) {
@@ -96,13 +96,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         // For OAuth flows, redirect to a locale-aware post-auth page that handles role-based redirects
         // This is necessary because the redirect callback doesn't have access to user session
         if (url.includes("/api/auth/callback/")) {
-          // Detect locale from request URL or fallback to default
+          // Detect locale from URL or fallback to default
           let locale = i18n.defaultLocale;
 
           try {
-            // Extract locale from referer or request headers if available
-            const referer = request?.headers?.get?.('referer') || '';
-            const localeMatch = referer.match(/\/([a-z]{2}-[A-Z]{2}|[a-z]{2})\//);
+            // Extract locale from the URL itself if available
+            const localeMatch = url.match(/\/([a-z]{2}-[A-Z]{2}|[a-z]{2})\//);
 
             if (localeMatch) {
               const detectedLocale = localeMatch[1];
@@ -112,7 +111,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               }
             }
           } catch (localeError) {
-            console.warn("Failed to detect locale from request, using default:", localeError);
+            console.warn("Failed to detect locale from URL, using default:", localeError);
           }
 
           const localeAwarePath = `/${locale}/auth/post-signin`;
@@ -138,7 +137,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
           if (existingUser) {
             // Preserve existing role and user data for OAuth account linking
-            user.role = existingUser.role;
+            (user as { role: string }).role = existingUser.role;
             user.name = existingUser.name || user.name;
 
             // Update last login timestamp
@@ -147,7 +146,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             });
           } else {
             // New OAuth user - set default role
-            user.role = "user";
+            (user as { role: string }).role = "user";
           }
         } else {
           // For credentials provider, update last login

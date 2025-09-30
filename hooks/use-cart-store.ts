@@ -472,12 +472,13 @@ const useCartStore = create(
 
     {
       name: 'cart-store',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       partialize: (state) => ({
         cart: {
           items: state.cart.items,
         },
         currentUserId: state.currentUserId,
-      }),
+      }) as any,
     }
   )
 )

@@ -27,12 +27,13 @@ export default function PromotionBanner({
 
   useEffect(() => {
     loadPromotions()
-    
+
     // Load dismissed promotions from localStorage
     const dismissed = localStorage.getItem('dismissedPromotions')
     if (dismissed) {
       setDismissedPromotions(JSON.parse(dismissed))
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const loadPromotions = async () => {

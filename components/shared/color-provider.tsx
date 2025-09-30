@@ -19,7 +19,7 @@ export function ColorProvider({
           // Migrate Red and Gold users to Green
           localStorage.removeItem('colorStore')
         }
-      } catch (e) {
+      } catch {
         // Invalid stored data, clear it
         localStorage.removeItem('colorStore')
       }

@@ -5,7 +5,6 @@ import { auth } from '@/auth'
 
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { User, Mail, Lock, Settings } from 'lucide-react'

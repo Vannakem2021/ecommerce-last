@@ -40,7 +40,7 @@ export default function ForgotPasswordForm() {
       const result = await requestPasswordReset(data)
       
       if (result.success) {
-        setMessage({ type: 'success', text: result.message })
+        setMessage({ type: 'success', text: result.message || 'Success' })
         reset()
       } else {
         setMessage({ type: 'error', text: result.error || 'An error occurred' })

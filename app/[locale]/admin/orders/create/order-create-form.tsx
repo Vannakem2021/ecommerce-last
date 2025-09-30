@@ -155,7 +155,7 @@ export default function OrderCreateForm({ products }: Props) {
           name: item.product.name,
           slug: item.product.slug,
           image: item.product.images[0] || '/images/placeholder.jpg',
-          category: typeof item.product.category === 'object' ? item.product.category.name : item.product.category,
+          category: typeof item.product.category === 'object' ? (item.product.category as unknown as { name: string }).name : item.product.category,
           price: item.product.price,
           quantity: item.quantity,
           countInStock: item.product.countInStock,

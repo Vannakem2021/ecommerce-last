@@ -4,7 +4,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { useState } from 'react'
 
 import MdEditor from 'react-markdown-editor-lite'
 import ReactMarkdown from 'react-markdown'
@@ -33,7 +32,6 @@ import {
   Eye,
   EyeOff,
   Type,
-  Link as LinkIcon,
   Zap,
   Settings
 } from 'lucide-react'
@@ -97,8 +95,7 @@ const WebPageForm = ({
     }
   }
 
-  // Watch title to auto-generate slug
-  const watchedTitle = form.watch('title')
+  // Watch slug to show URL preview
   const watchedSlug = form.watch('slug')
 
   return (

@@ -199,7 +199,7 @@ export default function StockHistoryDialog({
                   return (
                     <TableRow key={movement._id}>
                       <TableCell className='text-sm'>
-                        {formatDateTime(movement.createdAt).dateTime}
+                        {formatDateTime(new Date(movement.createdAt)).dateTime}
                       </TableCell>
                       <TableCell>
                         <Badge variant={config.variant} className='flex items-center gap-1 w-fit'>

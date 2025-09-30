@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -25,7 +24,7 @@ import { IProduct } from '@/lib/db/models/product.model'
 import React, { useEffect, useState, useTransition } from 'react'
 import { formatDateTime } from '@/lib/utils'
 import { ChevronLeft, ChevronRight, Eye, Edit, Plus, Star } from 'lucide-react'
-import { generateProductSKU, getStockStatus, calculateProductMetrics } from '@/lib/utils/product-utils'
+import { generateProductSKU, getStockStatus } from '@/lib/utils/product-utils'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 type ProductListDataProps = {
@@ -47,7 +46,7 @@ type ProductListDataProps = {
 const ProductList = () => {
   const [page, setPage] = useState<number>(1)
   const [searchValue, setSearchValue] = useState<string>('')
-  const [filters, setFilters] = useState<ProductFilterState>({
+  const [, setFilters] = useState<ProductFilterState>({
     category: 'all',
     stockStatus: 'all',
     priceRange: 'all',
@@ -56,7 +55,7 @@ const ProductList = () => {
   })
   const [data, setData] = useState<ProductListDataProps>()
   const [isPending, startTransition] = useTransition()
-  const debounceRef = React.useRef<NodeJS.Timeout>()
+  const debounceRef = React.useRef<NodeJS.Timeout | undefined>(undefined)
 
   const handlePageChange = (changeType: 'next' | 'prev') => {
     const newPage = changeType === 'next' ? page + 1 : page - 1
@@ -172,7 +171,7 @@ const ProductList = () => {
               const productSKU = generateProductSKU(
                 product._id,
                 product.name,
-                typeof product.category === 'object' ? product.category.name : product.category
+                typeof product.category === 'object' ? (product.category as unknown as { name: string }).name : product.category
               )
 
               return (
@@ -232,7 +231,7 @@ const ProductList = () => {
                   {/* Category */}
                   <TableCell>
                     <Badge variant="outline">
-                      {typeof product.category === 'object' ? product.category.name : product.category}
+                      {typeof product.category === 'object' ? (product.category as unknown as { name: string }).name : product.category}
                     </Badge>
                   </TableCell>
 

@@ -86,8 +86,8 @@ export async function getProductById(productId: string) {
   await connectToDatabase()
 
   // Ensure models are registered
-  Brand
-  Category
+  void Brand
+  void Category
 
   const product = await Product.findById(productId)
     .populate('brand', 'name')
@@ -150,8 +150,8 @@ export async function getAllProductsForAdmin({
   await connectToDatabase()
 
   // Ensure models are registered
-  Brand
-  Category
+  void Brand
+  void Category
 
   const {
     common: { pageSize },
@@ -244,8 +244,8 @@ export async function getProductsByTag({
   await connectToDatabase()
 
   // Ensure models are registered
-  Brand
-  Category
+  void Brand
+  void Category
 
   const products = await Product.find({
     tags: { $in: [tag] },
@@ -263,8 +263,8 @@ export async function getProductBySlug(slug: string) {
   await connectToDatabase()
 
   // Ensure models are registered
-  Brand
-  Category
+  void Brand
+  void Category
 
   const product = await Product.findOne({ slug, isPublished: true })
     .populate('brand', 'name')
@@ -291,8 +291,8 @@ export async function getRelatedProductsByCategory({
   await connectToDatabase()
 
   // Ensure models are registered
-  Brand
-  Category
+  void Brand
+  void Category
 
   const skipAmount = (Number(page) - 1) * limit
   // Handle both string and ObjectId category references
@@ -349,8 +349,8 @@ export async function getAllProducts({
   await connectToDatabase()
 
   // Ensure models are registered
-  Brand
-  Category
+  void Brand
+  void Category
 
   const queryFilter =
     query && query !== 'all'
@@ -462,8 +462,8 @@ export async function getNewArrivals({
   await connectToDatabase()
 
   // Ensure models are registered
-  Brand
-  Category
+  void Brand
+  void Category
 
   const products = await Product.find({
     isPublished: true,
@@ -484,8 +484,8 @@ export async function getBestSellingProducts({
   await connectToDatabase()
 
   // Ensure models are registered
-  Brand
-  Category
+  void Brand
+  void Category
 
   const products = await Product.find({
     isPublished: true,
@@ -506,8 +506,8 @@ export async function getTodaysDeals({
   await connectToDatabase()
 
   // Ensure models are registered
-  Brand
-  Category
+  void Brand
+  void Category
 
   const now = new Date()
 

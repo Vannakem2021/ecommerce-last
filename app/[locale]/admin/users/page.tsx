@@ -1,6 +1,5 @@
 'use client'
 
-import { Metadata } from 'next'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
@@ -16,7 +15,8 @@ import { normalizeRole } from '@/lib/rbac-utils'
 
 // Simulated data - in real implementation, this would come from server
 interface UsersData {
-  data: (IUser & { canEdit?: boolean; canDelete?: boolean })[]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: any[]
   totalPages: number
   permissions: {
     canCreate: boolean
@@ -84,10 +84,10 @@ export default function AdminUsersPage() {
 
   const systemMetrics = {
     totalSystemUsers: systemUsers.length,
-    admins: systemUsers.filter(u => normalizeRole(u.role) === 'admin').length,
-    managers: systemUsers.filter(u => normalizeRole(u.role) === 'manager').length,
-    sellers: systemUsers.filter(u => normalizeRole(u.role) === 'seller').length,
-    recentLogins: systemUsers.filter(u => {
+    admins: systemUsers.filter(user => normalizeRole(user.role) === 'admin').length,
+    managers: systemUsers.filter(user => normalizeRole(user.role) === 'manager').length,
+    sellers: systemUsers.filter(user => normalizeRole(user.role) === 'seller').length,
+    recentLogins: systemUsers.filter(() => {
       // Simulate recent login check
       return Math.random() > 0.5
     }).length
@@ -98,9 +98,7 @@ export default function AdminUsersPage() {
   const totalCustomerPages = Math.ceil(customers.length / 10)
   const totalSystemUserPages = Math.ceil(systemUsers.length / 10)
 
-  const activeUsers = activeTab === 'customers' ? currentPageCustomers : currentPageSystemUsers
   const totalActiveUsers = activeTab === 'customers' ? customers.length : systemUsers.length
-  const totalActivePages = activeTab === 'customers' ? totalCustomerPages : totalSystemUserPages
 
   const startItem = ((page - 1) * 10) + 1
   const endItem = Math.min(page * 10, totalActiveUsers)

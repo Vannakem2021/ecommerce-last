@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { getAllProductsForInventory } from '@/lib/actions/inventory.actions'
 import InventoryList from './inventory-list'
 import InventoryOverviewCards from '@/components/shared/inventory/inventory-overview-cards'
-import InventoryFilters, { InventoryFilterState } from '@/components/shared/inventory/inventory-filters'
+import InventoryFilters from '@/components/shared/inventory/inventory-filters'
 import { Button } from '@/components/ui/button'
 import { Upload, Download, Plus, ChevronLeft, ChevronRight } from 'lucide-react'
 

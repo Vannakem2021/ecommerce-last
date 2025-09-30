@@ -42,7 +42,10 @@ export default async function OrderDetailsPage(props: {
       </div>
       <h1 className='h1-bold py-4'>Order {formatId(order._id)}</h1>
       <OrderDetailsForm
-        order={order}
+        order={{
+          ...order,
+          abaLastStatusCheck: order.abaLastStatusCheck ? order.abaLastStatusCheck.toISOString() : undefined,
+        } as Parameters<typeof OrderDetailsForm>[0]['order']}
         isAdmin={session?.user?.role === 'Admin' || false}
       />
     </>

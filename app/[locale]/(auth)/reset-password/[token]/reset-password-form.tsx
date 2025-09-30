@@ -48,7 +48,7 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
       const result = await resetPassword(data)
       
       if (result.success) {
-        setMessage({ type: 'success', text: result.message })
+        setMessage({ type: 'success', text: result.message || 'Password reset successfully' })
         // Redirect to sign-in page after 2 seconds
         setTimeout(() => {
           router.push('/sign-in')

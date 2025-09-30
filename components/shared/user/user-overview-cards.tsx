@@ -5,7 +5,6 @@ import { Badge } from '@/components/ui/badge'
 import {
   UsersIcon,
   UserCheckIcon,
-  UserXIcon,
   TrendingUpIcon,
   ShoppingCartIcon,
   CalendarIcon,

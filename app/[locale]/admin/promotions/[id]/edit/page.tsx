@@ -73,7 +73,7 @@ export default async function EditPromotionPage(props: {
         />
       </div>
     )
-  } catch (error) {
+  } catch {
     notFound()
   }
 }

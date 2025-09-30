@@ -34,9 +34,9 @@ export default async function AdminCategoriesPage(props: {
     totalCategories: data.totalCategories,
     activeCategories: data.categories.filter(cat => cat.active).length,
     inactiveCategories: data.categories.filter(cat => !cat.active).length,
-    totalProducts: data.categories.reduce((sum, cat) => sum + (cat.productCount || 0), 0),
-    averageProductsPerCategory: data.totalCategories > 0 ? data.categories.reduce((sum, cat) => sum + (cat.productCount || 0), 0) / data.totalCategories : 0,
-    mostPopularCategory: data.categories.sort((a, b) => (b.productCount || 0) - (a.productCount || 0))[0]?.name
+    totalProducts: 0,
+    averageProductsPerCategory: 0,
+    mostPopularCategory: data.categories[0]?.name
   }
 
   const currentPage = Number(page)

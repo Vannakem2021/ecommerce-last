@@ -14,11 +14,9 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
 import UserSignOutButton from './user-sign-out-button'
-import { useTranslations } from 'next-intl'
 
 export default function AdminUserButton() {
   const { data: session } = useSession()
-  const t = useTranslations()
 
   if (!session?.user) return null
 

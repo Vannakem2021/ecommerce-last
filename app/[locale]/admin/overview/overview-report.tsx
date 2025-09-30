@@ -256,7 +256,7 @@ export default function OverviewReport() {
                 <div className="p-1.5 rounded-md bg-amber-50 dark:bg-amber-950">
                   <TrendingUp className="h-4 w-4 text-amber-600" />
                 </div>
-How much you're earning
+How much you&apos;re earning
               </CardTitle>
               <CardDescription>
                 {t('Estimated')} · {t('Last 6 months')}

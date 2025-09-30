@@ -4,7 +4,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -30,7 +29,6 @@ import { useToast } from '@/hooks/use-toast'
 import { createUserByAdmin } from '@/lib/actions/user.actions'
 import { AdminUserCreateSchema } from '@/lib/validator'
 import { getAssignableRoles } from '@/lib/rbac-utils'
-import { UserRole } from '@/lib/constants'
 import { UserIcon, ShieldIcon, MailIcon, KeyIcon, CrownIcon, UserCogIcon, UsersIcon } from 'lucide-react'
 
 interface UserCreateFormProps {
@@ -136,7 +134,7 @@ const UserCreateForm = ({ currentUserRole }: UserCreateFormProps) => {
                         />
                       </FormControl>
                       <FormDescription>
-                        User's display name for the system
+                        User&apos;s display name for the system
                       </FormDescription>
                       <FormMessage />
                     </FormItem>

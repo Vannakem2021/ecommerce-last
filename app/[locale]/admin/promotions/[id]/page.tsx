@@ -38,7 +38,7 @@ export default async function PromotionDetailsPage(props: {
         userRole={session.user.role}
       />
     )
-  } catch (error) {
+  } catch {
     notFound()
   }
 }
