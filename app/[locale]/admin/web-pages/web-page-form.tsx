@@ -38,18 +38,11 @@ import {
   Settings
 } from 'lucide-react'
 
-const webPageDefaultValues =
-  process.env.NODE_ENV === 'development'
-    ? {
-        title: 'Sample Page',
-        slug: 'sample-page',
-        content: 'Sample Content',
-      }
-    : {
-        title: '',
-        slug: '',
-        content: '',
-      }
+const webPageDefaultValues = {
+  title: '',
+  slug: '',
+  content: '',
+}
 
 const WebPageForm = ({
   type,

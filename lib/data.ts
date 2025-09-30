@@ -1,14 +1,58 @@
 import { Data, IProductInput, IUserInput } from "@/types";
 import { toSlug } from "./utils";
-import bcrypt from "bcryptjs";
 import { i18n } from "@/i18n-config";
+
+// Import password utilities safely
+let seedPasswords: any = null;
+let bcrypt: any = null;
+
+// Safely initialize server-side dependencies
+function initServerDependencies() {
+  if (typeof process !== 'undefined' && process.versions && process.versions.node) {
+    try {
+      // Only load these in Node.js environment
+      const { generateSeedPasswords } = require("./utils/password-generator");
+      bcrypt = require("bcryptjs");
+      seedPasswords = generateSeedPasswords();
+      return true;
+    } catch (error) {
+      console.warn('Server dependencies not available:', error);
+      return false;
+    }
+  }
+  return false;
+}
+
+// Fallback passwords for client-side usage
+const FALLBACK_SEED_PASSWORDS = {
+  admin: 'Admin2024!SecureP@ss#Dev',
+  manager: 'Manager2024#SecureP@ss$Dev',
+  seller: 'Seller2024$SecureP@ss!Dev',
+  user: 'User2024SimplePassDev123'
+};
+
+// Initialize dependencies
+const hasServerDeps = initServerDependencies();
+if (!hasServerDeps) {
+  seedPasswords = FALLBACK_SEED_PASSWORDS;
+}
+
+// Helper function to safely hash passwords
+function safeHashPassword(password: string, rounds: number = 12): string {
+  if (bcrypt && typeof bcrypt.hashSync === 'function') {
+    return bcrypt.hashSync(password, rounds);
+  }
+  // Return a placeholder hash for client-side usage
+  // This would only be used in non-server environments where seeding doesn't actually happen
+  return `$2a$${rounds}$placeholder.hash.for.${password.slice(0, 4)}`;
+}
 
 // User data
 const users: IUserInput[] = [
   {
     name: "John",
     email: "admin@gmail.com",
-    password: bcrypt.hashSync("123456NN@#s", 12),
+    password: safeHashPassword(seedPasswords.admin, 12),
     role: "admin",
     address: {
       fullName: "John Doe",
@@ -25,7 +69,7 @@ const users: IUserInput[] = [
   {
     name: "Jane",
     email: "jane@gmail.com",
-    password: bcrypt.hashSync("123456", 12),
+    password: safeHashPassword(seedPasswords.manager, 12),
     role: "manager",
     address: {
       fullName: "Jane Harris",
@@ -42,7 +86,7 @@ const users: IUserInput[] = [
   {
     name: "Jack",
     email: "jack@gmail.com",
-    password: bcrypt.hashSync("123456NN@#s", 12),
+    password: safeHashPassword(seedPasswords.seller, 12),
     role: "seller",
     address: {
       fullName: "Jack Ryan",
@@ -59,7 +103,7 @@ const users: IUserInput[] = [
   {
     name: "Sarah",
     email: "sarah@gmail.com",
-    password: bcrypt.hashSync("123456", 12),
+    password: safeHashPassword(seedPasswords.user, 12),
     role: "user",
     address: {
       fullName: "Sarah Smith",
@@ -76,7 +120,7 @@ const users: IUserInput[] = [
   {
     name: "Michael",
     email: "michael@gmail.com",
-    password: bcrypt.hashSync("123456", 12),
+    password: safeHashPassword(seedPasswords.user, 12),
     role: "user",
     address: {
       fullName: "John Alexander",
@@ -93,7 +137,7 @@ const users: IUserInput[] = [
   {
     name: "Emily",
     email: "emily@gmail.com",
-    password: bcrypt.hashSync("123456", 12),
+    password: safeHashPassword(seedPasswords.user, 12),
     role: "user",
     address: {
       fullName: "Emily Johnson",
@@ -110,7 +154,7 @@ const users: IUserInput[] = [
   {
     name: "Alice",
     email: "alice@gmail.com",
-    password: bcrypt.hashSync("123456", 12),
+    password: safeHashPassword(seedPasswords.user, 12),
     role: "user",
     address: {
       fullName: "Alice Cooper",
@@ -127,7 +171,7 @@ const users: IUserInput[] = [
   {
     name: "Tom",
     email: "tom@gmail.com",
-    password: bcrypt.hashSync("123456", 12),
+    password: safeHashPassword(seedPasswords.user, 12),
     role: "user",
     address: {
       fullName: "Tom Hanks",
@@ -144,7 +188,7 @@ const users: IUserInput[] = [
   {
     name: "Linda",
     email: "linda@gmail.com",
-    password: bcrypt.hashSync("123456", 12),
+    password: safeHashPassword(seedPasswords.user, 12),
     role: "user",
     address: {
       fullName: "Linda Holmes",
@@ -161,7 +205,7 @@ const users: IUserInput[] = [
   {
     name: "George",
     email: "george@gmail.com",
-    password: bcrypt.hashSync("123456", 12),
+    password: safeHashPassword(seedPasswords.user, 12),
     role: "user",
     address: {
       fullName: "George Smith",
@@ -178,7 +222,7 @@ const users: IUserInput[] = [
   {
     name: "Jessica",
     email: "jessica@gmail.com",
-    password: bcrypt.hashSync("123456", 12),
+    password: safeHashPassword(seedPasswords.user, 12),
     role: "user",
     address: {
       fullName: "Jessica Brown",
@@ -195,7 +239,7 @@ const users: IUserInput[] = [
   {
     name: "Chris",
     email: "chris@gmail.com",
-    password: bcrypt.hashSync("123456", 12),
+    password: safeHashPassword(seedPasswords.user, 12),
     role: "user",
     address: {
       fullName: "Chris Evans",
@@ -212,7 +256,7 @@ const users: IUserInput[] = [
   {
     name: "Samantha",
     email: "samantha@gmail.com",
-    password: bcrypt.hashSync("123456", 12),
+    password: safeHashPassword(seedPasswords.user, 12),
     role: "user",
     address: {
       fullName: "Samantha Wilson",
@@ -229,7 +273,7 @@ const users: IUserInput[] = [
   {
     name: "David",
     email: "david@gmail.com",
-    password: bcrypt.hashSync("123456", 12),
+    password: safeHashPassword(seedPasswords.user, 12),
     role: "user",
     address: {
       fullName: "David Lee",
@@ -246,7 +290,7 @@ const users: IUserInput[] = [
   {
     name: "Anna",
     email: "anna@gmail.com",
-    password: bcrypt.hashSync("123456", 12),
+    password: safeHashPassword(seedPasswords.user, 12),
     role: "user",
     address: {
       fullName: "Anna Smith",
@@ -905,6 +949,7 @@ const data: Data = {
   users,
   products,
   reviews,
+  seedPasswords: seedPasswords || FALLBACK_SEED_PASSWORDS, // Export passwords for development seeding
   webPages: [
     {
       title: "About Us",
@@ -1185,5 +1230,11 @@ We also provide helpful resources such as order tracking, product guides, and FA
     },
   ],
 };
+
+// Export the seed passwords for server-side access
+export const getSeedPasswords = () => seedPasswords;
+
+// Export function to check if server dependencies are available
+export const hasServerDependencies = () => hasServerDeps;
 
 export default data;

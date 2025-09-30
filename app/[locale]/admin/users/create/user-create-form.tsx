@@ -188,14 +188,11 @@ const UserCreateForm = ({ currentUserRole }: UserCreateFormProps) => {
                       <FormControl>
                         <Input
                           type='password'
-                          placeholder='Enter secure password'
+                          placeholder=''
                           className="h-10"
                           {...field}
                         />
                       </FormControl>
-                      <FormDescription className="text-xs">
-                        Password must contain: • 8+ characters • Uppercase letter • Lowercase letter • Number • Special character
-                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}

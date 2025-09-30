@@ -46,54 +46,29 @@ import { cn } from '@/lib/utils'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 
-const productDefaultValues: IProductInput =
-  process.env.NODE_ENV === 'development'
-    ? {
-        name: 'Sample Product',
-        slug: 'sample-product',
-        sku: 'SAMPLE-CATEGORY-001',
-        category: '', // Will be set to ObjectId
-        images: ['/images/ipad1.png'],
-        brand: '', // Will be set to ObjectId
-        description: 'This is a sample description of the product.',
-        price: 99.99,
-        listPrice: 0,
-        countInStock: 15,
-        numReviews: 0,
-        avgRating: 0,
-        numSales: 0,
-        isPublished: false,
-        tags: [],
-        sizes: [],
-        colors: [],
-        ratingDistribution: [],
-        reviews: [],
-        saleStartDate: undefined,
-        saleEndDate: undefined,
-      }
-    : {
-        name: '',
-        slug: '',
-        sku: '',
-        category: '',
-        images: [],
-        brand: '',
-        description: '',
-        price: 0,
-        listPrice: 0,
-        countInStock: 0,
-        numReviews: 0,
-        avgRating: 0,
-        numSales: 0,
-        isPublished: false,
-        tags: [],
-        sizes: [],
-        colors: [],
-        ratingDistribution: [],
-        reviews: [],
-        saleStartDate: undefined,
-        saleEndDate: undefined,
-      }
+const productDefaultValues: IProductInput = {
+  name: '',
+  slug: '',
+  sku: '',
+  category: '',
+  images: [],
+  brand: '',
+  description: '',
+  price: 0,
+  listPrice: 0,
+  countInStock: 0,
+  numReviews: 0,
+  avgRating: 0,
+  numSales: 0,
+  isPublished: false,
+  tags: [],
+  sizes: [],
+  colors: [],
+  ratingDistribution: [],
+  reviews: [],
+  saleStartDate: undefined,
+  saleEndDate: undefined,
+}
 
 const ProductForm = ({
   type,

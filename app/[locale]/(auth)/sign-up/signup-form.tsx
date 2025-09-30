@@ -23,21 +23,14 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { UserSignUpSchema } from '@/lib/validator'
 import { Separator } from '@/components/ui/separator'
 import { isRedirectError } from 'next/dist/client/components/redirect-error'
+import { createSecureFormDefaults, validateFormDefaults, getSecurePlaceholder } from '@/lib/utils/form-security'
 
-const signUpDefaultValues =
-  process.env.NODE_ENV === 'development'
-    ? {
-        name: 'john doe',
-        email: 'john@me.com',
-        password: '123456',
-        confirmPassword: '123456',
-      }
-    : {
-        name: '',
-        email: '',
-        password: '',
-        confirmPassword: '',
-      }
+const signUpDefaultValues = createSecureFormDefaults({
+  name: '',
+  email: '',
+  password: '',
+  confirmPassword: '',
+})
 
 export default function SignUpForm() {
   const {
@@ -46,6 +39,9 @@ export default function SignUpForm() {
   const searchParams = useSearchParams()
   const callbackUrl = searchParams.get('callbackUrl') || '/'
   const [isLoading, setIsLoading] = useState(false)
+
+  // Validate form defaults for security
+  validateFormDefaults(signUpDefaultValues, 'signup')
 
   const form = useForm<IUserSignUp>({
     resolver: zodResolver(UserSignUpSchema),
@@ -97,7 +93,7 @@ export default function SignUpForm() {
               <FormItem className='w-full'>
                 <FormLabel>Name</FormLabel>
                 <FormControl>
-                  <Input placeholder='Enter your full name' {...field} />
+                  <Input placeholder={getSecurePlaceholder('name')} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -111,7 +107,7 @@ export default function SignUpForm() {
               <FormItem className='w-full'>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input placeholder='Enter email address' {...field} />
+                  <Input placeholder={getSecurePlaceholder('email')} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -127,7 +123,7 @@ export default function SignUpForm() {
                 <FormControl>
                   <Input
                     type='password'
-                    placeholder='Enter password'
+                    placeholder={getSecurePlaceholder('password')}
                     {...field}
                   />
                 </FormControl>
@@ -144,7 +140,7 @@ export default function SignUpForm() {
                 <FormControl>
                   <Input
                     type='password'
-                    placeholder='Confirm Password'
+                    placeholder={getSecurePlaceholder('password')}
                     {...field}
                   />
                 </FormControl>

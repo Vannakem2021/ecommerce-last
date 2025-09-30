@@ -7,22 +7,32 @@ import Order from "@/lib/db/models/order.model";
 
 export async function POST(req: NextRequest) {
   try {
-    // Check authentication
+    // 1. Authentication check
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Parse request body
+    // 2. Parse and validate request body
     const { orderId } = await req.json();
-    if (!orderId) {
+
+    // Input validation
+    if (!orderId || typeof orderId !== 'string') {
       return NextResponse.json(
-        { error: "Order ID is required" },
+        { error: "Invalid order ID" },
         { status: 400 }
       );
     }
 
-    // Connect to database and get order
+    // Validate MongoDB ObjectId format
+    if (!/^[0-9a-fA-F]{24}$/.test(orderId)) {
+      return NextResponse.json(
+        { error: "Invalid order ID format" },
+        { status: 400 }
+      );
+    }
+
+    // 3. Connect to database and get order
     await connectToDatabase();
     const order = await getOrderById(orderId);
 
@@ -30,8 +40,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
-    // Verify order ownership
-    if (order.user.toString() !== session.user.id) {
+    // 4. Authorization check - CRITICAL SECURITY
+    // Check if user is admin/manager OR owns the order
+    const isAdmin = session.user.role === 'admin' || session.user.role === 'manager';
+    const isOrderOwner = order.user.toString() === session.user.id;
+
+    if (!isAdmin && !isOrderOwner) {
+      console.warn(`[SECURITY] Unauthorized payment attempt: User ${session.user.id} (role: ${session.user.role}) tried to access order ${orderId}`);
       return NextResponse.json(
         { error: "Unauthorized access to order" },
         { status: 403 }

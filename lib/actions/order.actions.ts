@@ -382,16 +382,41 @@ export async function deliverOrder(orderId: string) {
 // DELETE
 export async function deleteOrder(id: string) {
   try {
-    await connectToDatabase()
-    const res = await Order.findByIdAndDelete(id)
-    if (!res) throw new Error('Order not found')
-    revalidatePath('/admin/orders')
+    // 1. Require admin permission
+    await requirePermission('orders.delete');
+
+    await connectToDatabase();
+
+    // 2. Verify order exists and get details for audit
+    const order = await Order.findById(id);
+    if (!order) {
+      throw new Error('Order not found');
+    }
+
+    // 3. Additional business logic validation
+    if (order.isPaid && !order.isDelivered) {
+      throw new Error('Cannot delete paid orders that are being processed. Please contact support.');
+    }
+
+    // 4. Get current user for audit log
+    const session = await auth();
+
+    // 5. Log before deletion for audit trail
+    console.log(`[AUDIT] Order ${id} deleted by user ${session!.user.id} (role: ${session!.user.role})`);
+    console.log(`[AUDIT] Order details - Value: ${order.totalPrice}, Items: ${order.items.length}, Status: ${order.isPaid ? 'Paid' : 'Unpaid'}`);
+
+    // 6. Perform deletion
+    const res = await Order.findByIdAndDelete(id);
+    if (!res) throw new Error('Order not found');
+
+    revalidatePath('/admin/orders');
     return {
       success: true,
       message: 'Order deleted successfully',
-    }
+    };
   } catch (error) {
-    return { success: false, message: formatError(error) }
+    console.error(`[ERROR] Order deletion failed for ${id}:`, error);
+    return { success: false, message: formatError(error) };
   }
 }
 

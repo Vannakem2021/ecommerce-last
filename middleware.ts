@@ -3,6 +3,18 @@ import { routing } from './i18n/routing'
 
 import NextAuth from 'next-auth'
 import authConfig from './auth.config'
+import { validateCriticalConfiguration } from './lib/utils/startup-validator'
+
+// Validate critical configuration on middleware initialization
+try {
+  const isConfigValid = validateCriticalConfiguration()
+  if (!isConfigValid) {
+    console.warn('⚠️  WARNING: Some environment variables are missing - middleware will continue but functionality may be limited')
+  }
+} catch (error) {
+  console.error('❌ ERROR: Environment validation failed in middleware:', error)
+  console.warn('⚠️  Middleware will continue but some functionality may not work properly')
+}
 
 const publicPages = [
   '/',

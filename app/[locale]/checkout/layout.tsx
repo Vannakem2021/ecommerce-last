@@ -12,32 +12,36 @@ export default async function CheckoutLayout({
 }) {
   const { site } = await getSetting()
   return (
-    <Container className='py-4'>
-      <header className='bg-card mb-4 border-b'>
-        <div className='flex justify-between items-center'>
-          <Link href='/'>
-            <Image
-              src={site.logo}
-              alt={`${site.name} logo`}
-              width={70}
-              height={70}
-              style={{
-                maxWidth: '100%',
-                height: 'auto',
-              }}
-            />
-          </Link>
-          <div>
-            <h1 className='text-3xl'>Checkout</h1>
-          </div>
-          <div>
-            <Link href='/page/help'>
-              <HelpCircle className='w-6 h-6' />
+    <>
+      <header className='bg-card border-b'>
+        <Container>
+          <div className='flex justify-between items-center py-4'>
+            <Link href='/'>
+              <Image
+                src={site.logo}
+                alt={`${site.name} logo`}
+                width={70}
+                height={70}
+                style={{
+                  maxWidth: '100%',
+                  height: 'auto',
+                }}
+              />
             </Link>
+            <div>
+              <h1 className='text-3xl'>Checkout</h1>
+            </div>
+            <div>
+              <Link href='/page/help'>
+                <HelpCircle className='w-6 h-6' />
+              </Link>
+            </div>
           </div>
-        </div>
+        </Container>
       </header>
-      {children}
-    </Container>
+      <Container className='py-4'>
+        {children}
+      </Container>
+    </>
   )
 }

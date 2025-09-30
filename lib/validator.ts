@@ -460,12 +460,6 @@ const RegistrationEmail = z
     }
     return true;
   }, "Invalid email format")
-  .refine((email) => {
-    // Only allow Gmail addresses for registration
-    const normalizedEmail = email.toLowerCase().trim();
-    const domain = normalizedEmail.split('@')[1];
-    return domain === 'gmail.com';
-  }, "Only Gmail addresses are allowed for registration")
   .transform((email) => email.toLowerCase().trim());
 const Password = z
   .string()
@@ -491,10 +485,11 @@ const Password = z
     return !repeatedChar;
   }, "Password cannot be just repeated characters")
   .refine((password) => {
-    // Prevent sequential characters (123, abc, etc.)
-    const sequential = /(012|123|234|345|456|567|678|789|abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz)/i.test(password);
-    return !sequential;
-  }, "Password cannot contain sequential characters (like 123 or abc)")
+    // Prevent long sequential characters (5+ characters like 12345 or abcde)
+    // This allows common patterns like "Password123" while blocking obvious sequences
+    const longSequential = /(01234|12345|23456|34567|45678|56789|abcde|bcdef|cdefg|defgh|efghi|fghij|ghijk|hijkl|ijklm|jklmn|klmno|lmnop|mnopq|nopqr|opqrs|pqrst|qrstu|rstuv|stuvw|tuvwx|uvwxy|vwxyz)/i.test(password);
+    return !longSequential;
+  }, "Password cannot contain long sequential characters (like 12345 or abcde)")
   .refine((password) => {
     // Prevent keyboard patterns
     const keyboardPatterns = ['qwerty', 'asdfgh', 'zxcvbn', '1qaz2wsx', 'qazwsx'];

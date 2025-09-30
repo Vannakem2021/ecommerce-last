@@ -21,7 +21,11 @@
       "Bash(node:*)",
       "mcp__playwright__browser_press_key",
       "Bash(pkill:*)",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "Bash(dir:*)",
+      "Bash(findstr:*)",
+      "Bash(npx playwright test:*)",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "ask": []

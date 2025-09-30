@@ -8,18 +8,44 @@ import {
   ABA_PAYWAY_TRANSACTION_TYPES,
 } from "@/types/aba-payway";
 import { getSetting } from "@/lib/actions/setting.actions";
+import { getSecureEnvVar, validatePaymentProviderConfig, isProduction } from "@/lib/utils/environment";
 
 class ABAPayWayService {
   private config: ABAPayWayConfig;
 
   constructor() {
+    // Validate payment provider configuration
+    const paymentConfig = validatePaymentProviderConfig()
+
+    if (paymentConfig.warning) {
+      console.warn(`⚠️  [ABA PayWay] ${paymentConfig.warning}`)
+    }
+
     this.config = {
-      merchantId: process.env.PAYWAY_MERCHANT_ID || "",
-      apiKey: process.env.PAYWAY_SECRET_KEY || "",
-      baseUrl:
-        process.env.PAYWAY_BASE_URL || "https://checkout-sandbox.payway.com.kh",
-      enabled: process.env.PAYWAY_ENABLED === "true",
+      merchantId: getSecureEnvVar("PAYWAY_MERCHANT_ID", false),
+      apiKey: getSecureEnvVar("PAYWAY_SECRET_KEY", false),
+      baseUrl: getSecureEnvVar(
+        "PAYWAY_BASE_URL",
+        false,
+        "https://checkout-sandbox.payway.com.kh"
+      ),
+      enabled: getSecureEnvVar("PAYWAY_ENABLED", false) === "true",
     };
+
+    // Additional security validation for production
+    if (isProduction() && this.config.enabled) {
+      if (!this.config.merchantId || !this.config.apiKey) {
+        throw new Error(
+          "❌ SECURITY ERROR: ABA PayWay is enabled in production but required credentials are missing"
+        );
+      }
+
+      if (this.config.baseUrl.includes("sandbox")) {
+        console.warn(
+          "⚠️  WARNING: ABA PayWay is using sandbox URL in production environment"
+        );
+      }
+    }
   }
 
   /**
@@ -32,14 +58,13 @@ class ABAPayWayService {
         this.config = {
           merchantId:
             settings.abaPayWay.merchantId ||
-            process.env.PAYWAY_MERCHANT_ID ||
-            "",
-          apiKey: process.env.PAYWAY_SECRET_KEY || "",
+            getSecureEnvVar("PAYWAY_MERCHANT_ID", false),
+          apiKey: getSecureEnvVar("PAYWAY_SECRET_KEY", false),
           baseUrl: settings.abaPayWay.sandboxMode
             ? "https://checkout-sandbox.payway.com.kh"
             : "https://checkout.payway.com.kh",
           enabled:
-            settings.abaPayWay.enabled && !!process.env.PAYWAY_SECRET_KEY,
+            settings.abaPayWay.enabled && !!getSecureEnvVar("PAYWAY_SECRET_KEY", false),
         };
       }
     } catch (error) {

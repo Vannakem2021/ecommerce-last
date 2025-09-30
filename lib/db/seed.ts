@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import data from '@/lib/data'
+import data, { getSeedPasswords, hasServerDependencies } from '@/lib/data'
 import { connectToDatabase } from '.'
 import User from './models/user.model'
 import Product from './models/product.model'
@@ -8,6 +8,8 @@ import Brand from './models/brand.model'
 import Category from './models/category.model'
 import { cwd } from 'process'
 import { loadEnvConfig } from '@next/env'
+import { isProduction, logEnvironmentStatus, validateProductionSafety } from '../utils/environment'
+import { validateStartupConfiguration } from '../utils/startup-validator'
 import Order from './models/order.model'
 import {
   calculateFutureDate,
@@ -24,11 +26,67 @@ loadEnvConfig(cwd())
 
 const main = async () => {
   try {
+    // Comprehensive startup validation
+    console.log('🌱 Database Seeding - Configuration Validation')
+    const startupValidation = await validateStartupConfiguration({
+      throwOnFailure: false,
+      logResults: true
+    })
+
+    // Security check: Prevent seeding in production
+    if (isProduction()) {
+      console.error('❌ ERROR: Database seeding is disabled in production environment for security reasons')
+      console.error('This prevents accidental data corruption and maintains production data integrity')
+      process.exit(1)
+    }
+
+    // Validate environment variables
+    if (!startupValidation.success) {
+      console.error('❌ ERROR: Startup validation failed:', startupValidation.errors)
+      process.exit(1)
+    }
+
+    // Additional database-specific validation
+    if (!startupValidation.services.database) {
+      console.error('❌ ERROR: Database configuration is invalid')
+      process.exit(1)
+    }
+
+    console.log('🌱 Starting database seeding...')
+
+    // Validate that server dependencies are available
+    if (!hasServerDependencies()) {
+      console.error('❌ ERROR: Server dependencies not available for seeding')
+      process.exit(1)
+    }
+
+    // Validate seed data for production safety patterns
+    const safetyCheck = validateProductionSafety(data, 'seed data')
+    if (!safetyCheck.isSecure) {
+      console.warn('⚠️  Production safety warnings in seed data:')
+      safetyCheck.warnings.forEach(warning => console.warn(`   ${warning}`))
+    }
+
     const { users, products, reviews, webPages, settings } = data
+    const seedPasswords = getSeedPasswords()
     await connectToDatabase(process.env.MONGODB_URI)
 
     await User.deleteMany()
     const createdUser = await User.insertMany(users)
+
+    // Display admin credentials for development access
+    if (seedPasswords) {
+      console.log('\n🔐 ADMIN CREDENTIALS GENERATED:')
+      console.log('================================')
+      console.log('📧 Email: admin@gmail.com')
+      console.log(`🔑 Password: ${seedPasswords.admin}`)
+      console.log('🔒 These credentials are securely generated for security')
+      console.log('⚠️  Save these credentials as they will not be shown again')
+      console.log('💡 Other test user passwords are also securely generated')
+      console.log('================================\n')
+    } else {
+      console.log('⚠️  Warning: Could not display admin credentials')
+    }
 
     await Setting.deleteMany()
     const createdSetting = await Setting.insertMany(settings)
@@ -126,6 +184,16 @@ const main = async () => {
       createdSetting,
       message: 'Seeded database successfully',
     })
+
+    // Final security reminder
+    console.log('\n🔐 SECURITY REMINDERS:')
+    console.log('======================')
+    console.log('✅ All passwords have been securely generated')
+    console.log('✅ Production seeding is disabled for safety')
+    console.log('⚠️  Remember to change default credentials in production')
+    console.log('⚠️  This seed data is for development/testing only')
+    console.log('======================\n')
+
     process.exit(0)
   } catch (error) {
     console.error(error)

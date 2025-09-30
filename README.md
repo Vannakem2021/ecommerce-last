@@ -68,11 +68,12 @@ https://next-mongo-ecommerce-final.vercel.app/
      npm run dev
    ```
 
-6. Admin Login
+6. Admin Access
 
    - Open http://localhost:3000
-   - Click Sign In button
-   - Enter admin email "admin@example.com" and password "123456" and click Sign In
+   - Admin credentials are generated automatically during the seeding process
+   - Check the seeding output in your terminal for the admin login details
+   - **Note:** Admin credentials are randomly generated for security and will be displayed once during seeding
 
 ## Lessons
 

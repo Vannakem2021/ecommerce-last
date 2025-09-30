@@ -478,45 +478,67 @@ export async function getUserById(userId: string) {
 }
 
 // UPDATE USER ADDRESS
-export async function updateUserAddress(userId: string, address: any) {
+export async function updateUserAddress(userId: string, address: unknown) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
       throw new Error("Authentication required");
     }
 
-    // Additional validation to prevent users from updating addresses of other users
-    if (session.user.id !== userId) {
-      // Only admins can update other users' addresses
-      if (session.user.role !== "admin") {
-        console.warn(`User ${session.user.id} attempted to update address for user ${userId}`);
-        throw new Error("Unauthorized: Cannot update another user's address");
-      }
+    // 1. Validate userId format (prevent NoSQL injection)
+    if (!userId || typeof userId !== 'string' || !/^[0-9a-fA-F]{24}$/.test(userId)) {
+      throw new Error("Invalid user ID format");
     }
 
-    // Input sanitization for address data
-    if (!address || typeof address !== 'object') {
-      throw new Error("Invalid address data");
+    // 2. Authorization check
+    const isAdmin = session.user.role === 'admin' || session.user.role === 'manager';
+    const isOwner = session.user.id === userId;
+
+    if (!isAdmin && !isOwner) {
+      console.warn(`[SECURITY] Unauthorized address update attempt: User ${session.user.id} (role: ${session.user.role}) tried to update ${userId}`);
+      throw new Error("Unauthorized: Cannot update another user's address");
     }
+
+    // 3. Validate and sanitize address data using ShippingAddressSchema
+    const { ShippingAddressSchema } = await import('../validator');
+    const validatedAddress = ShippingAddressSchema.parse(address);
 
     await connectToDatabase();
 
-    // Verify target user exists before update
+    // 4. Verify target user exists
     const targetUser = await User.findById(userId);
     if (!targetUser) {
       throw new Error("User not found");
     }
 
-    await User.findByIdAndUpdate(
+    // 5. Update only the address field (use $set to prevent field injection)
+    const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { address },
-      { new: true }
+      { $set: { address: validatedAddress } },
+      { new: true, runValidators: true }
     );
 
+    if (!updatedUser) {
+      throw new Error("Failed to update address");
+    }
+
+    // 6. Audit log
+    console.log(`[AUDIT] Address updated for user ${userId} by ${session.user.id} (role: ${session.user.role})`);
+
     revalidatePath("/account/addresses");
-    return { success: true };
+    return { success: true, data: updatedUser.address };
   } catch (error) {
-    console.error(`Address update failed for user ${userId}:`, error);
+    console.error(`[ERROR] Address update failed for user ${userId}:`, error);
+
+    // Handle Zod validation errors specifically
+    if (error && typeof error === 'object' && 'issues' in error) {
+      const zodError = error as { issues: Array<{ message: string }> };
+      return {
+        success: false,
+        error: "Invalid address data: " + zodError.issues.map(e => e.message).join(", ")
+      };
+    }
+
     return { success: false, error: formatError(error) };
   }
 }
