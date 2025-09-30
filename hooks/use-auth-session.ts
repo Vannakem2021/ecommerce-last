@@ -7,6 +7,7 @@
 
 import { useSession, Session } from 'next-auth/react'
 import { useEffect, useCallback } from 'react'
+import { isDevelopment, validateEnvironmentVariables } from '@/lib/utils/environment'
 
 export interface AuthUser {
   id: string
@@ -80,8 +81,8 @@ export function useAuthDebug() {
   const authSession = useAuthSession()
 
   useEffect(() => {
-    // Only log in development environment
-    if (process.env.NODE_ENV === 'development') {
+    // Only log in development environment using environment helper
+    if (isDevelopment()) {
       console.log('🔍 Auth Debug Info:', {
         status: authSession.status,
         isAuthenticated: authSession.isAuthenticated,
@@ -95,6 +96,23 @@ export function useAuthDebug() {
   }, [authSession])
 
   return authSession
+}
+
+/**
+ * Hook for validating authentication environment configuration
+ */
+export function useAuthEnvironmentValidation() {
+  useEffect(() => {
+    if (isDevelopment()) {
+      const validation = validateEnvironmentVariables()
+      if (!validation.isValid) {
+        console.error('🔐 Auth Environment Issues:', validation.missing)
+      }
+      if (validation.warnings.length > 0) {
+        console.warn('⚠️ Auth Environment Warnings:', validation.warnings)
+      }
+    }
+  }, [])
 }
 
 export default useAuthSession

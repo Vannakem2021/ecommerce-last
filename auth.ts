@@ -9,6 +9,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import NextAuth, { type DefaultSession } from "next-auth";
 import authConfig from "./auth.config";
 import { getPostLoginRedirectUrl } from "./lib/auth-redirect";
+import { i18n } from "./i18n-config";
 
 declare module "next-auth" {
   interface Session {
@@ -30,8 +31,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   session: {
     strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-    updateAge: 24 * 60 * 60, // 24 hours
+    maxAge: 7 * 24 * 60 * 60, // 7 days (reduced from 30 for security)
+    updateAge: 60 * 60, // 1 hour (reduced from 24 hours for security)
   },
   adapter: MongoDBAdapter(client),
   providers: [
@@ -85,24 +86,46 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    redirect: async ({ url, baseUrl }) => {
+    redirect: async ({ url, baseUrl, request }) => {
       try {
         // Only allow same-origin redirects for security
         if (!url.startsWith("/") && !url.startsWith(baseUrl)) {
           return baseUrl;
         }
 
-        // For OAuth flows, redirect to a post-auth page that handles role-based redirects
+        // For OAuth flows, redirect to a locale-aware post-auth page that handles role-based redirects
         // This is necessary because the redirect callback doesn't have access to user session
         if (url.includes("/api/auth/callback/")) {
-          return `${baseUrl}/auth/post-signin`;
+          // Detect locale from request URL or fallback to default
+          let locale = i18n.defaultLocale;
+
+          try {
+            // Extract locale from referer or request headers if available
+            const referer = request?.headers?.get?.('referer') || '';
+            const localeMatch = referer.match(/\/([a-z]{2}-[A-Z]{2}|[a-z]{2})\//);
+
+            if (localeMatch) {
+              const detectedLocale = localeMatch[1];
+              const validLocale = i18n.locales.find(l => l.code === detectedLocale);
+              if (validLocale) {
+                locale = validLocale.code;
+              }
+            }
+          } catch (localeError) {
+            console.warn("Failed to detect locale from request, using default:", localeError);
+          }
+
+          const localeAwarePath = `/${locale}/auth/post-signin`;
+          console.log(`OAuth redirect: Redirecting to locale-aware path: ${localeAwarePath}`);
+          return `${baseUrl}${localeAwarePath}`;
         }
 
         // For other redirects, ensure they're same-origin
         return url.startsWith("/") ? `${baseUrl}${url}` : url;
       } catch (error) {
         console.error("Redirect callback error:", error);
-        return baseUrl;
+        // Fallback to default locale on error
+        return `${baseUrl}/${i18n.defaultLocale}/auth/post-signin`;
       }
     },
     signIn: async ({ user, account, profile }) => {

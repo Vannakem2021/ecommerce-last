@@ -3,6 +3,7 @@ import { useFormStatus } from 'react-dom'
 import { useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 import { signIn } from 'next-auth/react'
+import { useLocale } from 'next-intl'
 
 import { Button } from '@/components/ui/button'
 import { toast } from '@/hooks/use-toast'
@@ -13,6 +14,7 @@ export function GoogleSignInForm() {
   const searchParams = useSearchParams()
   const callbackUrl = searchParams.get('callbackUrl') || '/'
   const [isLoading, setIsLoading] = useState(false)
+  const locale = useLocale()
 
   const handleGoogleSignIn = async () => {
     try {
@@ -21,10 +23,25 @@ export function GoogleSignInForm() {
       // Validate callback URL to prevent open redirect attacks
       const safeCallbackUrl = callbackUrl.startsWith('/') ? callbackUrl : '/'
 
+      // Get current locale with fallback to default
+      let currentLocale = locale;
+      try {
+        // Ensure we have a valid locale
+        if (!currentLocale || typeof currentLocale !== 'string') {
+          currentLocale = 'en-US'; // fallback to default
+        }
+      } catch (localeError) {
+        console.warn('Failed to detect locale, using default:', localeError);
+        currentLocale = 'en-US';
+      }
+
+      // Construct locale-aware callback URL
+      const localeAwareCallbackUrl = `/${currentLocale}/auth/post-signin?callbackUrl=${encodeURIComponent(safeCallbackUrl)}`;
+
       // Use NextAuth's signIn with proper CSRF protection and state validation
-      // Role-based redirects for OAuth are handled by the post-signin page
+      // Role-based redirects for OAuth are handled by the locale-aware post-signin page
       await signIn('google', {
-        callbackUrl: `/auth/post-signin?callbackUrl=${encodeURIComponent(safeCallbackUrl)}`,
+        callbackUrl: localeAwareCallbackUrl,
         redirect: true, // Let NextAuth handle the redirect to post-signin page
       })
     } catch (error) {

@@ -1,5 +1,33 @@
-export const SENDER_NAME = process.env.SENDER_NAME || 'BCS Support'
-export const SENDER_EMAIL = process.env.SENDER_EMAIL || 'onboarding@resend.dev'
+import { getSecureEnvVar, validateEmailServiceConfig, isProduction, isDevelopment } from '@/lib/utils/environment'
+
+// Validate email service configuration
+const emailConfig = validateEmailServiceConfig()
+if (emailConfig.warning) {
+  console.warn(`⚠️  [Email Service] ${emailConfig.warning}`)
+}
+
+export const SENDER_NAME = getSecureEnvVar('SENDER_NAME', false, 'BCS Support')
+export const SENDER_EMAIL = getSecureEnvVar('SENDER_EMAIL', false, 'onboarding@resend.dev')
+
+// Additional validation for production
+if (isProduction()) {
+  if (SENDER_EMAIL.includes('resend.dev') || SENDER_EMAIL.includes('example.com')) {
+    console.warn('⚠️  WARNING: Using default/example email address in production')
+  }
+}
+
+// Email service status logging
+if (isDevelopment()) {
+  const hasApiKey = !!getSecureEnvVar('RESEND_API_KEY', false)
+  const hasCustomSender = SENDER_EMAIL !== 'onboarding@resend.dev'
+  const hasCustomName = SENDER_NAME !== 'BCS Support'
+
+  if (hasApiKey && (!hasCustomSender || !hasCustomName)) {
+    console.info('ℹ️  Email service partially configured:')
+    if (!hasCustomSender) console.info('   • Consider setting SENDER_EMAIL for branded emails')
+    if (!hasCustomName) console.info('   • Consider setting SENDER_NAME for branded emails')
+  }
+}
 
 // RBAC Role System
 export const USER_ROLES = {

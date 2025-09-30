@@ -60,6 +60,12 @@ export type Data = {
   webPages: IWebPageInput[]
   users: IUserInput[]
   products: IProductInput[]
+  seedPasswords?: {
+    admin: string
+    manager: string
+    seller: string
+    user: string
+  }
   reviews: {
     title: string
     rating: number
