@@ -15,7 +15,8 @@ export interface IStockMovement extends Document {
   updatedAt: Date
 }
 
-const stockMovementSchema = new Schema<IStockMovement>(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const stockMovementSchema = new Schema<any>(
   {
     product: {
       type: Schema.Types.ObjectId,

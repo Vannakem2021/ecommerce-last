@@ -42,7 +42,7 @@ export default async function AdminPromotionsPage(props: {
   const canCreate = hasPermission(session.user.role, 'promotions.create')
 
   // Calculate promotion statistics
-  const activePromotions = data.promotions.filter(promo => {
+  const activePromotions = data.promotions.filter((promo: { active: boolean; startDate: string | Date; endDate: string | Date; usageLimit: number; usedCount: number }) => {
     const now = new Date()
     return (
       promo.active &&
@@ -52,13 +52,13 @@ export default async function AdminPromotionsPage(props: {
     )
   }).length
 
-  const totalUsage = data.promotions.reduce((sum, promo) => sum + promo.usedCount, 0)
+  const totalUsage = data.promotions.reduce((sum: number, promo: { usedCount: number }) => sum + promo.usedCount, 0)
   const avgUsage = data.totalPromotions > 0 ? Math.round(totalUsage / data.totalPromotions) : 0
 
   // Get recent promotions (created in last 30 days)
   const thirtyDaysAgo = new Date()
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-  const recentPromotions = data.promotions.filter(promo =>
+  const recentPromotions = data.promotions.filter((promo: { createdAt: string | Date }) =>
     new Date(promo.createdAt) > thirtyDaysAgo
   ).length
 

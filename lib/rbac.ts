@@ -17,13 +17,13 @@ export async function requirePermission(permission: Permission, redirectPath?: s
     redirectAuthenticationRequired(redirectPath)
   }
 
-  if (!session.user.role || typeof session.user.role !== 'string') {
-    console.error(`Authorization failed: Invalid or missing role for user ${session.user.id}`)
+  if (!session?.user.role || typeof session.user.role !== 'string') {
+    console.error(`Authorization failed: Invalid or missing role for user ${session?.user.id}`)
     throw new Error('User role not found or invalid')
   }
 
   if (!hasPermission(session.user.role, permission)) {
-    console.warn(`Authorization failed: User ${session.user.id} with role ${session.user.role} lacks permission ${permission}`)
+    console.warn(`Authorization failed: User ${session?.user.id} with role ${session.user.role} lacks permission ${permission}`)
     const { redirectInsufficientRole } = await import('./unauthorized-redirect')
     redirectInsufficientRole(redirectPath)
   }
@@ -34,13 +34,13 @@ export async function requirePermission(permission: Permission, redirectPath?: s
  */
 export async function requireAdmin(redirectPath?: string): Promise<void> {
   const session = await auth()
-  
+
   if (!session?.user?.id) {
     const { redirectAuthenticationRequired } = await import('./unauthorized-redirect')
     redirectAuthenticationRequired(redirectPath)
   }
-  
-  if (!isAdmin(session.user.role)) {
+
+  if (!session || !isAdmin(session.user.role)) {
     const { redirectInsufficientRole } = await import('./unauthorized-redirect')
     redirectInsufficientRole(redirectPath)
   }
@@ -51,13 +51,13 @@ export async function requireAdmin(redirectPath?: string): Promise<void> {
  */
 export async function requireManagerOrHigher(redirectPath?: string): Promise<void> {
   const session = await auth()
-  
+
   if (!session?.user?.id) {
     const { redirectAuthenticationRequired } = await import('./unauthorized-redirect')
     redirectAuthenticationRequired(redirectPath)
   }
-  
-  if (!isManagerOrHigher(session.user.role)) {
+
+  if (!session || !isManagerOrHigher(session.user.role)) {
     const { redirectInsufficientRole } = await import('./unauthorized-redirect')
     redirectInsufficientRole(redirectPath)
   }

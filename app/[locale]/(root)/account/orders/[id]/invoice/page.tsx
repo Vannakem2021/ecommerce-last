@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { Metadata } from 'next/metadata'
+import { Metadata } from 'next'
 
 import { getInvoiceData } from '@/lib/actions/invoice.actions'
 import { formatId } from '@/lib/utils'
@@ -66,7 +66,6 @@ export default async function InvoicePage(props: InvoicePageProps) {
                 Invoice {invoiceData.invoiceNumber}
               </h1>
               <InvoiceActions
-                invoiceNumber={invoiceData.invoiceNumber}
                 orderId={id}
                 showLabels={true}
               />

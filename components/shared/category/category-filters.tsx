@@ -16,7 +16,6 @@ import {
   SearchIcon,
   FilterIcon,
   XIcon,
-  FolderIcon,
   CheckCircleIcon,
   SortAscIcon
 } from 'lucide-react'
@@ -38,7 +37,7 @@ export default function CategoryFilters({
   className = ''
 }: CategoryFiltersProps) {
   const [searchValue, setSearchValue] = useState('')
-  const [isPending, setIsPending] = useState(false)
+  const [isPending] = useState(false)
   const [filters, setFilters] = useState<CategoryFilterState>({
     status: 'all',
     sort: 'latest'

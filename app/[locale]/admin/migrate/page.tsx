@@ -98,15 +98,15 @@ export default function MigrationPage() {
         <CardContent className='space-y-4'>
           <div className='space-y-2'>
             <p className='text-muted-foreground'>
-              This migrates products from tag-based "todays-deal" system to simplified time-based sales.
+              This migrates products from tag-based &quot;todays-deal&quot; system to simplified time-based sales.
             </p>
             <div className='text-sm text-muted-foreground space-y-1'>
               <p><strong>What this does:</strong></p>
               <ul className='list-disc list-inside space-y-1 ml-2'>
-                <li>Converts products with "todays-deal" tag to time-based sales</li>
+                <li>Converts products with &quot;todays-deal&quot; tag to time-based sales</li>
                 <li>Sets sale period (30 days from migration date)</li>
-                <li>Removes the manual "todays-deal" tag</li>
-                <li>Products become eligible for Today's Deals through database logic</li>
+                <li>Removes the manual &quot;todays-deal&quot; tag</li>
+                <li>Products become eligible for Today&apos;s Deals through database logic</li>
               </ul>
               <p className='mt-2'><strong>Simplified approach:</strong> No complex salePrice field needed - uses regular price with time-based availability.</p>
             </div>
@@ -115,7 +115,7 @@ export default function MigrationPage() {
           <div className='bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-md p-4'>
             <p className='text-sm text-blue-800 dark:text-blue-200'>
               <strong>Migration Benefits:</strong> This simplifies your sales system by using database logic instead of manual tags.
-              Today's Deals will automatically update based on sale periods without manual intervention.
+              Today&apos;s Deals will automatically update based on sale periods without manual intervention.
             </p>
           </div>
 

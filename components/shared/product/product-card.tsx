@@ -10,7 +10,6 @@ import { formatNumber, generateId, round2 } from '@/lib/utils'
 import ProductPrice from './product-price'
 import ImageHover from './image-hover'
 import AddToCart from './add-to-cart'
-import PromotionBadge from '../promotion/promotion-badge'
 import FavoriteButton from './favorite-button'
 
 const ProductCard = ({
@@ -77,7 +76,7 @@ const ProductCard = ({
   )
   const ProductDetails = () => (
     <div className='flex-1 space-y-2'>
-      <p className='font-bold'>{typeof product.brand === 'object' ? product.brand.name : product.brand}</p>
+      <p className='font-bold'>{typeof product.brand === 'object' ? (product.brand as unknown as { name: string }).name : product.brand}</p>
       <Link
         href={`/product/${product.slug}`}
         className='overflow-hidden text-ellipsis'
@@ -113,7 +112,7 @@ const ProductCard = ({
           countInStock: product.countInStock,
           name: product.name,
           slug: product.slug,
-          category: typeof product.category === 'object' ? product.category.name : product.category,
+          category: typeof product.category === 'object' ? (product.category as unknown as { name: string }).name : product.category,
           price: round2(product.price),
           quantity: 1,
           image: product.images[0],

@@ -210,7 +210,7 @@ const SystemUserEditForm = ({ user, currentUserRole }: SystemUserEditFormProps) 
                         />
                       </FormControl>
                       <FormDescription>
-                        System user's display name for admin interfaces
+                        System user&apos;s display name for admin interfaces
                       </FormDescription>
                       <FormMessage />
                     </FormItem>

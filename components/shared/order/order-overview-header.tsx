@@ -7,12 +7,10 @@ import { generateOrderNumber } from '@/lib/utils/order-utils'
 import { IOrder } from '@/lib/db/models/order.model'
 import {
   CalendarIcon,
-  DollarSignIcon,
   PackageIcon,
   TruckIcon,
   CheckCircleIcon,
-  ClockIcon,
-  XCircleIcon
+  ClockIcon
 } from 'lucide-react'
 import ProductPrice from '../product/product-price'
 
@@ -92,7 +90,7 @@ export default function OrderOverviewHeader({ order }: OrderOverviewHeaderProps)
 
     return (
       <div className="space-y-2">
-        {events.map((event, index) => {
+        {events.map((event) => {
           const Icon = event.icon
           return (
             <div key={event.label} className="flex items-center gap-2 text-sm">
@@ -146,7 +144,7 @@ export default function OrderOverviewHeader({ order }: OrderOverviewHeaderProps)
             </div>
             <div>
               <div className="font-medium">
-                {order.user?.name || 'Guest Customer'}
+                {typeof order.user === 'object' && order.user ? order.user.name : 'Guest Customer'}
               </div>
               <div className="text-sm text-muted-foreground">
                 {order.paymentMethod}

@@ -5,7 +5,6 @@ import { auth } from '@/auth'
 import { getOrderById } from '@/lib/actions/order.actions'
 import OrderDetailsForm from '@/components/shared/order/order-details-form'
 import OrderOverviewHeader from '@/components/shared/order/order-overview-header'
-import { generateInvoiceNumber } from '@/lib/utils/invoice-utils'
 import { generateOrderNumber } from '@/lib/utils/order-utils'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -64,7 +63,10 @@ const AdminOrderDetailsPage = async (props: {
 
       {/* Main Content */}
       <OrderDetailsForm
-        order={order}
+        order={{
+          ...order,
+          abaLastStatusCheck: order.abaLastStatusCheck ? order.abaLastStatusCheck.toISOString() : undefined,
+        } as Parameters<typeof OrderDetailsForm>[0]['order']}
         isAdmin={session?.user?.role === 'Admin' || false}
       />
     </main>

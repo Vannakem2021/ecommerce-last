@@ -13,7 +13,7 @@ import {
 import { deleteCategory } from '@/lib/actions/category.actions'
 import { ICategory } from '@/lib/db/models/category.model'
 import { formatDateTime } from '@/lib/utils'
-import { Edit, Eye, FolderIcon, Package } from 'lucide-react'
+import { Edit, FolderIcon } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import Link from 'next/link'
 import { useTransition } from 'react'
@@ -22,9 +22,6 @@ import DeleteDialog from '@/components/shared/delete-dialog'
 
 export default function CategoryList({
   data,
-  totalCategories,
-  page,
-  totalPages,
 }: {
   data: ICategory[]
   totalCategories: number
@@ -32,21 +29,24 @@ export default function CategoryList({
   totalPages: number
 }) {
   const { toast } = useToast()
-  const [isPending, startTransition] = useTransition()
+  const [, startTransition] = useTransition()
 
-  const handleDelete = async (id: string) => {
-    startTransition(async () => {
-      const res = await deleteCategory(id)
-      if (res.success) {
-        toast({
-          description: res.message,
-        })
-      } else {
-        toast({
-          variant: 'destructive',
-          description: res.message,
-        })
-      }
+  const handleDelete = async (id: string): Promise<{ success: boolean; message: string }> => {
+    return new Promise((resolve) => {
+      startTransition(async () => {
+        const res = await deleteCategory(id)
+        if (res.success) {
+          toast({
+            description: res.message,
+          })
+        } else {
+          toast({
+            variant: 'destructive',
+            description: res.message,
+          })
+        }
+        resolve(res)
+      })
     })
   }
 

@@ -44,7 +44,7 @@ export default function CartPage() {
   const [updateError, setUpdateError] = useState<string | null>(null)
 
   // Enhanced update item with loading/error handling
-  const handleUpdateItem = async (item: any, quantity: number) => {
+  const handleUpdateItem = async (item: { clientId: string; slug: string; name: string; image: string; price: number; color?: string; size?: string; quantity: number; countInStock: number }, quantity: number) => {
     setIsUpdating(true)
     setUpdateError(null)
     try {
@@ -57,7 +57,7 @@ export default function CartPage() {
   }
 
   // Enhanced remove item with loading/error handling
-  const handleRemoveItem = async (item: any) => {
+  const handleRemoveItem = async (item: { clientId: string; slug: string; name: string; image: string; price: number; color?: string; size?: string; quantity: number; countInStock: number }) => {
     setIsUpdating(true)
     setUpdateError(null)
     try {

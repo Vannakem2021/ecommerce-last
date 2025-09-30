@@ -58,7 +58,7 @@ export const createOrderFromCart = async (
   const currentTime = new Date()
 
   // Collect unique product IDs from cart items
-  const productIds = [...new Set(cart.items.map(item => item.product))]
+  const productIds = [...new Set(cart.items.map((item: { product: string }) => item.product))]
 
   // Query products with pricing/sale fields
   const products = await Product.find(
@@ -70,7 +70,8 @@ export const createOrderFromCart = async (
   const productMap = new Map(products.map(p => [p._id.toString(), p]))
 
   // Recompute cart items with server-enforced effective prices
-  const serverTrustedItems = cart.items.map(item => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const serverTrustedItems = cart.items.map((item: any) => {
     const product = productMap.get(item.product)
     if (!product) {
       // Fallback to client price if product not found (shouldn't happen in normal flow)
@@ -88,7 +89,8 @@ export const createOrderFromCart = async (
 
   // Recompute itemsPrice from server-trusted items to ensure consistency
   const serverItemsPrice = round2(
-    serverTrustedItems.reduce((acc, item) => acc + item.price * item.quantity, 0)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    serverTrustedItems.reduce((acc: number, item: any) => acc + item.price * item.quantity, 0)
   )
 
   // Calculate base total before discount
@@ -129,8 +131,9 @@ export const createOrderFromCart = async (
         discountAmount: cart.appliedPromotion.discountAmount,
         originalTotal: baseTotal,
         finalTotal: finalTotal,
+        usedAt: new Date(),
       }
-      const res = await recordPromotionUsage(usagePayload as any, session)
+      const res = await recordPromotionUsage(usagePayload, session)
       if (!res?.success) {
         throw new Error(res?.message || 'Failed to record promotion usage')
       }
@@ -138,7 +141,7 @@ export const createOrderFromCart = async (
 
     await session.commitTransaction()
     return createdOrder
-  } catch (txErr: any) {
+  } catch {
     // Rollback and fallback for non-replica or other tx issues
     try {
       await session.abortTransaction()
@@ -187,11 +190,11 @@ export async function updateOrderToPaid(
     try {
       const { updated } = await updateProductStock(order._id, paymentResult)
       didUpdate = !!updated
-    } catch (txError) {
+    } catch {
       // Fallback: non-transactional update mirroring createOrderFromCart approach
       // 1) Pre-validate all stock levels first
       const stockPlans = [] as Array<{
-        productId: any
+        productId: string
         sku: string
         previousStock: number
         newStock: number

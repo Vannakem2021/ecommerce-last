@@ -5,7 +5,8 @@
  * with secure session handling and proper TypeScript types.
  */
 
-import { useSession, Session } from 'next-auth/react'
+import { useSession } from 'next-auth/react'
+import type { Session } from 'next-auth'
 import { useEffect, useCallback } from 'react'
 import { isDevelopment, validateEnvironmentVariables } from '@/lib/utils/environment'
 

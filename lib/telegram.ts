@@ -72,7 +72,7 @@ export async function sendTelegramNotification(message: TelegramMessage): Promis
 
     return true
 
-  } catch (error) {
+  } catch {
     return false
   }
 }

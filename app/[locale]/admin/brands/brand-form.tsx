@@ -145,7 +145,7 @@ const BrandForm = ({
               <FormField
                 control={form.control}
                 name='logo'
-                render={({ field }) => (
+                render={() => (
                   <FormItem>
                     <FormLabel className="text-sm font-medium">Logo Image</FormLabel>
                     <FormControl>
@@ -194,7 +194,7 @@ const BrandForm = ({
                                       description: 'Logo uploaded successfully!',
                                     })
                                   }}
-                                  onUploadError={(error: Error) => {
+                                  onUploadError={() => {
                                     toast({
                                       variant: 'destructive',
                                       description: 'Failed to upload logo. Please try again.',

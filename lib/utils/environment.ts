@@ -10,7 +10,8 @@ export type Environment = 'development' | 'production' | 'test'
  * @returns True if in Edge Runtime environment
  */
 export function isEdgeRuntime(): boolean {
-  return typeof EdgeRuntime !== 'undefined' || typeof process === 'undefined'
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return typeof (globalThis as any).EdgeRuntime !== 'undefined' || typeof process === 'undefined'
 }
 
 /**

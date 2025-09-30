@@ -34,6 +34,7 @@ export default function PromotionBadge({
 
   useEffect(() => {
     loadApplicablePromotions()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productId, categoryId])
 
   const loadApplicablePromotions = async () => {
@@ -67,14 +68,14 @@ export default function PromotionBadge({
         // Product-specific promotions (only for cart/checkout context)
         if (promotion.appliesTo === 'products' && productId && context !== 'product') {
           return promotion.applicableProducts?.some(
-            (p: any) => p._id === productId || p.toString() === productId
+            (p: string | { _id: string }) => (typeof p === 'string' ? p : p._id) === productId || p.toString() === productId
           )
         }
 
         // Category-specific promotions
         if (promotion.appliesTo === 'categories' && categoryId) {
           return promotion.applicableCategories?.some(
-            (c: any) => c._id === categoryId || c.toString() === categoryId
+            (c: string | { _id: string }) => (typeof c === 'string' ? c : c._id) === categoryId || c.toString() === categoryId
           )
         }
 

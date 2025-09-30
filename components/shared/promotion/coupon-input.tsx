@@ -17,8 +17,8 @@ export default function CouponInput() {
   const { toast } = useToast()
   const [couponCode, setCouponCode] = useState('')
   const [isPending, startTransition] = useTransition()
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>()
-  const [retryCount, setRetryCount] = useState(0)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const [, setRetryCount] = useState(0)
 
   // Debounced coupon application to prevent rapid-fire requests
   const debouncedApplyCoupon = useCallback((code: string) => {
@@ -72,18 +72,6 @@ export default function CouponInput() {
     }
 
     debouncedApplyCoupon(couponCode.trim())
-  }
-
-  const handleRetry = () => {
-    if (retryCount < 3) {
-      setRetryCount(prev => prev + 1)
-      handleApplyCoupon()
-    } else {
-      toast({
-        variant: 'destructive',
-        description: 'Maximum retry attempts reached. Please try again later.',
-      })
-    }
   }
 
   const handleRemoveCoupon = () => {

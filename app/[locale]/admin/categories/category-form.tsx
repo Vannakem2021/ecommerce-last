@@ -22,7 +22,7 @@ import { createCategory, updateCategory } from '@/lib/actions/category.actions'
 import { ICategory } from '@/lib/db/models/category.model'
 import { CategoryInputSchema, CategoryUpdateSchema } from '@/lib/validator'
 import { ICategoryInput } from '@/types'
-import { FolderIcon, InfoIcon, ToggleLeftIcon } from 'lucide-react'
+import { FolderIcon, ToggleLeftIcon } from 'lucide-react'
 const categoryDefaultValues: ICategoryInput = {
   name: '',
   description: '',

@@ -154,7 +154,7 @@ export function validatePasswordStrengthServer(password: string) {
     isValid,
     isStrong,
     issues,
-    score: hasLowercase + hasUppercase + hasNumbers + hasSymbols + (password.length >= minLength ? 1 : 0),
+    score: (hasLowercase ? 1 : 0) + (hasUppercase ? 1 : 0) + (hasNumbers ? 1 : 0) + (hasSymbols ? 1 : 0) + (password.length >= minLength ? 1 : 0),
     securityFlags: {
       hasRepeatedChars,
       hasCommonPatterns,

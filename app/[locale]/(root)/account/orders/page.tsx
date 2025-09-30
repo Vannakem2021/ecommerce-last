@@ -14,8 +14,9 @@ import { getMyOrders } from "@/lib/actions/order.actions";
 import { IOrder } from "@/lib/db/models/order.model";
 
 // Extended order type with ABA PayWay fields
-interface OrderWithABAPayWay extends IOrder {
+interface OrderWithABAPayWay extends Omit<IOrder, 'abaLastStatusCheck' | 'abaPaymentStatus'> {
   abaPaymentStatus?: string;
+  abaLastStatusCheck?: string;
 }
 import { formatDateTime, formatId } from "@/lib/utils";
 import BrowsingHistoryList from "@/components/shared/browsing-history-list";

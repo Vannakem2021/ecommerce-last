@@ -11,7 +11,6 @@ import {
   getAllCategories,
   getNewArrivalsForCard,
   getBestSellersForCard,
-  getBestSellingProducts,
   getTodaysDeals,
 } from '@/lib/actions/product.actions'
 import { getSetting } from '@/lib/actions/setting.actions'
@@ -22,7 +21,6 @@ export default async function HomePage() {
   const t = await getTranslations('Home')
   const { carousels } = await getSetting()
   const todaysDeals = await getTodaysDeals({ limit: 10 })
-  const bestSellingProducts = await getBestSellingProducts({ limit: 10 })
 
   const categories = (await getAllCategories()).slice(0, 4)
   const newArrivals = await getNewArrivalsForCard({ limit: 4 })

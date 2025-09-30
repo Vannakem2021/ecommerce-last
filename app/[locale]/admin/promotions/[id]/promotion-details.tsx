@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import { formatDateTime, formatId } from '@/lib/utils'
+import { formatDateTime } from '@/lib/utils'
 import { IPromotionDetails } from '@/types'
 import { hasPermission } from '@/lib/rbac-utils'
 
@@ -325,28 +325,14 @@ export default function PromotionDetails({
           </CardHeader>
           <CardContent>
             {promotion.appliesTo === 'products' && promotion.applicableProducts && (
-              <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-                {promotion.applicableProducts.map((product: any) => (
-                  <div key={product._id} className='p-3 border rounded-lg'>
-                    <div className='font-medium'>{product.name}</div>
-                    <div className='text-sm text-muted-foreground'>
-                      ${product.price}
-                      {product.listPrice !== product.price && (
-                        <span className='line-through ml-2'>${product.listPrice}</span>
-                      )}
-                    </div>
-                  </div>
-                ))}
+              <div className='text-sm text-muted-foreground'>
+                {promotion.applicableProducts.length} products selected
               </div>
             )}
 
             {promotion.appliesTo === 'categories' && promotion.applicableCategories && (
-              <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-                {promotion.applicableCategories.map((category: any) => (
-                  <div key={category._id} className='p-3 border rounded-lg'>
-                    <div className='font-medium'>{category.name}</div>
-                  </div>
-                ))}
+              <div className='text-sm text-muted-foreground'>
+                {promotion.applicableCategories.length} categories selected
               </div>
             )}
           </CardContent>

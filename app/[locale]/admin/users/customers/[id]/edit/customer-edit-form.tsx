@@ -21,14 +21,14 @@ import { useToast } from '@/hooks/use-toast'
 import { updateUser } from '@/lib/actions/user.actions'
 import { IUser } from '@/lib/db/models/user.model'
 import { UserUpdateSchema } from '@/lib/validator'
-import { UserIcon, InfoIcon, MapPinIcon, CreditCardIcon, MailIcon, PhoneIcon, CalendarIcon } from 'lucide-react'
+import { UserIcon, InfoIcon, MapPinIcon, CreditCardIcon, MailIcon, CalendarIcon } from 'lucide-react'
 
 interface CustomerEditFormProps {
   user: IUser
   currentUserRole: string
 }
 
-const CustomerEditForm = ({ user, currentUserRole }: CustomerEditFormProps) => {
+const CustomerEditForm = ({ user }: CustomerEditFormProps) => {
   const router = useRouter()
   const { toast } = useToast()
 
@@ -176,7 +176,7 @@ const CustomerEditForm = ({ user, currentUserRole }: CustomerEditFormProps) => {
                         />
                       </FormControl>
                       <FormDescription>
-                        Customer's display name for orders and account
+                        Customer&apos;s display name for orders and account
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -232,11 +232,11 @@ const CustomerEditForm = ({ user, currentUserRole }: CustomerEditFormProps) => {
                     <div className="md:col-span-2">
                       <p className="font-medium text-slate-900 dark:text-slate-100">Address</p>
                       <p className="text-slate-600 dark:text-slate-400">
-                        {user.address.houseNumber && `${user.address.houseNumber} `}
+                        {(user.address && 'houseNumber' in user.address) && user.address.houseNumber && `${user.address.houseNumber} `}
                         {user.address.street && `${user.address.street}, `}
-                        {user.address.communeName && `${user.address.communeName}, `}
-                        {user.address.districtName && `${user.address.districtName}, `}
-                        {user.address.provinceName || 'Address not complete'}
+                        {(user.address && 'communeName' in user.address) && user.address.communeName && `${user.address.communeName}, `}
+                        {(user.address && 'districtName' in user.address) && user.address.districtName && `${user.address.districtName}, `}
+                        {(user.address && 'provinceName' in user.address) && user.address.provinceName ? user.address.provinceName : 'Address not complete'}
                       </p>
                     </div>
                   </div>
@@ -250,7 +250,7 @@ const CustomerEditForm = ({ user, currentUserRole }: CustomerEditFormProps) => {
                         No Address Information
                       </p>
                       <p className="text-sm text-amber-700 dark:text-amber-200">
-                        Customer hasn't provided address details yet
+                        Customer hasn&apos;t provided address details yet
                       </p>
                     </div>
                   </div>
@@ -286,7 +286,7 @@ const CustomerEditForm = ({ user, currentUserRole }: CustomerEditFormProps) => {
                         No Payment Method
                       </p>
                       <p className="text-sm text-purple-700 dark:text-purple-200">
-                        Customer hasn't set up payment method yet
+                        Customer hasn&apos;t set up payment method yet
                       </p>
                     </div>
                   </div>

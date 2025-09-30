@@ -89,7 +89,7 @@ const SettingPage = async () => {
             <Palette className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{setting.defaultTheme || 'Light'}</div>
+            <div className="text-2xl font-bold">{setting.common.defaultTheme || 'Light'}</div>
             <p className="text-xs text-muted-foreground mt-1">
               Current theme mode
             </p>

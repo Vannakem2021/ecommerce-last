@@ -7,7 +7,6 @@ import data from '@/lib/data'
 import Sidebar from './sidebar'
 import { getSetting } from '@/lib/actions/setting.actions'
 import { getPublishedWebPagesForNavigation } from '@/lib/actions/web-page.actions'
-import { getTranslations } from 'next-intl/server'
 import Container from '@/components/shared/container'
 import TopBar from './top-bar'
 import LanguageSwitcher from './language-switcher'
@@ -16,7 +15,6 @@ export default async function Header() {
   const categories = await getAllCategories()
   const { site } = await getSetting()
   const publishedPages = await getPublishedWebPagesForNavigation()
-  const t = await getTranslations()
 
   // Combine static menu items with dynamic pages
   const staticMenus = data.headerMenus.filter(menu => !menu.href.startsWith('/page/'))

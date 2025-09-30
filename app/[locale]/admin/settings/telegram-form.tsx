@@ -18,7 +18,7 @@ import { ISettingInput } from "@/types";
 import { UseFormReturn } from "react-hook-form";
 import { testTelegramBot } from "@/lib/actions/telegram.actions";
 import { useToast } from "@/hooks/use-toast";
-import { MessageSquare, TestTube, ExternalLink, HelpCircle } from "lucide-react";
+import { MessageSquare, TestTube, HelpCircle } from "lucide-react";
 
 export default function TelegramForm({
   form,
@@ -57,7 +57,7 @@ export default function TelegramForm({
         variant: result.success ? "default" : "destructive",
         description: result.message,
       });
-    } catch (error) {
+    } catch {
       toast({
         variant: "destructive",
         description: "Failed to test Telegram configuration.",
@@ -235,7 +235,7 @@ export default function TelegramForm({
                     <li>Add your bot to a group or start a chat</li>
                     <li>Send a message to the bot</li>
                     <li>Visit: https://api.telegram.org/bot[BOT_TOKEN]/getUpdates</li>
-                    <li>Find the "chat" → "id" value in the response</li>
+                    <li>Find the &quot;chat&quot; → &quot;id&quot; value in the response</li>
                   </ul>
                 </div>
 

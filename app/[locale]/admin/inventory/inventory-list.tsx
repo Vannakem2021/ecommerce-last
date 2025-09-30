@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/table'
 import { IInventoryProduct } from '@/types'
 import { formatDateTime, formatCurrency } from '@/lib/utils'
-import { Edit, History, Package, AlertTriangle, Plus, Minus, Eye } from 'lucide-react'
+import { Edit, History, Package, AlertTriangle, Eye } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -53,9 +53,6 @@ function getStockStatus(stock: number) {
 
 export default function InventoryList({
   products,
-  totalProducts,
-  page,
-  totalPages,
 }: {
   products: IInventoryProduct[]
   totalProducts: number
@@ -142,14 +139,14 @@ export default function InventoryList({
                 {/* Brand */}
                 <TableCell>
                   <Badge variant="outline">
-                    {typeof product.brand === 'object' ? product.brand.name : product.brand}
+                    {typeof product.brand === 'object' ? (product.brand as unknown as { name: string }).name : product.brand}
                   </Badge>
                 </TableCell>
 
                 {/* Category */}
                 <TableCell>
                   <Badge variant="outline">
-                    {typeof product.category === 'object' ? product.category.name : product.category}
+                    {typeof product.category === 'object' ? (product.category as unknown as { name: string }).name : product.category}
                   </Badge>
                 </TableCell>
 

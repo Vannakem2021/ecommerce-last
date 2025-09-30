@@ -1,13 +1,9 @@
 'use client'
 
-import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { 
-  PrinterIcon, 
-  DownloadIcon, 
-  EyeIcon, 
+import {
   FileTextIcon,
   CalendarIcon,
   UserIcon,
@@ -111,7 +107,6 @@ export default function AdminInvoiceControls({ order, invoiceNumber }: AdminInvo
             <h4 className="font-semibold mb-3">Invoice Actions</h4>
             <div className="flex flex-wrap gap-3">
               <InvoiceActions
-                invoiceNumber={invoiceNumber}
                 orderId={order._id}
                 variant="outline"
                 size="sm"

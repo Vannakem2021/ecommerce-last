@@ -101,7 +101,8 @@ const useFavoritesStore = create(
     {
       name: 'favorites-store',
       // Only persist the essential bits
-      partialize: (s) => ({ ids: s.ids, currentUserId: s.currentUserId }),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      partialize: (s) => ({ ids: s.ids, currentUserId: s.currentUserId }) as any,
     }
   )
 )

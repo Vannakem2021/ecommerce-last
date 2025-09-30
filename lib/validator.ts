@@ -567,8 +567,8 @@ export const UserProfileCompleteSchema = UserInputSchema.refine(
         data.address.postalCode &&
         data.address.postalCode.trim().length > 0 &&
         // Check for either Cambodia format or legacy format
-        ((data.address.provinceName && data.address.districtName) ||
-         (data.address.city && data.address.province && data.address.country));
+        (('provinceName' in data.address && data.address.provinceName && 'districtName' in data.address && data.address.districtName) ||
+         ('city' in data.address && data.address.city && 'province' in data.address && data.address.province && 'country' in data.address && data.address.country));
 
       return hasPaymentMethod && hasCompleteAddress;
     }

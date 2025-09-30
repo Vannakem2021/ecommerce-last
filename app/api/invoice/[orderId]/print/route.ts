@@ -48,10 +48,12 @@ interface InvoiceItem {
   price: number;
   total: number;
   lineNumber?: number;
+  size?: string;
+  color?: string;
 }
 
 interface InvoiceData {
-  company: { name: string; address: string; phone: string; email: string };
+  company: { name: string; address: string; phone: string; email: string; logo?: string; slogan?: string };
   customer: { name: string; address: string; phone: string; email: string };
   items: InvoiceItem[];
   totals: { subtotal: number; tax: number; shipping: number; total: number };
@@ -85,12 +87,12 @@ function generatePrintableHTML(invoiceData: InvoiceData, isDownload: boolean = f
         <!-- Header -->
         <div class="text-center border-b border-gray-300 pb-6 mb-6">
             <div class="flex items-center justify-center mb-4">
-                <div class="mr-6">
+                ${company.logo ? `<div class="mr-6">
                     <img src="${company.logo}" alt="${company.name} logo" class="w-24 h-24 object-contain">
-                </div>
+                </div>` : ''}
                 <div class="text-left">
                     <h1 class="text-3xl font-bold text-teal-700 mb-2">${company.name}</h1>
-                    <p class="text-gray-600 text-lg">${company.slogan}</p>
+                    ${company.slogan ? `<p class="text-gray-600 text-lg">${company.slogan}</p>` : ''}
                 </div>
             </div>
         </div>
@@ -146,7 +148,7 @@ function generatePrintableHTML(invoiceData: InvoiceData, isDownload: boolean = f
                         </td>
                         <td class="border border-gray-400 px-3 py-3 text-center">${item.quantity}</td>
                         <td class="border border-gray-400 px-3 py-3 text-right">$${item.price.toFixed(2)}</td>
-                        <td class="border border-gray-400 px-3 py-3 text-right font-medium">$${item.lineTotal.toFixed(2)}</td>
+                        <td class="border border-gray-400 px-3 py-3 text-right font-medium">$${item.total.toFixed(2)}</td>
                     </tr>
                     `).join('')}
                 </tbody>

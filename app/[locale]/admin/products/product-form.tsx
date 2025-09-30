@@ -32,15 +32,14 @@ import { getAllActiveCategories } from '@/lib/actions/category.actions'
 import { IProduct } from '@/lib/db/models/product.model'
 import { IBrand } from '@/lib/db/models/brand.model'
 import { ICategory } from '@/lib/db/models/category.model'
-import { UploadButton } from '@/lib/uploadthing'
-import { ProductInputSchema, ProductUpdateSchema, ProductInputLegacySchema } from '@/lib/validator'
+import { ProductInputSchema, ProductUpdateSchema } from '@/lib/validator'
 import { Checkbox } from '@/components/ui/checkbox'
 import { toSlug } from '@/lib/utils'
 import { IProductInput } from '@/types'
 import { PRODUCT_TAGS } from '@/lib/constants'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { CalendarIcon, X, Upload, Package, DollarSign, Image as ImageIcon, FileText, Tags, Settings } from 'lucide-react'
+import { CalendarIcon, X, Upload, Package, DollarSign, Image as ImageIcon, Tags, Settings } from 'lucide-react'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { Progress } from '@/components/ui/progress'
@@ -92,7 +91,19 @@ const ProductForm = ({
     defaultValues:
       product && type === 'Update'
         ? {
-            ...product,
+            name: product.name,
+            slug: product.slug,
+            category: typeof product.category === 'object' ? (product.category as unknown as { _id: string })._id : product.category,
+            countInStock: product.countInStock,
+            price: product.price,
+            description: product.description,
+            sku: product.sku,
+            images: product.images,
+            brand: typeof product.brand === 'object' ? (product.brand as unknown as { _id: string })._id : product.brand,
+            listPrice: product.listPrice,
+            tags: product.tags,
+            colors: product.colors,
+            sizes: product.sizes,
             saleStartDate: product.saleStartDate ? new Date(product.saleStartDate) : undefined,
             saleEndDate: product.saleEndDate ? new Date(product.saleEndDate) : undefined
           }
@@ -112,48 +123,8 @@ const ProductForm = ({
         setBrands(brandsData)
         setCategories(categoriesData)
 
-        // Handle existing product data conversion from string to ObjectId
-        if (product && type === 'Update') {
-          const updates: Partial<IProductInput> = {}
-
-          // Convert brand from string to ObjectId if needed
-          if (typeof product.brand === 'string') {
-            const brandDoc = brandsData.find(b => b.name === product.brand)
-            if (brandDoc) {
-              updates.brand = brandDoc._id
-            }
-          } else if (typeof product.brand === 'object' && product.brand._id) {
-            // Handle populated brand object
-            updates.brand = product.brand._id
-          }
-
-          // Convert category from string to ObjectId if needed
-          if (typeof product.category === 'string') {
-            const categoryDoc = categoriesData.find(c => c.name === product.category)
-            if (categoryDoc) {
-              updates.category = categoryDoc._id
-            }
-          } else if (typeof product.category === 'object' && product.category._id) {
-            // Handle populated category object
-            updates.category = product.category._id
-          }
-
-          // Update form values if any conversions were made
-          if (Object.keys(updates).length > 0) {
-            Object.entries(updates).forEach(([key, value]) => {
-              form.setValue(key as keyof IProductInput, value)
-            })
-          }
-
-          // Convert string dates to Date objects if needed
-          if (product.saleStartDate && typeof product.saleStartDate === 'string') {
-            form.setValue('saleStartDate', new Date(product.saleStartDate))
-          }
-          if (product.saleEndDate && typeof product.saleEndDate === 'string') {
-            form.setValue('saleEndDate', new Date(product.saleEndDate))
-          }
-        }
-      } catch (error) {
+        // Dates are already handled in defaultValues, no additional conversion needed
+      } catch {
         toast({
           variant: 'destructive',
           description: 'Failed to load brands and categories',
@@ -163,6 +134,7 @@ const ProductForm = ({
       }
     }
     loadData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   async function onSubmit(values: IProductInput) {
     if (type === 'Create') {
@@ -482,10 +454,13 @@ const ProductForm = ({
                           {images.map((image: string, index: number) => (
                             <div key={image} className="relative group">
                               {image.startsWith('blob:') ? (
-                                <img
+                                <Image
                                   src={image}
                                   alt={`Product image ${index + 1}`}
                                   className='w-full h-24 object-cover rounded-lg border'
+                                  width={100}
+                                  height={100}
+                                  unoptimized
                                 />
                               ) : (
                                 <Image
@@ -704,7 +679,7 @@ const ProductForm = ({
                                   onSelect={field.onChange}
                                   disabled={(date) => {
                                     const startDate = form.getValues('saleStartDate')
-                                    return date < new Date() || (startDate && date <= startDate)
+                                    return date < new Date() || (startDate ? date <= startDate : false)
                                   }}
                                   initialFocus
                                 />

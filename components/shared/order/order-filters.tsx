@@ -41,7 +41,7 @@ export default function OrderFilters({
   className = ''
 }: OrderFiltersProps) {
   const [searchValue, setSearchValue] = useState('')
-  const [isPending, setIsPending] = useState(false)
+  const [isPending] = useState(false)
   const [filters, setFilters] = useState<OrderFilterState>({
     status: 'all',
     paymentStatus: 'all',

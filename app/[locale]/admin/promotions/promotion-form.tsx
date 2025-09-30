@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useTransition, useEffect } from 'react'
+import { useTransition, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { CalendarIcon, Loader2, Tag, Percent, DollarSign, Truck, Clock, Users, ShoppingCart, Target, Settings } from 'lucide-react'
+import { CalendarIcon, Tag, Percent, Clock, Users, Target } from 'lucide-react'
 import { format } from 'date-fns'
 
 import { Button } from '@/components/ui/button'
@@ -89,10 +89,10 @@ export default function PromotionForm({
             endDate: new Date(promotion.endDate),
             // Transform populated objects back to IDs for form compatibility
             applicableProducts: Array.isArray(promotion.applicableProducts)
-              ? promotion.applicableProducts.map((p: any) => typeof p === 'string' ? p : p._id)
+              ? promotion.applicableProducts.map((p: string | { _id: string }) => typeof p === 'string' ? p : p._id)
               : [],
             applicableCategories: Array.isArray(promotion.applicableCategories)
-              ? promotion.applicableCategories.map((c: any) => typeof c === 'string' ? c : c._id)
+              ? promotion.applicableCategories.map((c: string | { _id: string }) => typeof c === 'string' ? c : c._id)
               : [],
           }
         : promotionDefaultValues,
@@ -101,14 +101,13 @@ export default function PromotionForm({
   const watchedType = form.watch('type')
   const watchedAppliesTo = form.watch('appliesTo')
   const watchedValue = form.watch('value')
-  const watchedStart = form.watch('startDate')
-  const watchedEnd = form.watch('endDate')
 
   // Keep value aligned with type-specific rules via effects to avoid render-set loops
   useEffect(() => {
     if (watchedType === 'free_shipping') {
       form.setValue('value', 0, { shouldValidate: true })
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [watchedType])
   useEffect(() => {
     if (watchedType === 'percentage' && typeof watchedValue === 'number') {
@@ -117,40 +116,41 @@ export default function PromotionForm({
         form.setValue('value', clamped, { shouldValidate: true })
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [watchedType, watchedValue])
 
   const onSubmit = (data: IPromotionInput) => {
     // Client-side business checks for better UX before server
     let hasClientError = false
     if (!(data.endDate > data.startDate)) {
-      form.setError('endDate' as any, { message: 'End date must be after start date' })
+      form.setError('endDate', { message: 'End date must be after start date' })
       hasClientError = true
     } else if (data.endDate.getTime() - data.startDate.getTime() < 60_000) {
-      form.setError('endDate' as any, { message: 'Promotion period must be at least 1 minute long' })
+      form.setError('endDate', { message: 'Promotion period must be at least 1 minute long' })
       hasClientError = true
     }
 
     if (data.type === 'percentage' && (data.value < 1 || data.value > 100)) {
-      form.setError('value' as any, { message: 'Percentage must be between 1 and 100' })
+      form.setError('value', { message: 'Percentage must be between 1 and 100' })
       hasClientError = true
     }
     if (data.type === 'fixed' && data.value <= 0) {
-      form.setError('value' as any, { message: 'Fixed amount must be greater than 0' })
+      form.setError('value', { message: 'Fixed amount must be greater than 0' })
       hasClientError = true
     }
     if (data.type === 'free_shipping' && data.value !== 0) {
       form.setValue('value', 0)
     }
     if (data.appliesTo === 'products' && (!data.applicableProducts || data.applicableProducts.length === 0)) {
-      form.setError('applicableProducts' as any, { message: 'Select at least one product' })
+      form.setError('applicableProducts', { message: 'Select at least one product' })
       hasClientError = true
     }
     if (data.appliesTo === 'categories' && (!data.applicableCategories || data.applicableCategories.length === 0)) {
-      form.setError('applicableCategories' as any, { message: 'Select at least one category' })
+      form.setError('applicableCategories', { message: 'Select at least one category' })
       hasClientError = true
     }
     if (data.type === 'fixed' && data.minOrderValue > 0 && data.minOrderValue < data.value) {
-      form.setError('minOrderValue' as any, { message: 'Minimum order must be ≥ discount amount' })
+      form.setError('minOrderValue', { message: 'Minimum order must be ≥ discount amount' })
       hasClientError = true
     }
     if (hasClientError) return

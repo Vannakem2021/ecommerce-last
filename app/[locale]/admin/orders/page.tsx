@@ -15,13 +15,13 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { deleteOrder, getAllOrders } from '@/lib/actions/order.actions'
-import { formatDateTime, formatId } from '@/lib/utils'
+import { formatDateTime } from '@/lib/utils'
 import { IOrderList } from '@/types'
 import ProductPrice from '@/components/shared/product/product-price'
 import { ViewInvoiceButton } from '@/components/shared/invoice/invoice-actions'
 import OrderOverviewCards from '@/components/shared/order/order-overview-cards'
-import OrderFilters, { OrderFilterState } from '@/components/shared/order/order-filters'
-import { Eye, NotebookText, Trash2, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
+import OrderFilters from '@/components/shared/order/order-filters'
+import { Eye, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 export const metadata: Metadata = {

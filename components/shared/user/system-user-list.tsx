@@ -29,9 +29,6 @@ interface SystemUserWithStats extends IUser {
 
 export default function SystemUserList({
   data,
-  totalUsers,
-  page,
-  totalPages,
 }: {
   data: SystemUserWithStats[]
   totalUsers: number
@@ -39,21 +36,24 @@ export default function SystemUserList({
   totalPages: number
 }) {
   const { toast } = useToast()
-  const [isPending, startTransition] = useTransition()
+  const [, startTransition] = useTransition()
 
-  const handleDelete = async (id: string) => {
-    startTransition(async () => {
-      const res = await deleteUser(id)
-      if (res.success) {
-        toast({
-          description: res.message,
-        })
-      } else {
-        toast({
-          variant: 'destructive',
-          description: res.message,
-        })
-      }
+  const handleDelete = async (id: string): Promise<{ success: boolean; message: string }> => {
+    return new Promise((resolve) => {
+      startTransition(async () => {
+        const res = await deleteUser(id)
+        if (res.success) {
+          toast({
+            description: res.message,
+          })
+        } else {
+          toast({
+            variant: 'destructive',
+            description: res.message,
+          })
+        }
+        resolve(res)
+      })
     })
   }
 

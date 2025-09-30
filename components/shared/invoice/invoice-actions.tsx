@@ -6,7 +6,6 @@ import { PrinterIcon, DownloadIcon, EyeIcon, NotebookText } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 
 interface InvoiceActionsProps {
-  invoiceNumber: string
   orderId: string
   variant?: 'default' | 'outline' | 'ghost'
   size?: 'default' | 'sm' | 'lg'
@@ -16,7 +15,6 @@ interface InvoiceActionsProps {
 }
 
 export default function InvoiceActions({
-  invoiceNumber,
   orderId,
   variant = 'outline',
   size = 'sm',
@@ -50,7 +48,7 @@ export default function InvoiceActions({
           variant: 'destructive',
         })
       }
-    } catch (error) {
+    } catch {
       toast({
         title: 'Print Error',
         description: 'Failed to open print dialog. Please try again.',
@@ -162,7 +160,6 @@ export function InvoiceActionsCompact({
 }) {
   return (
     <InvoiceActions
-      invoiceNumber=""
       orderId={orderId}
       variant="ghost"
       size="sm"

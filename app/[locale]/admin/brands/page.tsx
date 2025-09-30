@@ -36,7 +36,7 @@ export default async function AdminBrandsPage(props: {
     inactiveBrands: data.brands.filter(brand => !brand.active).length,
     brandsWithLogo: data.brands.filter(brand => brand.logo).length,
     brandsWithoutLogo: data.brands.filter(brand => !brand.logo).length,
-    mostUsedBrand: data.brands.sort((a, b) => (b.productCount || 0) - (a.productCount || 0))[0]?.name
+    mostUsedBrand: data.brands[0]?.name
   }
 
   const currentPage = Number(page)

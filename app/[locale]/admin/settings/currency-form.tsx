@@ -91,7 +91,7 @@ export default function CurrencyForm({
         <FormField
           control={control}
           name='defaultCurrency'
-          render={({ field }) => (
+          render={() => (
             <FormItem>
               <FormLabel>Default Currency</FormLabel>
               <FormControl>

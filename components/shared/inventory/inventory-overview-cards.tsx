@@ -31,8 +31,7 @@ export default function InventoryOverviewCards({ metrics, className = '' }: Inve
     lowStockCount,
     outOfStockCount,
     totalInventoryValue,
-    averageStockLevel,
-    inStockCount
+    averageStockLevel
   } = metrics
 
   const cards = [
