@@ -1,9 +1,12 @@
+'use client'
+
 import Link from 'next/link'
 import { Heart } from 'lucide-react'
+import useFavorites from '@/hooks/use-favorites'
 
-export default async function WishlistButton() {
-  // TODO: Get actual wishlist count from user session/database
-  const wishlistCount = 0
+export default function WishlistButton() {
+  const { ids } = useFavorites()
+  const wishlistCount = ids.length
 
   return (
     <Link

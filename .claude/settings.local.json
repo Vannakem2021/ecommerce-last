@@ -30,7 +30,9 @@
       "Bash(npx playwright:*)",
       "Bash(curl:*)",
       "Bash(netstat:*)",
-      "Bash(npx tsx:*)"
+      "Bash(npx tsx:*)",
+      "Bash(npm test:*)",
+      "Bash(npx jest:*)"
     ],
     "deny": [],
     "ask": []

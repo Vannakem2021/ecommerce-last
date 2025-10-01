@@ -1,5 +1,10 @@
 // Jest setup file
 import '@testing-library/jest-dom'
+import { TextEncoder, TextDecoder } from 'util'
+
+// Polyfill TextEncoder and TextDecoder for Node environment
+global.TextEncoder = TextEncoder
+global.TextDecoder = TextDecoder
 
 // Mock environment variables for testing
 process.env.NODE_ENV = 'test'
