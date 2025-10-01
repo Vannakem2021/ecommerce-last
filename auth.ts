@@ -78,6 +78,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               name: user.name,
               email: user.email,
               role: user.role,
+              image: user.image,
             };
           }
         }
@@ -173,6 +174,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (user) {
         token.role = (user as { role: string }).role || "user";
         token.name = user.name || user.email!.split("@")[0];
+        token.picture = user.image;
       }
 
       // Query database for role if missing (edge case handling)
@@ -183,6 +185,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           if (dbUser) {
             token.role = dbUser.role;
             token.name = dbUser.name || token.name;
+            token.picture = dbUser.image;
           }
         } catch (error) {
           console.error("JWT callback database query failed:", error);
@@ -203,6 +206,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.id = token.sub as string;
         session.user.role = (token.role as string) || "user";
         session.user.name = (token.name as string) || session.user.email?.split("@")[0] || "";
+        session.user.image = (token.picture as string) || null;
 
         return session;
       } catch (error) {

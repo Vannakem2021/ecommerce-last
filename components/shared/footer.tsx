@@ -1,7 +1,9 @@
 'use client'
-import { ChevronUp, Facebook, MessageCircle, Music } from 'lucide-react'
+import { ChevronUp } from 'lucide-react'
+import { FaFacebookF, FaInstagram, FaTiktok, FaCcVisa, FaCcMastercard } from 'react-icons/fa'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 
 import { Button } from '@/components/ui/button'
 import useSettingStore from '@/hooks/use-setting-store'
@@ -91,23 +93,29 @@ export default function Footer() {
             <h3 className='font-bold mb-4'>{t('Footer.Follow Us')}</h3>
             <div className='space-y-4'>
               <div className='flex space-x-4'>
-                <Link href='#' className='text-gray-300 hover:text-blue-400 transition-colors'>
-                  <Facebook className='h-6 w-6' />
+                <Link href='#' className='text-gray-300 hover:text-blue-500 transition-colors'>
+                  <FaFacebookF className='h-6 w-6' />
                 </Link>
-                <Link href='#' className='text-gray-300 hover:text-blue-400 transition-colors'>
-                  <MessageCircle className='h-6 w-6' />
+                <Link href='#' className='text-gray-300 hover:text-pink-500 transition-colors'>
+                  <FaInstagram className='h-6 w-6' />
                 </Link>
-                <Link href='#' className='text-gray-300 hover:text-pink-400 transition-colors'>
-                  <Music className='h-6 w-6' />
+                <Link href='#' className='text-gray-300 hover:text-white transition-colors'>
+                  <FaTiktok className='h-6 w-6' />
                 </Link>
               </div>
 
               <div>
                 <h4 className='font-semibold mb-2'>{t('Footer.We Accept')}</h4>
-                <div className='flex space-x-2 items-center'>
-                  <div className='bg-gray-700 px-2 py-1 rounded text-xs'>Visa</div>
-                  <div className='bg-gray-700 px-2 py-1 rounded text-xs'>MasterCard</div>
-                  <div className='bg-gray-700 px-2 py-1 rounded text-xs'>KHQR</div>
+                <div className='flex space-x-3 items-center'>
+                  <FaCcVisa className='h-8 w-8 text-blue-600' />
+                  <FaCcMastercard className='h-8 w-8 text-red-600' />
+                  <Image
+                    src='/icons/KHQR_Logo.png'
+                    alt='KHQR'
+                    width={32}
+                    height={32}
+                    className='object-contain'
+                  />
                 </div>
               </div>
             </div>
