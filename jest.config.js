@@ -9,7 +9,7 @@ const createJestConfig = nextJest({
 // Custom Jest configuration
 const config = {
   // Test environment
-  testEnvironment: 'jest-environment-jsdom',
+  testEnvironment: 'jest-environment-node',
 
   // Setup files
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
@@ -23,7 +23,13 @@ const config = {
   // Module name mapper for path aliases
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
+    '^query-string$': '<rootDir>/__mocks__/query-string.js',
   },
+
+  // Transform ignore patterns - allow transformation of ESM modules
+  transformIgnorePatterns: [
+    'node_modules/(?!(@?query-string|decode-uri-component|split-on-first|filter-obj)/)',
+  ],
 
   // Coverage configuration
   collectCoverageFrom: [
@@ -37,7 +43,7 @@ const config = {
     '!**/dist/**',
   ],
 
-  coverageThresholds: {
+  coverageThreshold: {
     global: {
       statements: 70,
       branches: 60,
@@ -48,8 +54,12 @@ const config = {
 
   // Transform files
   transform: {
-    '^.+\\.(ts|tsx)$': ['@swc/jest', {
+    '^.+\\.(ts|tsx|js|jsx)$': ['@swc/jest', {
       jsc: {
+        parser: {
+          syntax: 'typescript',
+          tsx: true,
+        },
         transform: {
           react: {
             runtime: 'automatic',
