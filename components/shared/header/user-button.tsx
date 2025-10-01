@@ -16,6 +16,7 @@ import { FiShoppingCart } from 'react-icons/fi'
 import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
 import UserSignOutButton from './user-sign-out-button'
+import UserAvatar from './user-avatar'
 
 export default async function UserButton() {
   const t = await getTranslations()
@@ -24,29 +25,28 @@ export default async function UserButton() {
     <div className='flex gap-2 items-center'>
       <DropdownMenu>
         <DropdownMenuTrigger className='header-button' asChild>
-          <div className='flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-muted transition-colors'>
-            {/* Avatar Icon */}
-            <div className='w-8 h-8 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-sm'>
-              <UserRound className='h-6 w-6 text-white' />
-            </div>
-
-            {/* User Name */}
-            <span className='text-sm font-medium text-foreground'>
-              {session ? session.user.name : t('Header.sign in')}
-            </span>
-
-            {/* Smaller Arrow */}
-            <ChevronDownIcon className='h-3 w-3 text-muted-foreground' />
-          </div>
+          <Button variant='ghost' size='icon' className='relative rounded-full p-0 h-12 w-12 overflow-hidden'>
+            {session ? (
+              <UserAvatar
+                src={session.user.image}
+                alt={session.user.name || 'User'}
+                className='w-full h-full rounded-full object-cover border-2 border-border'
+              />
+            ) : (
+              <UserRound className='h-5 w-5' />
+            )}
+          </Button>
         </DropdownMenuTrigger>
         {session ? (
           <DropdownMenuContent className='w-72' align='end' forceMount>
             {/* User Profile Header */}
             <DropdownMenuLabel className='p-4'>
               <div className='flex items-center gap-3'>
-                <div className='w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-sm flex-shrink-0'>
-                  <UserRound className='h-7 w-7 text-white' />
-                </div>
+                <UserAvatar
+                  src={session.user.image}
+                  alt={session.user.name || 'User'}
+                  className='w-12 h-12 rounded-full object-cover border-2 border-border flex-shrink-0'
+                />
                 <div className='flex flex-col min-w-0'>
                   <p className='text-base font-semibold text-foreground truncate'>
                     {session.user.name}

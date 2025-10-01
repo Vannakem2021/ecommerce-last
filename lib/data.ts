@@ -54,6 +54,7 @@ const users: IUserInput[] = [
     email: "admin@gmail.com",
     password: safeHashPassword(seedPasswords.admin, 12),
     role: "admin",
+    image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop",
     address: {
       fullName: "John Doe",
       street: "111 Main St",
@@ -71,6 +72,7 @@ const users: IUserInput[] = [
     email: "jane@gmail.com",
     password: safeHashPassword(seedPasswords.manager, 12),
     role: "manager",
+    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop",
     address: {
       fullName: "Jane Harris",
       street: "222 Main St",
@@ -88,6 +90,7 @@ const users: IUserInput[] = [
     email: "jack@gmail.com",
     password: safeHashPassword(seedPasswords.seller, 12),
     role: "seller",
+    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop",
     address: {
       fullName: "Jack Ryan",
       street: "333 Main St",
@@ -105,6 +108,7 @@ const users: IUserInput[] = [
     email: "sarah@gmail.com",
     password: safeHashPassword(seedPasswords.user, 12),
     role: "user",
+    image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop",
     address: {
       fullName: "Sarah Smith",
       street: "444 Main St",
@@ -122,6 +126,7 @@ const users: IUserInput[] = [
     email: "michael@gmail.com",
     password: safeHashPassword(seedPasswords.user, 12),
     role: "user",
+    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop",
     address: {
       fullName: "John Alexander",
       street: "555 Main St",
@@ -139,6 +144,7 @@ const users: IUserInput[] = [
     email: "emily@gmail.com",
     password: safeHashPassword(seedPasswords.user, 12),
     role: "user",
+    image: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&h=400&fit=crop",
     address: {
       fullName: "Emily Johnson",
       street: "666 Main St",

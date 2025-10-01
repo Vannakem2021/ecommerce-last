@@ -20,23 +20,15 @@ export default function CartButton() {
 
   const locale = useLocale()
   return (
-    <Link href='/cart' className='px-1 header-button'>
-      <div className='flex items-end text-xs relative'>
-        <ShoppingCartIcon className='h-8 w-8' />
+    <Link href='/cart' className='flex items-center gap-2 header-button relative'>
+      <div className='relative'>
+        <ShoppingCartIcon className='h-6 w-6' />
 
-        {isMounted && (
-          <span
-            className={cn(
-              `bg-black  px-1 rounded-full text-primary text-base font-bold absolute ${
-                getDirection(locale) === 'rtl' ? 'right-[5px]' : 'left-[10px]'
-              } top-[-4px] z-10`,
-              cartItemsCount >= 10 && 'text-sm px-0 p-[1px]'
-            )}
-          >
+        {isMounted && cartItemsCount > 0 && (
+          <span className='absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs font-semibold rounded-full h-5 w-5 flex items-center justify-center'>
             {cartItemsCount}
           </span>
         )}
-        <span className='font-bold'>{t('Header.Cart')}</span>
 
         {showSidebar && (
           <div
@@ -48,6 +40,11 @@ export default function CartButton() {
           ></div>
         )}
       </div>
+
+      <span className='hidden xl:inline text-sm'>
+        <span className='text-xs text-muted-foreground block'>{t('Header.Cart')}</span>
+        <span className='font-medium'>{isMounted ? cartItemsCount : 0} items</span>
+      </span>
     </Link>
   )
 }

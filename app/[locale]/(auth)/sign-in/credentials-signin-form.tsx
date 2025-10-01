@@ -120,9 +120,9 @@ export default function CredentialsSignInForm() {
             name='email'
             render={({ field }) => (
               <FormItem className='w-full'>
-                <FormLabel>Email</FormLabel>
+                <FormLabel className='text-base sm:text-lg font-medium'>Email</FormLabel>
                 <FormControl>
-                  <Input placeholder='Enter email address' {...field} />
+                  <Input placeholder='Enter email address' className='h-12 sm:h-14 text-base sm:text-lg' {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -134,11 +134,12 @@ export default function CredentialsSignInForm() {
             name='password'
             render={({ field }) => (
               <FormItem className='w-full'>
-                <FormLabel>Password</FormLabel>
+                <FormLabel className='text-base sm:text-lg font-medium'>Password</FormLabel>
                 <FormControl>
                   <Input
                     type='password'
                     placeholder='Enter password'
+                    className='h-12 sm:h-14 text-base sm:text-lg'
                     {...field}
                   />
                 </FormControl>
@@ -147,11 +148,22 @@ export default function CredentialsSignInForm() {
             )}
           />
 
+          <div className='flex items-center space-x-2 sm:space-x-3'>
+            <input
+              type='checkbox'
+              id='keepSignedIn'
+              className='h-4 w-4 sm:h-5 sm:w-5 rounded border-gray-300'
+            />
+            <label htmlFor='keepSignedIn' className='text-sm sm:text-base md:text-lg text-muted-foreground cursor-pointer'>
+              Keep me signed in
+            </label>
+          </div>
+
           <div>
-            <Button type='submit' disabled={isLoading} className='w-full'>
+            <Button type='submit' disabled={isLoading} className='w-full h-12 sm:h-14 text-lg sm:text-xl font-semibold'>
               {isLoading ? (
                 <>
-                  <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                  <Loader2 className='mr-2 h-5 w-5 sm:h-6 sm:w-6 animate-spin' />
                   Signing in...
                 </>
               ) : (
@@ -163,20 +175,9 @@ export default function CredentialsSignInForm() {
           <div className='text-center'>
             <Link
               href='/forgot-password'
-              className='text-sm text-primary hover:underline'
+              className='text-sm sm:text-base md:text-lg text-primary hover:underline'
             >
-              Forgot your password?
-            </Link>
-          </div>
-
-          <div className='text-xs text-muted-foreground text-center'>
-            By signing in, you agree to {site.name}&apos;s{' '}
-            <Link href='/page/conditions-of-use' className='text-primary hover:underline'>
-              Conditions of Use
-            </Link>{' '}
-            and{' '}
-            <Link href='/page/privacy-policy' className='text-primary hover:underline'>
-              Privacy Notice.
+              Forgot Your Password?
             </Link>
           </div>
         </div>

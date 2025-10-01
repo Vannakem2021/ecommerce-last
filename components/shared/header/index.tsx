@@ -1,76 +1,69 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { getAllCategories } from '@/lib/actions/product.actions'
 import Menu from './menu'
 import Search from './search'
-import data from '@/lib/data'
-import Sidebar from './sidebar'
 import { getSetting } from '@/lib/actions/setting.actions'
-import { getPublishedWebPagesForNavigation } from '@/lib/actions/web-page.actions'
 import Container from '@/components/shared/container'
 import TopBar from './top-bar'
-import LanguageSwitcher from './language-switcher'
+import CategoryNav from './category-nav'
+import ScrollHeader from './scroll-header'
 
 export default async function Header() {
-  const categories = await getAllCategories()
   const { site } = await getSetting()
-  const publishedPages = await getPublishedWebPagesForNavigation()
-
-  // Combine static menu items with dynamic pages
-  const staticMenus = data.headerMenus.filter(menu => !menu.href.startsWith('/page/'))
-  const dynamicPageMenus = publishedPages.map(page => ({
-    name: page.title,
-    href: `/page/${page.slug}`
-  }))
-
-  // Combine all menu items for the drawer
-  const allMenuItems = [...staticMenus, ...dynamicPageMenus]
 
   return (
-    <header>
-      <div className='bg-black text-white'>
-        <Container padding='sm'>
-          <div className='flex items-center justify-between h-16'>
-            {/* Left: Hamburger Menu + Logo */}
-            <div className='flex items-center gap-3'>
-              <Sidebar categories={categories} menuItems={allMenuItems} />
-              <Link
-                href='/'
-                className='flex items-center header-button font-extrabold text-xl lg:text-2xl'
-              >
-                <Image
-                  src={site.logo}
-                  width={32}
-                  height={32}
-                  alt={`${site.name} logo`}
-                  className='lg:w-10 lg:h-10'
-                />
-                <span className='hidden sm:block ml-2'>{site.name}</span>
-              </Link>
+    <>
+      <ScrollHeader>
+        {/* Top Bar */}
+        <TopBar />
+
+        {/* Main Header */}
+        <div className='bg-background border-b'>
+          <Container padding='sm'>
+            <div className='flex items-center justify-between h-16 lg:h-20'>
+              {/* Left: Logo */}
+              <div className='flex items-center gap-3'>
+                <Link
+                  href='/'
+                  className='flex items-center header-button'
+                >
+                  <Image
+                    src={site.logo}
+                    width={48}
+                    height={48}
+                    alt={`${site.name} logo`}
+                    className='w-10 h-10 lg:w-12 lg:h-12'
+                  />
+                  <div className='hidden sm:flex flex-col ml-2'>
+                    <span className='font-bold text-lg lg:text-xl text-primary'>{site.name}</span>
+                    <span className='text-xs text-muted-foreground'>Electronics Store</span>
+                  </div>
+                </Link>
+              </div>
+
+              {/* Center: Search Bar */}
+              <div className='flex-1 max-w-2xl mx-4 hidden md:block'>
+                <Search />
+              </div>
+
+              {/* Right: Utility Icons */}
+              <div className='flex items-center gap-3'>
+                <Menu />
+              </div>
             </div>
 
-            {/* Center: Search Bar */}
-            <div className='flex-1 max-w-2xl mx-4 hidden sm:block'>
+            {/* Mobile Search */}
+            <div className='md:hidden pb-3'>
               <Search />
             </div>
+          </Container>
+        </div>
+      </ScrollHeader>
 
-            {/* Right: Utility Icons */}
-            <div className='flex items-center gap-2'>
-              <div className='hidden lg:flex items-center gap-2 text-sm'>
-                <LanguageSwitcher />
-                <span className='text-gray-300'>|</span>
-                <TopBar showPhoneOnly />
-              </div>
-              <Menu />
-            </div>
-          </div>
-
-          {/* Mobile Search */}
-          <div className='sm:hidden pb-3'>
-            <Search />
-          </div>
-        </Container>
+      {/* Category Navigation - Sticky */}
+      <div className='sticky top-0 z-50'>
+        <CategoryNav />
       </div>
-    </header>
+    </>
   )
 }
