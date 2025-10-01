@@ -5,15 +5,15 @@ import React from "react";
 import {
   BarChart3,
   Package,
-  ShoppingCart,
   Users,
-  FileText,
   Settings,
-  Tag,
-  Layers,
   Warehouse,
   Percent,
 } from "lucide-react";
+import { FiShoppingCart } from "react-icons/fi";
+import { TbBrandDatabricks } from "react-icons/tb";
+import { PiNoteDuotone } from "react-icons/pi";
+import { BiCategory } from "react-icons/bi";
 
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
@@ -30,7 +30,7 @@ const mainLinks = [
   {
     title: "Orders",
     href: "/admin/orders",
-    icon: ShoppingCart,
+    icon: FiShoppingCart,
     permission: "orders.read" as Permission,
   },
   {
@@ -48,13 +48,13 @@ const mainLinks = [
   {
     title: "Categories",
     href: "/admin/categories",
-    icon: Layers,
+    icon: BiCategory,
     permission: "categories.read" as Permission,
   },
   {
     title: "Brands",
     href: "/admin/brands",
-    icon: Tag,
+    icon: TbBrandDatabricks,
     permission: "brands.read" as Permission,
   },
   {
@@ -66,7 +66,7 @@ const mainLinks = [
   {
     title: "Pages",
     href: "/admin/web-pages",
-    icon: FileText,
+    icon: PiNoteDuotone,
     permission: "pages.read" as Permission,
   },
   {
@@ -99,36 +99,33 @@ export function AdminNav({ className, userRole, ...props }: AdminNavProps) {
   return (
     <nav
       className={cn(
-        "flex flex-col w-64 h-full bg-background text-foreground border-r border-border",
+        "flex flex-col flex-1 overflow-y-auto",
         className
       )}
       {...props}
     >
-      <div className="flex flex-col h-full">
-        {/* Main Navigation Links */}
-        <div className="flex-1 space-y-1 p-4 overflow-y-auto">
-          {visibleMainLinks.map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname.includes(item.href);
+      {/* Main Navigation Links */}
+      <div className="flex-1 space-y-1 p-4">
+        {visibleMainLinks.map((item) => {
+          const Icon = item.icon;
+          const isActive = pathname.includes(item.href);
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "admin-sidebar-link",
-                  isActive
-                    ? "admin-sidebar-link-active"
-                    : "admin-sidebar-link-inactive"
-                )}
-              >
-                <Icon className="h-4 w-4" />
-                {t(item.title)}
-              </Link>
-            );
-          })}
-        </div>
-
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                "admin-sidebar-link",
+                isActive
+                  ? "admin-sidebar-link-active"
+                  : "admin-sidebar-link-inactive"
+              )}
+            >
+              <Icon className="h-6 w-6" />
+              {t(item.title)}
+            </Link>
+          );
+        })}
       </div>
     </nav>
   );

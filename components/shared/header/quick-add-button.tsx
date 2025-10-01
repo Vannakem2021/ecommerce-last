@@ -47,7 +47,7 @@ export default function QuickAddButton() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="relative">
-          <Plus className="h-5 w-5" />
+          <Plus className="h-6 w-6" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">

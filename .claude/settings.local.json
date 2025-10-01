@@ -25,7 +25,12 @@
       "Bash(dir:*)",
       "Bash(findstr:*)",
       "Bash(npx playwright test:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(mcp list-tools:*)",
+      "Bash(npx playwright:*)",
+      "Bash(curl:*)",
+      "Bash(netstat:*)",
+      "Bash(npx tsx:*)"
     ],
     "deny": [],
     "ask": []

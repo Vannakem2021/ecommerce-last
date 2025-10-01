@@ -100,7 +100,7 @@
     @apply flex justify-between items-center;
   }
   .admin-sidebar-link {
-    @apply flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-muted hover:text-foreground;
+    @apply flex items-center gap-4 px-3 py-3 rounded-md text-base font-medium transition-colors hover:bg-muted hover:text-foreground;
   }
   .admin-sidebar-link-active {
     @apply bg-muted text-foreground;
