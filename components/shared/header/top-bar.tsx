@@ -1,8 +1,10 @@
 import Container from '@/components/shared/container'
 import { getSetting } from '@/lib/actions/setting.actions'
 import Link from 'next/link'
-import { MapPin, Package, Phone, Heart } from 'lucide-react'
-import { FaFacebookF, FaTwitter, FaInstagram, FaYoutube, FaPinterest } from 'react-icons/fa'
+import { MapPin, Phone, Heart } from 'lucide-react'
+import { FaFacebookF, FaInstagram, FaTiktok } from 'react-icons/fa'
+import { MdOutlineDateRange } from 'react-icons/md'
+import TrackOrderLink from './track-order-link'
 
 export default async function TopBar({ showPhoneOnly = false }: { showPhoneOnly?: boolean }) {
   const setting = await getSetting()
@@ -33,23 +35,13 @@ export default async function TopBar({ showPhoneOnly = false }: { showPhoneOnly?
         <div className="flex items-center justify-between h-9 text-xs">
           {/* Left side - Links */}
           <div className="flex items-center gap-4">
-            <Link href="/store-location" className="flex items-center gap-1 hover:text-primary transition-colors">
+            <Link href="https://www.google.com/maps/place/HSP+Khmer+Store/@11.473392,104.8686799,18z/data=!4m6!3m5!1s0x31095b637022d8cd:0x1bd5cc2c8c14ee83!8m2!3d11.4737038!4d104.8663286!16s%2Fg%2F11rr8t6n2b?entry=ttu&g_ep=EgoyMDI1MDkzMC4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-primary transition-colors">
               <MapPin className="h-3.5 w-3.5" />
               <span className="hidden lg:inline">Store Location</span>
             </Link>
             <span className="text-gray-300 dark:text-gray-700">|</span>
-            <Link href="/track-order" className="flex items-center gap-1 hover:text-primary transition-colors">
-              <Package className="h-3.5 w-3.5" />
-              <span className="hidden lg:inline">Track Your Order</span>
-            </Link>
+            <TrackOrderLink />
             <span className="text-gray-300 dark:text-gray-700">|</span>
-            {setting.site?.phone && (
-              <Link href={`tel:${setting.site.phone}`} className="flex items-center gap-1 hover:text-primary transition-colors">
-                <Phone className="h-3.5 w-3.5" />
-                <span className="hidden md:inline">Call Us For Enquiry</span>
-              </Link>
-            )}
-            <span className="text-gray-300 dark:text-gray-700 hidden md:inline">|</span>
             <div className="hidden md:flex items-center gap-1">
               <Heart className="h-3.5 w-3.5" />
               <span>Welcome to {setting.site?.name || 'Radios'}. We provides Best Electronics Item</span>
@@ -59,6 +51,7 @@ export default async function TopBar({ showPhoneOnly = false }: { showPhoneOnly?
           {/* Right side - Date and Social Icons */}
           <div className="flex items-center gap-4">
             <div className="hidden xl:flex items-center gap-1 text-xs">
+              <MdOutlineDateRange className="h-3.5 w-3.5" />
               <span className="text-muted-foreground">{currentDate}</span>
             </div>
             <div className="flex items-center gap-2">
@@ -66,16 +59,10 @@ export default async function TopBar({ showPhoneOnly = false }: { showPhoneOnly?
                 <FaFacebookF className="h-3.5 w-3.5" />
               </Link>
               <Link href="#" className="hover:text-primary transition-colors">
-                <FaTwitter className="h-3.5 w-3.5" />
-              </Link>
-              <Link href="#" className="hover:text-primary transition-colors">
                 <FaInstagram className="h-3.5 w-3.5" />
               </Link>
               <Link href="#" className="hover:text-primary transition-colors">
-                <FaYoutube className="h-3.5 w-3.5" />
-              </Link>
-              <Link href="#" className="hover:text-primary transition-colors">
-                <FaPinterest className="h-3.5 w-3.5" />
+                <FaTiktok className="h-3.5 w-3.5" />
               </Link>
             </div>
           </div>
