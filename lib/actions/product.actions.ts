@@ -298,7 +298,7 @@ export async function getRelatedProductsByCategory({
   // Handle both string and ObjectId category references
   let categoryCondition = category
   if (typeof category === 'string') {
-    const categoryDoc = await Category.findOne({ name: category })
+    const categoryDoc = await Category.findOne({ name: { $regex: new RegExp(`^${category}$`, 'i') } })
     if (categoryDoc) {
       categoryCondition = categoryDoc._id
     }
@@ -365,7 +365,7 @@ export async function getAllProducts({
   let categoryFilter = {}
   if (category && category !== 'all') {
     // Try to find category by name first (for backward compatibility)
-    const categoryDoc = await Category.findOne({ name: category })
+    const categoryDoc = await Category.findOne({ name: { $regex: new RegExp(`^${category}$`, 'i') } })
     if (categoryDoc) {
       categoryFilter = { category: categoryDoc._id }
     } else {
@@ -542,21 +542,19 @@ export async function getNewArrivalsForCard({
   limit?: number
 } = {}) {
   await connectToDatabase()
-  const products = await Product.find(
-    { isPublished: true },
-    {
-      name: 1,
-      href: { $concat: ['/product/', '$slug'] },
-      image: { $arrayElemAt: ['$images', 0] },
-    }
-  )
+  
+  // Ensure models are registered
+  void Brand
+  void Category
+  
+  const products = await Product.find({ isPublished: true })
+    .populate('brand', 'name')
+    .populate('category', 'name')
     .sort({ createdAt: -1 })
     .limit(limit)
-  return JSON.parse(JSON.stringify(products)) as {
-    name: string
-    href: string
-    image: string
-  }[]
+    .lean()
+  
+  return JSON.parse(JSON.stringify(products)) as IProduct[]
 }
 
 // GET BEST SELLERS FOR CARD - LOGIC-BASED (using numSales)
@@ -566,21 +564,19 @@ export async function getBestSellersForCard({
   limit?: number
 } = {}) {
   await connectToDatabase()
-  const products = await Product.find(
-    { isPublished: true },
-    {
-      name: 1,
-      href: { $concat: ['/product/', '$slug'] },
-      image: { $arrayElemAt: ['$images', 0] },
-    }
-  )
+  
+  // Ensure models are registered
+  void Brand
+  void Category
+  
+  const products = await Product.find({ isPublished: true })
+    .populate('brand', 'name')
+    .populate('category', 'name')
     .sort({ numSales: -1, createdAt: -1 })
     .limit(limit)
-  return JSON.parse(JSON.stringify(products)) as {
-    name: string
-    href: string
-    image: string
-  }[]
+    .lean()
+  
+  return JSON.parse(JSON.stringify(products)) as IProduct[]
 }
 
 
@@ -605,4 +601,64 @@ export async function getAllCategoriesWithCounts() {
   )
 
   return categoriesWithCounts
+}
+// GET HOT DEALS FOR CARD - Products with discounts (listPrice > price)
+export async function getHotDealsForCard({
+  limit = 3,
+}: {
+  limit?: number
+} = {}) {
+  await connectToDatabase()
+  
+  // Ensure models are registered
+  void Brand
+  void Category
+  
+  const products = await Product.find({ 
+    isPublished: true,
+    $expr: { $gt: ['$listPrice', '$price'] } // listPrice > price (has discount)
+  })
+    .populate('brand', 'name')
+    .populate('category', 'name')
+    .sort({ createdAt: -1 }) // Most recent discounts first
+    .limit(limit)
+    .lean()
+  
+  return JSON.parse(JSON.stringify(products)) as IProduct[]
+}
+
+// GET PRODUCTS BY CATEGORY NAME - For category sections on home page
+export async function getProductsByCategoryName({
+  categoryName,
+  limit = 6,
+}: {
+  categoryName: string
+  limit?: number
+}) {
+  await connectToDatabase()
+  
+  // Ensure models are registered
+  void Brand
+  void Category
+  
+  // Find category by name (case-insensitive)
+  const category = await Category.findOne({ 
+    name: { $regex: new RegExp(`^${categoryName}$`, 'i') }
+  })
+  
+  if (!category) {
+    return []
+  }
+  
+  const products = await Product.find({ 
+    isPublished: true,
+    category: category._id,
+  })
+    .populate('brand', 'name')
+    .populate('category', 'name')
+    .sort({ createdAt: -1 }) // Most recent first
+    .limit(limit)
+    .lean()
+  
+  return JSON.parse(JSON.stringify(products)) as IProduct[]
 }

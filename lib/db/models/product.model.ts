@@ -68,10 +68,7 @@ const productSchema = new Schema<IProduct>(
       type: Number,
       required: true,
     },
-    listPrice: {
-      type: Number,
-      required: true,
-    },
+    listPrice: { type: Number, required: false, },
     countInStock: {
       type: Number,
       required: true,
@@ -169,3 +166,4 @@ const Product =
   model<IProduct>('Product', productSchema)
 
 export default Product
+

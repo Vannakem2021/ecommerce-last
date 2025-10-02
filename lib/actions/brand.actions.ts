@@ -135,3 +135,34 @@ export async function getAllActiveBrands() {
   const brands = await Brand.find({ active: true }).sort({ name: 1 }).lean()
   return JSON.parse(JSON.stringify(brands)) as IBrand[]
 }
+
+
+// GET ALL ACTIVE BRANDS WITH PRODUCT COUNTS
+export async function getAllActiveBrandsWithCounts(limit?: number) {
+  await connectToDatabase()
+  
+  // Import Product model
+  const Product = (await import('@/lib/db/models/product.model')).default
+  
+  const brands = await Brand.find({ active: true }).sort({ name: 1 }).lean()
+  
+  // Get product counts for each brand
+  const brandsWithCounts = await Promise.all(
+    brands.map(async (brand) => {
+      const count = await Product.countDocuments({ 
+        brand: brand._id,
+        isPublished: true 
+      })
+      return {
+        ...brand,
+        productCount: count,
+      }
+    })
+  )
+  
+  // Filter out brands with no products and apply limit
+  const filteredBrands = brandsWithCounts.filter(b => b.productCount > 0)
+  const limitedBrands = limit ? filteredBrands.slice(0, limit) : filteredBrands
+  
+  return JSON.parse(JSON.stringify(limitedBrands)) as (IBrand & { productCount: number })[]
+}
