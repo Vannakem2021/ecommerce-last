@@ -256,7 +256,7 @@ export default async function SearchPage(props: {
                         : 'border-muted-foreground'
                     }`}
                   >
-                    {'all' === price && (
+                    {price === 'all' && (
                       <svg
                         className='w-3 h-3 text-primary-foreground'
                         fill='none'
@@ -304,8 +304,11 @@ export default async function SearchPage(props: {
                 ))}
               </div>
             </div>
+
             <div>
-              <div className='font-semibold mb-3'>{t('Search.Rating')}</div>
+              <div className='font-semibold mb-3'>
+                {t('Search.Customer Review')}
+              </div>
               <div className='space-y-2'>
                 <Link
                   href={getFilterUrl({ rating: 'all', params })}
@@ -334,38 +337,43 @@ export default async function SearchPage(props: {
                   </div>
                   <span className='text-sm'>{t('Search.All')}</span>
                 </Link>
-                <Link
-                  href={getFilterUrl({ rating: '4', params })}
-                  className='flex items-center gap-2 hover:text-primary transition-colors'
-                >
-                  <div
-                    className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
-                      '4' === rating
-                        ? 'bg-primary border-primary'
-                        : 'border-muted-foreground'
-                    }`}
+                {[4, 3, 2, 1].map((r) => (
+                  <Link
+                    key={r}
+                    href={getFilterUrl({
+                      rating: `${r}`,
+                      params,
+                    })}
+                    className='flex items-center gap-2 hover:text-primary transition-colors'
                   >
-                    {'4' === rating && (
-                      <svg
-                        className='w-3 h-3 text-primary-foreground'
-                        fill='none'
-                        strokeLinecap='round'
-                        strokeLinejoin='round'
-                        strokeWidth='2'
-                        viewBox='0 0 24 24'
-                        stroke='currentColor'
-                      >
-                        <path d='M5 13l4 4L19 7'></path>
-                      </svg>
-                    )}
-                  </div>
-                  <div className='flex items-center gap-1'>
-                    <Rating size={12} rating={4} />
+                    <div
+                      className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
+                        `${r}` === rating
+                          ? 'bg-primary border-primary'
+                          : 'border-muted-foreground'
+                      }`}
+                    >
+                      {`${r}` === rating && (
+                        <svg
+                          className='w-3 h-3 text-primary-foreground'
+                          fill='none'
+                          strokeLinecap='round'
+                          strokeLinejoin='round'
+                          strokeWidth='2'
+                          viewBox='0 0 24 24'
+                          stroke='currentColor'
+                        >
+                          <path d='M5 13l4 4L19 7'></path>
+                        </svg>
+                      )}
+                    </div>
+                    <Rating rating={r} />
                     <span className='text-sm'>{t('Search.& Up')}</span>
-                  </div>
-                </Link>
+                  </Link>
+                ))}
               </div>
             </div>
+
             <div>
               <div className='font-semibold mb-3'>{t('Search.Tag')}</div>
               <div className='space-y-2'>
@@ -375,12 +383,12 @@ export default async function SearchPage(props: {
                 >
                   <div
                     className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
-                      'all' === tag || '' === tag
+                      'all' === tag
                         ? 'bg-primary border-primary'
                         : 'border-muted-foreground'
                     }`}
                   >
-                    {('all' === tag || '' === tag) && (
+                    {'all' === tag && (
                       <svg
                         className='w-3 h-3 text-primary-foreground'
                         fill='none'
@@ -396,20 +404,23 @@ export default async function SearchPage(props: {
                   </div>
                   <span className='text-sm'>{t('Search.All')}</span>
                 </Link>
-                {tags.map((tagItem: string) => (
+                {tags.map((t) => (
                   <Link
-                    key={tagItem}
-                    href={getFilterUrl({ tag: tagItem, params })}
+                    key={t}
+                    href={getFilterUrl({
+                      tag: toSlug(t),
+                      params,
+                    })}
                     className='flex items-center gap-2 hover:text-primary transition-colors'
                   >
                     <div
                       className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
-                        toSlug(tagItem) === tag
+                        toSlug(t) === tag
                           ? 'bg-primary border-primary'
                           : 'border-muted-foreground'
                       }`}
                     >
-                      {toSlug(tagItem) === tag && (
+                      {toSlug(t) === tag && (
                         <svg
                           className='w-3 h-3 text-primary-foreground'
                           fill='none'
@@ -423,7 +434,7 @@ export default async function SearchPage(props: {
                         </svg>
                       )}
                     </div>
-                    <span className='text-sm'>{tagItem}</span>
+                    <span className='text-sm'>{t}</span>
                   </Link>
                 ))}
               </div>

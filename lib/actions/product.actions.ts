@@ -373,7 +373,19 @@ export async function getAllProducts({
       categoryFilter = { category }
     }
   }
-  const tagFilter = tag && tag !== 'all' ? { tags: tag } : {}
+  // Special handling for todays-deal tag - use sale date logic instead of tag filter
+  let tagFilter = {}
+  if (tag && tag !== 'all') {
+    if (tag === 'todays-deal') {
+      const now = new Date()
+      tagFilter = {
+        saleStartDate: { $lte: now },
+        saleEndDate: { $gte: now },
+      }
+    } else {
+      tagFilter = { tags: tag }
+    }
+  }
 
   const ratingFilter =
     rating && rating !== 'all'
@@ -569,4 +581,28 @@ export async function getBestSellersForCard({
     href: string
     image: string
   }[]
+}
+
+
+export async function getAllCategoriesWithCounts() {
+  await connectToDatabase()
+  const categories = await Category.find({ active: true })
+    .select('name')
+    .sort({ name: 1 })
+    .lean()
+
+  const categoriesWithCounts = await Promise.all(
+    categories.map(async (cat: any) => {
+      const count = await Product.countDocuments({
+        category: cat._id,
+        isPublished: true,
+      })
+      return {
+        name: cat.name,
+        count,
+      }
+    })
+  )
+
+  return categoriesWithCounts
 }

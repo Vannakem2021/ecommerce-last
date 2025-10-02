@@ -2,6 +2,7 @@ import BrowsingHistoryList from '@/components/shared/browsing-history-list'
 import { HomeCard } from '@/components/shared/home/home-card'
 import { HomeCarousel } from '@/components/shared/home/home-carousel'
 import { FlashDeals } from '@/components/shared/home/flash-deals'
+import PromotionBanner from '@/components/shared/promotion/promotion-banner'
 import Container from '@/components/shared/container'
 
 import {
@@ -18,8 +19,7 @@ import { getTranslations } from 'next-intl/server'
 export default async function HomePage() {
   const t = await getTranslations('Home')
   const { carousels } = await getSetting()
-  // Get flash deals - only show real deals with sale dates
-  const flashDeals = await getTodaysDeals({ limit: 10 })
+  const todaysDeals = await getTodaysDeals({ limit: 10 })
 
   const categoriesWithCounts = (await getAllCategoriesWithCounts()).slice(0, 4)
   const newArrivals = await getNewArrivalsForCard({ limit: 4 })
@@ -73,7 +73,7 @@ export default async function HomePage() {
 
       <div className='bg-background'>
         <Container className='md:py-4 md:space-y-4'>
-          {flashDeals.length > 0 && <FlashDeals products={flashDeals} />}
+          <FlashDeals products={todaysDeals} />
           <HomeCard cards={cards} />
         </Container>
       </div>
