@@ -872,34 +872,10 @@ const reviews = [
       "Not as expected. The material feels cheap, and it didn't fit well. Wouldn't buy again.",
   },
   {
-    rating: 2,
-    title: "Needs improvement",
-    comment:
-      "It looks nice but doesn't perform as expected. Wouldn't recommend without upgrades.",
-  },
-  {
-    rating: 3,
-    title: "not bad",
-    comment:
-      "This product is decent, the quality is good but it could use some improvements in the details.",
-  },
-  {
     rating: 3,
     title: "Okay, not great",
     comment:
       "It works, but not as well as I hoped. Quality is average and lacks some finishing.",
-  },
-  {
-    rating: 3,
-    title: "Good product",
-    comment:
-      "This product is amazing, I love it! The quality is top notch, the material is comfortable and breathable.",
-  },
-  {
-    rating: 4,
-    title: "Pretty good",
-    comment:
-      "Solid product! Great value for the price, but there's room for minor improvements.",
   },
   {
     rating: 4,
@@ -908,46 +884,10 @@ const reviews = [
       "Good product! High quality and worth the price. Would consider buying again.",
   },
   {
-    rating: 4,
-    title: "Absolutely love it!",
-    comment:
-      "Perfect in every way! The quality, design, and comfort exceeded all my expectations.",
-  },
-  {
-    rating: 4,
-    title: "Exceeded expectations!",
-    comment:
-      "Fantastic product! High quality, feels durable, and performs well. Highly recommend!",
-  },
-  {
     rating: 5,
     title: "Perfect purchase!",
     comment:
       "Couldn't be happier with this product. The quality is excellent, and it works flawlessly!",
-  },
-  {
-    rating: 5,
-    title: "Highly recommend",
-    comment:
-      "Amazing product! Worth every penny, great design, and feels premium. I'm very satisfied.",
-  },
-  {
-    rating: 5,
-    title: "Just what I needed",
-    comment:
-      "Exactly as described! Quality exceeded my expectations, and it arrived quickly.",
-  },
-  {
-    rating: 5,
-    title: "Excellent choice!",
-    comment:
-      "This product is outstanding! Everything about it feels top-notch, from material to functionality.",
-  },
-  {
-    rating: 5,
-    title: "Couldn't ask for more!",
-    comment:
-      "Love this product! It's durable, stylish, and works great. Would buy again without hesitation.",
   },
 ];
 // Web page data
@@ -960,11 +900,11 @@ const data: Data = {
     {
       title: "About Us",
       slug: "about-us",
-      content: `Welcome to ElectroHub, your trusted destination for the latest electronics and cutting-edge technology. Our journey began with a mission to bring you the best electronic devices at competitive prices, all in one convenient platform.
+      content: `Welcome to BCS, your trusted destination for the latest electronics and cutting-edge technology. Our journey began with a mission to bring you the best electronic devices at competitive prices, all in one convenient platform.
 
-At ElectroHub, we specialize in premium smartphones, laptops, tablets, and accessories from top brands like Apple, Samsung, and Oppo. We prioritize customer satisfaction and innovation, working tirelessly to curate the latest devices and exclusive deals, ensuring there's something for every tech enthusiast.
+At BCS, we specialize in premium smartphones, laptops, tablets, and accessories from top brands like Apple, Samsung, and Oppo. We prioritize customer satisfaction and innovation, working tirelessly to curate the latest devices and exclusive deals, ensuring there's something for every tech enthusiast.
 
-As we continue to grow, our commitment to quality and service remains unwavering. Thank you for choosing ElectroHub—we look forward to being a part of your tech journey and delivering cutting-edge technology every step of the way.`,
+As we continue to grow, our commitment to quality and service remains unwavering. Thank you for choosing BCS—we look forward to being a part of your tech journey and delivering cutting-edge technology every step of the way.`,
       isPublished: true,
     },
     {
@@ -974,7 +914,7 @@ As we continue to grow, our commitment to quality and service remains unwavering
 
 **Customer Support**
 For inquiries about orders, products, or account-related issues, contact our customer support team:
-- **Email:** support@electrohub.com
+- **Email:** support@bcs.com
 - **Phone:** +1 (123) 456-7890
 - **Live Chat:** Available on our website from 9 AM to 6 PM (Monday to Friday).
 
@@ -989,91 +929,25 @@ We look forward to assisting you! Your satisfaction is our priority.`,
     {
       title: "Help",
       slug: "help",
-      content: `Welcome to our Help Center! We're here to assist you with any questions or concerns you may have while shopping for electronics with us. Whether you need help with orders, account management, or product inquiries, this page provides all the information you need.
-
-**Placing and Managing Orders**
-Placing an order is simple and secure. Browse our electronic categories, add items to your cart, and proceed to checkout. Once your order is placed, you can track its status through your account under the "My Orders" section. If you need to modify or cancel your order, please contact us as soon as possible.
-
-**Shipping and Returns**
-We offer various shipping options for your electronic purchases, including standard and express delivery. For detailed shipping costs and delivery timelines, visit our Shipping Policy page. If you're not satisfied with your purchase, our hassle-free return process allows you to initiate a return within the specified timeframe.
-
-**Account and Support**
-Managing your account is easy. Log in to update your personal information, payment methods, and saved addresses. If you encounter any issues or need further assistance, our customer support team is available via email, live chat, or phone.`,
+      content: `Welcome to our Help Center! We're here to assist you with any questions or concerns you may have while shopping for electronics with us.`,
       isPublished: true,
     },
     {
       title: "Privacy Policy",
       slug: "privacy-policy",
-      content: `We value your privacy and are committed to protecting your personal information. This Privacy Notice explains how we collect, use, and share your data when you interact with our electronics store services.
-
-We collect data such as your name, email address, and payment details to provide you with tailored services and improve your shopping experience. This information may also be used for marketing purposes, but only with your consent. Additionally, we may share your data with trusted third-party providers to facilitate transactions or deliver products.
-
-Your data is safeguarded through robust security measures to prevent unauthorized access. However, you have the right to access, correct, or delete your personal information at any time. For inquiries or concerns regarding your privacy, please contact our support team.`,
+      content: `We value your privacy and are committed to protecting your personal information. This Privacy Notice explains how we collect, use, and share your data when you interact with our electronics store services.`,
       isPublished: true,
     },
     {
       title: "Conditions of Use",
       slug: "conditions-of-use",
-      content: `Welcome to ElectroHub. By accessing or using our website, you agree to comply with and be bound by the following terms and conditions. These terms govern your use of our platform, including browsing, purchasing electronic products, and interacting with any content or services provided.
-
-We strive to ensure all product descriptions, pricing, and availability information on our website are accurate. However, errors may occur, and we reserve the right to correct them without prior notice. All purchases are subject to our return and refund policy. By using our site, you acknowledge that your personal information will be processed according to our privacy policy.
-
-Please review these terms carefully before proceeding with any transactions. You must be at least 18 years old or have the consent of a parent or guardian to use this website.`,
+      content: `Welcome to BCS. By accessing or using our website, you agree to comply with and be bound by the following terms and conditions.`,
       isPublished: true,
     },
     {
       title: "Customer Service",
       slug: "customer-service",
-      content: `At ElectroHub, our customer service team is here to ensure you have the best electronics shopping experience. Whether you need assistance with orders, product details, or returns, we are committed to providing prompt and helpful support.
-
-If you have questions or concerns, please reach out to us through our multiple contact options:
-- **Email:** support@electrohub.com
-- **Phone:** +1 (123) 456-7890
-- **Live Chat:** Available on our website for instant assistance
-
-We also provide helpful resources such as order tracking, product guides, and FAQs to assist you with common inquiries. Your satisfaction is our priority, and we're here to resolve any issues quickly and efficiently.`,
-      isPublished: true,
-    },
-    {
-      title: "Returns Policy",
-      slug: "returns-policy",
-      content: "Returns Policy Content",
-      isPublished: true,
-    },
-    {
-      title: "Careers",
-      slug: "careers",
-      content: "careers Content",
-      isPublished: true,
-    },
-    {
-      title: "Blog",
-      slug: "blog",
-      content: "Blog Content",
-      isPublished: true,
-    },
-    {
-      title: "Sell Products",
-      slug: "sell",
-      content: `Sell Products Content`,
-      isPublished: true,
-    },
-    {
-      title: "Become Affiliate",
-      slug: "become-affiliate",
-      content: "Become Affiliate Content",
-      isPublished: true,
-    },
-    {
-      title: "Advertise Your Products",
-      slug: "advertise",
-      content: "Advertise Your Products",
-      isPublished: true,
-    },
-    {
-      title: "Shipping Rates & Policies",
-      slug: "shipping",
-      content: "Shipping Rates & Policies",
+      content: `At BCS, our customer service team is here to ensure you have the best electronics shopping experience. Contact us at support@bcs.com or +1 (123) 456-7890.`,
       isPublished: true,
     },
   ],
@@ -1111,21 +985,21 @@ We also provide helpful resources such as order tracking, product guides, and FA
     {
       title: "Latest iPhone 16 Series",
       buttonCaption: "Shop Now",
-      image: "/images/banner3.jpg",
+      image: "/images/banner3.png",
       url: "/search?category=Smartphones",
       isPublished: true,
     },
     {
       title: "MacBook Pro with M3 Chip",
       buttonCaption: "Shop Now",
-      image: "/images/banner1.jpg",
+      image: "/images/banner1.png",
       url: "/search?category=Laptops",
       isPublished: true,
     },
     {
       title: "iPad Pro - Unleash Your Creativity",
       buttonCaption: "See More",
-      image: "/images/banner2.jpg",
+      image: "/images/banner2.png",
       url: "/search?category=Tablets",
       isPublished: true,
     },
@@ -1140,16 +1014,16 @@ We also provide helpful resources such as order tracking, product guides, and FA
         pageSize: 9,
       },
       site: {
-        name: "ElectroHub",
+        name: "BCS",
         description:
-          "ElectroHub is your premier destination for the latest electronics, smartphones, laptops, tablets, and tech accessories.",
+          "BCS is your premier destination for the latest electronics, smartphones, laptops, tablets, and tech accessories.",
         keywords: "Electronics, Smartphones, Laptops, Tablets, Apple, Samsung, Oppo, MacBook, iPad, iPhone",
-        url: "https://electrohub.vercel.app",
-        logo: "/icons/logo.svg",
+        url: "https://bcs.vercel.app",
+        logo: "/icons/logo.webp",
         slogan: "Power Your Digital Life.",
-        author: "ElectroHub",
-        copyright: "2000-2024, ElectroHub.com, Inc. or its affiliates",
-        email: "admin@electrohub.com",
+        author: "BCS",
+        copyright: "2000-2024, BCS.com, Inc. or its affiliates",
+        email: "admin@bcs.com",
         address: "1234 Tech Street, Silicon Valley, CA, Zip 12345",
         phone: "+1 (123) 456-7890",
       },
@@ -1157,19 +1031,19 @@ We also provide helpful resources such as order tracking, product guides, and FA
         {
           title: "Latest iPhone 16 Series",
           buttonCaption: "Shop Now",
-          image: "/images/banner3.jpg",
+          image: "/images/banner3.png",
           url: "/search?category=Smartphones",
         },
         {
           title: "MacBook Pro with M3 Chip",
           buttonCaption: "Shop Now",
-          image: "/images/banner1.jpg",
+          image: "/images/banner1.png",
           url: "/search?category=Laptops",
         },
         {
           title: "iPad Pro - Unleash Your Creativity",
           buttonCaption: "See More",
-          image: "/images/banner2.jpg",
+          image: "/images/banner2.png",
           url: "/search?category=Tablets",
         },
       ],

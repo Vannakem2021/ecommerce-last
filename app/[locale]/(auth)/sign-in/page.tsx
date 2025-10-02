@@ -36,24 +36,24 @@ export default async function SignInPage(props: {
   return (
     <div className='w-full max-w-2xl mx-auto px-4 sm:px-6'>
       <Card className='border shadow-lg'>
-        <CardHeader className='space-y-2 pb-4 sm:pb-6 px-6 sm:px-12 pt-4 sm:pt-6'>
-          <CardTitle className='text-3xl sm:text-4xl md:text-5xl font-bold text-center'>Sign In</CardTitle>
-          <p className='text-sm sm:text-base md:text-lg text-center text-muted-foreground'>
+        <CardHeader className='space-y-1 sm:space-y-2 pb-2 md:pb-4 lg:pb-6 px-4 md:px-8 lg:px-12 pt-3 md:pt-4 lg:pt-6'>
+          <CardTitle className='text-xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-center'>Sign In</CardTitle>
+          <p className='text-xs md:text-sm lg:text-base xl:text-lg text-center text-muted-foreground'>
             New to Our Product?{' '}
             <Link href={`/sign-up?callbackUrl=${encodeURIComponent(callbackUrl)}`} className='text-primary hover:underline font-medium'>
               Create an Account
             </Link>
           </p>
         </CardHeader>
-        <CardContent className='space-y-4 sm:space-y-5 px-6 sm:px-12 pb-4 sm:pb-6'>
+        <CardContent className='space-y-2 md:space-y-3 lg:space-y-5 px-4 md:px-8 lg:px-12 pb-3 md:pb-4 lg:pb-6'>
           <CredentialsSignInForm />
 
           <div className='relative'>
             <div className='absolute inset-0 flex items-center'>
               <span className='w-full border-t' />
             </div>
-            <div className='relative flex justify-center text-sm sm:text-base uppercase'>
-              <span className='bg-background px-3 sm:px-4 text-muted-foreground'>Or sign in using:</span>
+            <div className='relative flex justify-center text-[10px] md:text-xs lg:text-sm uppercase'>
+              <span className='bg-background px-2 md:px-3 lg:px-4 text-muted-foreground'>Or sign in using:</span>
             </div>
           </div>
 

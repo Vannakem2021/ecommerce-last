@@ -71,19 +71,19 @@ function GoogleSignUpButtons({ callbackUrl }: { callbackUrl: string }) {
     return (
       <Button
         disabled={loading}
-        className='w-full h-9 sm:h-14 text-sm sm:text-lg'
+        className='w-full h-9 md:h-10 lg:h-12 text-sm md:text-base'
         variant='outline'
         onClick={handleGoogleSignIn}
         type="button"
       >
         {loading ? (
           <>
-            <Loader2 className='mr-2 h-4 w-4 sm:h-6 sm:w-6 animate-spin' />
+            <Loader2 className='mr-2 h-4 w-4 md:h-5 md:w-5 animate-spin' />
             Redirecting...
           </>
         ) : (
           <>
-            <svg className='mr-1 sm:mr-3 h-5 w-5 sm:h-7 sm:w-7' viewBox='0 0 24 24'>
+            <svg className='mr-2 md:mr-3 h-5 w-5 md:h-6 md:w-6' viewBox='0 0 24 24'>
               <path
                 fill='currentColor'
                 d='M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z'
@@ -111,17 +111,6 @@ function GoogleSignUpButtons({ callbackUrl }: { callbackUrl: string }) {
   return (
     <div className='space-y-2 sm:space-y-3'>
       <SignInButton />
-      <Button
-        disabled={isLoading}
-        className='w-full h-9 sm:h-14 text-sm sm:text-lg'
-        variant='outline'
-        type="button"
-      >
-        <svg className='mr-1 sm:mr-3 h-5 w-5 sm:h-7 sm:w-7' fill='#1877F2' viewBox='0 0 24 24'>
-          <path d='M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z'/>
-        </svg>
-        Continue with Facebook
-      </Button>
     </div>
   )
 }
@@ -225,15 +214,15 @@ export default function SignUpForm({ callbackUrl = '/' }: { callbackUrl?: string
       <Form {...form}>
         <form onSubmit={handleSubmit(onSubmit)}>
           <input type='hidden' name='callbackUrl' value={callbackUrl} />
-          <div className='space-y-2 sm:space-y-4'>
+          <div className='space-y-2 md:space-y-3 lg:space-y-4'>
             <FormField
               control={control}
               name='name'
               render={({ field }) => (
                 <FormItem className='w-full'>
-                  <FormLabel className='text-sm sm:text-lg font-medium'>Name</FormLabel>
+                  <FormLabel className='text-xs md:text-sm lg:text-base font-medium'>Name</FormLabel>
                   <FormControl>
-                    <Input placeholder={getSecurePlaceholder('name')} className='h-10 sm:h-14 text-sm sm:text-lg' {...field} />
+                    <Input placeholder={getSecurePlaceholder('name')} className='h-9 md:h-10 lg:h-12 text-sm md:text-base' {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -245,9 +234,9 @@ export default function SignUpForm({ callbackUrl = '/' }: { callbackUrl?: string
               name='email'
               render={({ field }) => (
                 <FormItem className='w-full'>
-                  <FormLabel className='text-sm sm:text-lg font-medium'>Email</FormLabel>
+                  <FormLabel className='text-xs md:text-sm lg:text-base font-medium'>Email</FormLabel>
                   <FormControl>
-                    <Input placeholder={getSecurePlaceholder('email')} className='h-10 sm:h-14 text-sm sm:text-lg' {...field} />
+                    <Input placeholder={getSecurePlaceholder('email')} className='h-9 md:h-10 lg:h-12 text-sm md:text-base' {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -259,12 +248,12 @@ export default function SignUpForm({ callbackUrl = '/' }: { callbackUrl?: string
               name='password'
               render={({ field }) => (
                 <FormItem className='w-full'>
-                  <FormLabel className='text-sm sm:text-lg font-medium'>Password</FormLabel>
+                  <FormLabel className='text-xs md:text-sm lg:text-base font-medium'>Password</FormLabel>
                   <FormControl>
                     <Input
                       type='password'
                       placeholder={getSecurePlaceholder('password')}
-                      className='h-10 sm:h-14 text-sm sm:text-lg'
+                      className='h-9 md:h-10 lg:h-12 text-sm md:text-base'
                       {...field}
                     />
                   </FormControl>
@@ -277,12 +266,12 @@ export default function SignUpForm({ callbackUrl = '/' }: { callbackUrl?: string
               name='confirmPassword'
               render={({ field }) => (
                 <FormItem className='w-full'>
-                  <FormLabel className='text-sm sm:text-lg font-medium'>Confirm Password</FormLabel>
+                  <FormLabel className='text-xs md:text-sm lg:text-base font-medium'>Confirm Password</FormLabel>
                   <FormControl>
                     <Input
                       type='password'
                       placeholder={getSecurePlaceholder('password')}
-                      className='h-10 sm:h-14 text-sm sm:text-lg'
+                      className='h-9 md:h-10 lg:h-12 text-sm md:text-base'
                       {...field}
                     />
                   </FormControl>
@@ -291,10 +280,10 @@ export default function SignUpForm({ callbackUrl = '/' }: { callbackUrl?: string
               )}
             />
             <div>
-              <Button type='submit' disabled={isLoading} className='w-full h-10 sm:h-14 text-base sm:text-xl font-semibold'>
+              <Button type='submit' disabled={isLoading} className='w-full h-9 md:h-10 lg:h-12 text-sm md:text-base lg:text-lg font-semibold'>
                 {isLoading ? (
                   <>
-                    <Loader2 className='mr-2 h-4 w-4 sm:h-6 sm:w-6 animate-spin' />
+                    <Loader2 className='mr-2 h-4 w-4 md:h-5 md:w-5 animate-spin' />
                     Creating account...
                   </>
                 ) : (
@@ -303,7 +292,7 @@ export default function SignUpForm({ callbackUrl = '/' }: { callbackUrl?: string
               </Button>
             </div>
 
-            <div className='text-[10px] sm:text-sm text-muted-foreground text-center leading-tight'>
+            <div className='text-[10px] md:text-xs lg:text-sm text-muted-foreground text-center leading-tight'>
               By creating an account, you agree to {site.name}&apos;s{' '}
               <Link href='/page/conditions-of-use' className='text-primary hover:underline'>
                 Conditions of Use
@@ -317,12 +306,12 @@ export default function SignUpForm({ callbackUrl = '/' }: { callbackUrl?: string
         </form>
       </Form>
 
-      <div className='relative my-1 sm:my-0'>
+      <div className='relative my-2 md:my-3'>
         <div className='absolute inset-0 flex items-center'>
           <span className='w-full border-t' />
         </div>
-        <div className='relative flex justify-center text-[10px] sm:text-base uppercase'>
-          <span className='bg-background px-2 sm:px-4 text-muted-foreground'>Or create an account using:</span>
+        <div className='relative flex justify-center text-[10px] md:text-xs lg:text-sm uppercase'>
+          <span className='bg-background px-2 md:px-3 lg:px-4 text-muted-foreground'>Or create an account using:</span>
         </div>
       </div>
 

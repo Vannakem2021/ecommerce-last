@@ -11,9 +11,9 @@ export default async function AuthLayout({
 }) {
   const { site } = await getSetting()
   return (
-    <div className='flex items-center justify-center h-screen bg-background overflow-hidden'>
-      <Container size='default' className='flex justify-center w-full'>
-        <main className='w-full'>{children}</main>
+    <div className='min-h-screen bg-background overflow-y-auto'>
+      <Container size='default' className='flex justify-center w-full py-4 md:py-8 lg:py-12'>
+        <main className='w-full flex items-center justify-center'>{children}</main>
       </Container>
     </div>
   )
