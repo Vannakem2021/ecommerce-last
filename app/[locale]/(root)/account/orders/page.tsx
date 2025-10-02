@@ -1,5 +1,7 @@
 import { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { auth } from "@/auth";
 
 import Pagination from "@/components/shared/pagination";
 import {
@@ -31,6 +33,11 @@ export const metadata: Metadata = {
 export default async function OrdersPage(props: {
   searchParams: Promise<{ page: string }>;
 }) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    redirect("/sign-in");
+  }
+
   const searchParams = await props.searchParams;
   const page = Number(searchParams.page) || 1;
   const orders = await getMyOrders({

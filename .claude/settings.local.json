@@ -32,7 +32,8 @@
       "Bash(netstat:*)",
       "Bash(npx tsx:*)",
       "Bash(npm test:*)",
-      "Bash(npx jest:*)"
+      "Bash(npx jest:*)",
+      "Bash(ls:*)"
     ],
     "deny": [],
     "ask": []
