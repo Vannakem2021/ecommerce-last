@@ -12,7 +12,6 @@ import UserButton from './user-button'
 import ThemeSwitcher from './theme-switcher'
 import LanguageSwitcher from './language-switcher'
 import CurrencySwitcher from './currency-switcher'
-import WishlistButton from './wishlist-button'
 import { useTranslations } from 'next-intl'
 
 const Menu = ({ forAdmin = false }: { forAdmin?: boolean }) => {
@@ -27,7 +26,6 @@ const Menu = ({ forAdmin = false }: { forAdmin?: boolean }) => {
         <UserButton />
         {forAdmin ? null : (
           <>
-            <WishlistButton />
             <CartButton />
           </>
         )}
@@ -52,7 +50,6 @@ const Menu = ({ forAdmin = false }: { forAdmin?: boolean }) => {
             <UserButton />
             {forAdmin ? null : (
               <>
-                <WishlistButton />
                 <CartButton />
               </>
             )}

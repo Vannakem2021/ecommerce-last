@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Heart } from 'lucide-react'
+import { LuFolderHeart } from 'react-icons/lu'
 import useFavorites from '@/hooks/use-favorites'
 
 export default function WishlistButton() {
@@ -14,17 +14,17 @@ export default function WishlistButton() {
       className='flex items-center gap-2 header-button relative'
     >
       <div className='relative'>
-        <Heart className='h-6 w-6' />
+        <LuFolderHeart className='h-6 w-6' />
         {wishlistCount > 0 && (
           <span className='absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs font-semibold rounded-full h-5 w-5 flex items-center justify-center'>
             {wishlistCount}
           </span>
         )}
       </div>
-      <span className='hidden xl:inline text-sm'>
+      {/* <span className='hidden xl:inline text-sm'>
         <span className='text-xs text-muted-foreground block'>Wishlist</span>
         <span className='font-medium'>{wishlistCount} items</span>
-      </span>
+      </span> */}
     </Link>
   )
 }

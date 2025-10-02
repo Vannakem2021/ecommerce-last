@@ -21,8 +21,14 @@ const ProductPrice = ({
 
   // Get effective price (just regular price now)
   const effectivePrice = price
-  const convertedEffectivePrice = round2(currency.convertRate * effectivePrice)
-  const convertedListPrice = round2(currency.convertRate * listPrice)
+  let convertedEffectivePrice = round2(currency.convertRate * effectivePrice)
+  let convertedListPrice = round2(currency.convertRate * listPrice)
+
+  // For KHR, round to whole numbers (no decimals)
+  if (currency.code === 'KHR') {
+    convertedEffectivePrice = Math.round(convertedEffectivePrice)
+    convertedListPrice = Math.round(convertedListPrice)
+  }
 
   const format = useFormatter()
 
@@ -35,12 +41,17 @@ const ProductPrice = ({
     ? stringValue.split('.')
     : [stringValue, '']
 
+  // Format integer part with thousand separators
+  const formattedIntValue = parseInt(intValue).toLocaleString()
+
   // Plain format for simple display
   if (plain) {
     return format.number(convertedEffectivePrice, {
       style: 'currency',
       currency: currency.code,
       currencyDisplay: 'narrowSymbol',
+      minimumFractionDigits: currency.code === 'KHR' ? 0 : 2,
+      maximumFractionDigits: currency.code === 'KHR' ? 0 : 2,
     })
   }
 
@@ -49,8 +60,10 @@ const ProductPrice = ({
     return (
       <div className={cn('text-3xl', className)}>
         <span className='text-xs align-super'>{currency.symbol}</span>
-        {intValue}
-        <span className='text-xs align-super'>{floatValue}</span>
+        {formattedIntValue}
+        {currency.code !== 'KHR' && floatValue && (
+          <span className='text-xs align-super'>{floatValue}</span>
+        )}
       </div>
     )
   }
@@ -62,8 +75,10 @@ const ProductPrice = ({
         <div className='text-3xl text-orange-700 dark:text-orange-400'>-{discountPercent}%</div>
         <div className={cn('text-3xl', className)}>
           <span className='text-xs align-super'>{currency.symbol}</span>
-          {intValue}
-          <span className='text-xs align-super'>{floatValue}</span>
+          {formattedIntValue}
+          {currency.code !== 'KHR' && floatValue && (
+            <span className='text-xs align-super'>{floatValue}</span>
+          )}
         </div>
       </div>
       <div className='text-muted-foreground text-xs py-2'>
@@ -73,6 +88,8 @@ const ProductPrice = ({
             style: 'currency',
             currency: currency.code,
             currencyDisplay: 'narrowSymbol',
+            minimumFractionDigits: currency.code === 'KHR' ? 0 : 2,
+            maximumFractionDigits: currency.code === 'KHR' ? 0 : 2,
           })}
         </span>
       </div>

@@ -11,8 +11,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
-import { ChevronDownIcon, UserRound, User, Heart, Shield, Eye, LogOut } from 'lucide-react'
+import { ChevronDownIcon, UserRound, User, Shield, Eye, LogOut } from 'lucide-react'
 import { FiShoppingCart } from 'react-icons/fi'
+import { LuFolderHeart } from 'react-icons/lu'
 import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
 import UserSignOutButton from './user-sign-out-button'
@@ -21,6 +22,11 @@ import UserAvatar from './user-avatar'
 export default async function UserButton() {
   const t = await getTranslations()
   const session = await auth()
+
+  // Check if user is staff (admin, manager, seller) or customer
+  const isStaff = session && (session.user.role === 'admin' || session.user.role === 'manager' || session.user.role === 'seller')
+  const isCustomer = session && session.user.role === 'user'
+
   return (
     <div className='flex gap-2 items-center'>
       <DropdownMenu>
@@ -51,7 +57,8 @@ export default async function UserButton() {
                   <p className='text-base font-semibold text-foreground truncate'>
                     {session.user.name}
                   </p>
-                  {session.user.role && (
+                  {/* Show role only for staff (admin, manager, seller) */}
+                  {isStaff && session.user.role && (
                     <p className='text-sm text-muted-foreground capitalize truncate'>
                       {session.user.role}
                     </p>
@@ -73,19 +80,24 @@ export default async function UserButton() {
                 </DropdownMenuItem>
               </Link>
 
-              <Link href='/account/orders'>
-                <DropdownMenuItem className='flex items-center gap-3 cursor-pointer px-3 py-2.5'>
-                  <FiShoppingCart className='h-4 w-4 text-muted-foreground' />
-                  <span className='text-sm'>My Orders</span>
-                </DropdownMenuItem>
-              </Link>
+              {/* Show My Orders and My Favorites only for customers */}
+              {isCustomer && (
+                <>
+                  <Link href='/account/orders'>
+                    <DropdownMenuItem className='flex items-center gap-3 cursor-pointer px-3 py-2.5'>
+                      <FiShoppingCart className='h-4 w-4 text-muted-foreground' />
+                      <span className='text-sm'>My Orders</span>
+                    </DropdownMenuItem>
+                  </Link>
 
-              <Link href='/favorites'>
-                <DropdownMenuItem className='flex items-center gap-3 cursor-pointer px-3 py-2.5'>
-                  <Heart className='h-4 w-4 text-muted-foreground' />
-                  <span className='text-sm'>My Favorites</span>
-                </DropdownMenuItem>
-              </Link>
+                  <Link href='/favorites'>
+                    <DropdownMenuItem className='flex items-center gap-3 cursor-pointer px-3 py-2.5'>
+                      <LuFolderHeart className='h-4 w-4 text-muted-foreground' />
+                      <span className='text-sm'>My Favorites</span>
+                    </DropdownMenuItem>
+                  </Link>
+                </>
+              )}
             </DropdownMenuGroup>
 
             {/* Admin Section */}

@@ -1189,6 +1189,12 @@ We also provide helpful resources such as order tracking, product guides, and FA
           symbol: "$",
           convertRate: 1,
         },
+        {
+          name: "Khmer Riel",
+          code: "KHR",
+          symbol: "៛",
+          convertRate: 4100,
+        },
       ],
       defaultCurrency: "USD",
       availablePaymentMethods: [
