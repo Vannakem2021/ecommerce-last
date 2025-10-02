@@ -68,22 +68,21 @@ const ProductPrice = ({
     )
   }
 
-  // Discount display (has list price)
+  // Discount display (has list price) - Option 1 Modern Layout
   return (
-    <div className=''>
-      <div className='flex justify-center gap-3'>
-        <div className='text-3xl text-orange-700 dark:text-orange-400'>-{discountPercent}%</div>
-        <div className={cn('text-3xl', className)}>
-          <span className='text-xs align-super'>{currency.symbol}</span>
-          {formattedIntValue}
-          {currency.code !== 'KHR' && floatValue && (
-            <span className='text-xs align-super'>{floatValue}</span>
-          )}
-        </div>
+    <div className='space-y-1'>
+      {/* Current Price - Large and prominent */}
+      <div className={cn('text-2xl font-bold', className)}>
+        <span className='text-sm align-super'>{currency.symbol}</span>
+        {formattedIntValue}
+        {currency.code !== 'KHR' && floatValue && (
+          <span className='text-sm align-super'>{floatValue}</span>
+        )}
       </div>
-      <div className='text-muted-foreground text-xs py-2'>
-        {t('Product.List price')}:{' '}
-        <span className='line-through'>
+
+      {/* Old Price and Discount - Single line, subtle */}
+      <div className='flex justify-center items-center gap-2 text-xs'>
+        <span className='text-muted-foreground line-through'>
           {format.number(convertedListPrice, {
             style: 'currency',
             currency: currency.code,
@@ -91,6 +90,9 @@ const ProductPrice = ({
             minimumFractionDigits: currency.code === 'KHR' ? 0 : 2,
             maximumFractionDigits: currency.code === 'KHR' ? 0 : 2,
           })}
+        </span>
+        <span className='inline-flex items-center rounded-full bg-orange-100 dark:bg-orange-950/50 px-2 py-0.5 text-orange-700 dark:text-orange-400 font-medium'>
+          -{discountPercent}%
         </span>
       </div>
     </div>

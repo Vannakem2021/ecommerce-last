@@ -15,6 +15,7 @@ import { OrderItem } from '@/types'
 import { useTranslations, useLocale } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { ShoppingCart } from 'lucide-react'
 
 /**
  * Add to Cart Component
@@ -47,7 +48,8 @@ export default function AddToCart({
 
   return minimal ? (
     <Button
-      className='rounded-full w-auto'
+      variant='outline'
+      className='rounded-lg w-full border-2 hover:bg-primary hover:text-primary-foreground hover:border-primary transition-colors gap-2'
       disabled={!isInStock}
       onClick={async () => {
         if (!isInStock) {
@@ -80,6 +82,7 @@ export default function AddToCart({
         }
       }}
     >
+      <ShoppingCart className='h-4 w-4' />
       {isInStock ? t('Product.Add to Cart') : t('Product.Out of Stock')}
     </Button>
   ) : (

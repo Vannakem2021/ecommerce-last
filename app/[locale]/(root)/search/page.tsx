@@ -165,103 +165,268 @@ export default async function SearchPage(props: {
       </div>
       <div className='bg-card grid md:grid-cols-5 md:gap-4 p-4'>
         <CollapsibleOnMobile title={t('Search.Filters')}>
-          <div className='space-y-4'>
-            <div>
-              <div className='font-bold'>{t('Search.Department')}</div>
-              <ul>
-                <li>
-                  <Link
-                    className={`${
-                      ('all' === category || '' === category) && 'text-primary'
-                    }`}
-                    href={getFilterUrl({ category: 'all', params })}
-                  >
-                    {t('Search.All')}
-                  </Link>
-                </li>
-                {categories.map((c: string) => (
-                  <li key={c}>
-                    <Link
-                      className={`${c === category && 'text-primary'}`}
-                      href={getFilterUrl({ category: c, params })}
-                    >
-                      {c}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+          <div className='space-y-6'>
+            <div className='flex items-center justify-between pb-2 border-b'>
+              <h3 className='font-bold text-sm uppercase tracking-wide'>
+                {t('Search.Filters')}
+              </h3>
+              {(category !== 'all' ||
+                price !== 'all' ||
+                rating !== 'all' ||
+                tag !== 'all') && (
+                <Button variant='link' size='sm' asChild className='h-auto p-0'>
+                  <Link href='/search'>{t('Search.Clear All')}</Link>
+                </Button>
+              )}
             </div>
-            <div>
-              <div className='font-bold'>{t('Search.Price')}</div>
-              <ul>
-                <li>
-                  <Link
-                    className={`${'all' === price && 'text-primary'}`}
-                    href={getFilterUrl({ price: 'all', params })}
-                  >
-                    {t('Search.All')}
-                  </Link>
-                </li>
-                {prices.map((p) => (
-                  <li key={p.value}>
-                    <Link
-                      href={getFilterUrl({ price: p.value, params })}
-                      className={`${p.value === price && 'text-primary'}`}
-                    >
-                      {p.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <div className='font-bold'>{t('Search.Customer Review')}</div>
-              <ul>
-                <li>
-                  <Link
-                    href={getFilterUrl({ rating: 'all', params })}
-                    className={`${'all' === rating && 'text-primary'}`}
-                  >
-                    {t('Search.All')}
-                  </Link>
-                </li>
 
-                <li>
-                  <Link
-                    href={getFilterUrl({ rating: '4', params })}
-                    className={`${'4' === rating && 'text-primary'}`}
+            <div>
+              <div className='font-semibold mb-3'>{t('Search.Department')}</div>
+              <div className='space-y-2'>
+                <Link
+                  href={getFilterUrl({ category: 'all', params })}
+                  className='flex items-center gap-2 hover:text-primary transition-colors'
+                >
+                  <div
+                    className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
+                      'all' === category || '' === category
+                        ? 'bg-primary border-primary'
+                        : 'border-muted-foreground'
+                    }`}
                   >
-                    <div className='flex'>
-                      <Rating size={4} rating={4} /> {t('Search.& Up')}
+                    {('all' === category || '' === category) && (
+                      <svg
+                        className='w-3 h-3 text-primary-foreground'
+                        fill='none'
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        strokeWidth='2'
+                        viewBox='0 0 24 24'
+                        stroke='currentColor'
+                      >
+                        <path d='M5 13l4 4L19 7'></path>
+                      </svg>
+                    )}
+                  </div>
+                  <span className='text-sm'>{t('Search.All')}</span>
+                </Link>
+                {categories.map((c: string) => (
+                  <Link
+                    key={c}
+                    href={getFilterUrl({ category: c, params })}
+                    className='flex items-center gap-2 hover:text-primary transition-colors'
+                  >
+                    <div
+                      className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
+                        c === category
+                          ? 'bg-primary border-primary'
+                          : 'border-muted-foreground'
+                      }`}
+                    >
+                      {c === category && (
+                        <svg
+                          className='w-3 h-3 text-primary-foreground'
+                          fill='none'
+                          strokeLinecap='round'
+                          strokeLinejoin='round'
+                          strokeWidth='2'
+                          viewBox='0 0 24 24'
+                          stroke='currentColor'
+                        >
+                          <path d='M5 13l4 4L19 7'></path>
+                        </svg>
+                      )}
                     </div>
+                    <span className='text-sm'>{c}</span>
                   </Link>
-                </li>
-              </ul>
+                ))}
+              </div>
             </div>
             <div>
-              <div className='font-bold'>{t('Search.Tag')}</div>
-              <ul>
-                <li>
-                  <Link
-                    className={`${
-                      ('all' === tag || '' === tag) && 'text-primary'
+              <div className='font-semibold mb-3'>{t('Search.Price')}</div>
+              <div className='space-y-2'>
+                <Link
+                  href={getFilterUrl({ price: 'all', params })}
+                  className='flex items-center gap-2 hover:text-primary transition-colors'
+                >
+                  <div
+                    className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
+                      'all' === price
+                        ? 'bg-primary border-primary'
+                        : 'border-muted-foreground'
                     }`}
-                    href={getFilterUrl({ tag: 'all', params })}
                   >
-                    {t('Search.All')}
-                  </Link>
-                </li>
-                {tags.map((t: string) => (
-                  <li key={t}>
-                    <Link
-                      className={`${toSlug(t) === tag && 'text-primary'}`}
-                      href={getFilterUrl({ tag: t, params })}
+                    {'all' === price && (
+                      <svg
+                        className='w-3 h-3 text-primary-foreground'
+                        fill='none'
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        strokeWidth='2'
+                        viewBox='0 0 24 24'
+                        stroke='currentColor'
+                      >
+                        <path d='M5 13l4 4L19 7'></path>
+                      </svg>
+                    )}
+                  </div>
+                  <span className='text-sm'>{t('Search.All')}</span>
+                </Link>
+                {prices.map((p) => (
+                  <Link
+                    key={p.value}
+                    href={getFilterUrl({ price: p.value, params })}
+                    className='flex items-center gap-2 hover:text-primary transition-colors'
+                  >
+                    <div
+                      className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
+                        p.value === price
+                          ? 'bg-primary border-primary'
+                          : 'border-muted-foreground'
+                      }`}
                     >
-                      {t}
-                    </Link>
-                  </li>
+                      {p.value === price && (
+                        <svg
+                          className='w-3 h-3 text-primary-foreground'
+                          fill='none'
+                          strokeLinecap='round'
+                          strokeLinejoin='round'
+                          strokeWidth='2'
+                          viewBox='0 0 24 24'
+                          stroke='currentColor'
+                        >
+                          <path d='M5 13l4 4L19 7'></path>
+                        </svg>
+                      )}
+                    </div>
+                    <span className='text-sm'>{p.name}</span>
+                  </Link>
                 ))}
-              </ul>
+              </div>
+            </div>
+            <div>
+              <div className='font-semibold mb-3'>{t('Search.Rating')}</div>
+              <div className='space-y-2'>
+                <Link
+                  href={getFilterUrl({ rating: 'all', params })}
+                  className='flex items-center gap-2 hover:text-primary transition-colors'
+                >
+                  <div
+                    className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
+                      'all' === rating
+                        ? 'bg-primary border-primary'
+                        : 'border-muted-foreground'
+                    }`}
+                  >
+                    {'all' === rating && (
+                      <svg
+                        className='w-3 h-3 text-primary-foreground'
+                        fill='none'
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        strokeWidth='2'
+                        viewBox='0 0 24 24'
+                        stroke='currentColor'
+                      >
+                        <path d='M5 13l4 4L19 7'></path>
+                      </svg>
+                    )}
+                  </div>
+                  <span className='text-sm'>{t('Search.All')}</span>
+                </Link>
+                <Link
+                  href={getFilterUrl({ rating: '4', params })}
+                  className='flex items-center gap-2 hover:text-primary transition-colors'
+                >
+                  <div
+                    className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
+                      '4' === rating
+                        ? 'bg-primary border-primary'
+                        : 'border-muted-foreground'
+                    }`}
+                  >
+                    {'4' === rating && (
+                      <svg
+                        className='w-3 h-3 text-primary-foreground'
+                        fill='none'
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        strokeWidth='2'
+                        viewBox='0 0 24 24'
+                        stroke='currentColor'
+                      >
+                        <path d='M5 13l4 4L19 7'></path>
+                      </svg>
+                    )}
+                  </div>
+                  <div className='flex items-center gap-1'>
+                    <Rating size={12} rating={4} />
+                    <span className='text-sm'>{t('Search.& Up')}</span>
+                  </div>
+                </Link>
+              </div>
+            </div>
+            <div>
+              <div className='font-semibold mb-3'>{t('Search.Tag')}</div>
+              <div className='space-y-2'>
+                <Link
+                  href={getFilterUrl({ tag: 'all', params })}
+                  className='flex items-center gap-2 hover:text-primary transition-colors'
+                >
+                  <div
+                    className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
+                      'all' === tag || '' === tag
+                        ? 'bg-primary border-primary'
+                        : 'border-muted-foreground'
+                    }`}
+                  >
+                    {('all' === tag || '' === tag) && (
+                      <svg
+                        className='w-3 h-3 text-primary-foreground'
+                        fill='none'
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        strokeWidth='2'
+                        viewBox='0 0 24 24'
+                        stroke='currentColor'
+                      >
+                        <path d='M5 13l4 4L19 7'></path>
+                      </svg>
+                    )}
+                  </div>
+                  <span className='text-sm'>{t('Search.All')}</span>
+                </Link>
+                {tags.map((tagItem: string) => (
+                  <Link
+                    key={tagItem}
+                    href={getFilterUrl({ tag: tagItem, params })}
+                    className='flex items-center gap-2 hover:text-primary transition-colors'
+                  >
+                    <div
+                      className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
+                        toSlug(tagItem) === tag
+                          ? 'bg-primary border-primary'
+                          : 'border-muted-foreground'
+                      }`}
+                    >
+                      {toSlug(tagItem) === tag && (
+                        <svg
+                          className='w-3 h-3 text-primary-foreground'
+                          fill='none'
+                          strokeLinecap='round'
+                          strokeLinejoin='round'
+                          strokeWidth='2'
+                          viewBox='0 0 24 24'
+                          stroke='currentColor'
+                        >
+                          <path d='M5 13l4 4L19 7'></path>
+                        </svg>
+                      )}
+                    </div>
+                    <span className='text-sm'>{tagItem}</span>
+                  </Link>
+                ))}
+              </div>
             </div>
           </div>
         </CollapsibleOnMobile>
