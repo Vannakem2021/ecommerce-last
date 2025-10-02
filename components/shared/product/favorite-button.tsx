@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button'
 import useFavorites from '@/hooks/use-favorites'
 import { useAuthSession } from '@/hooks/use-auth-session'
-import { Heart } from 'lucide-react'
+import { AiOutlineHeart, AiFillHeart } from 'react-icons/ai'
 import { usePathname, useRouter } from 'next/navigation'
 import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
@@ -45,8 +45,9 @@ export default function FavoriteButton({
       size={size === 'icon' ? 'icon' : size === 'sm' ? 'sm' : size === 'lg' ? 'lg' : 'default'}
       className={cn(
         'rounded-full',
-        active ? 'text-primary' : 'text-muted-foreground',
-        'hover:text-primary',
+        active
+          ? 'text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300'
+          : 'text-muted-foreground hover:text-green-600 dark:hover:text-green-400',
         className
       )}
       type={type}
@@ -79,11 +80,11 @@ export default function FavoriteButton({
         }
       }}
     >
-      <Heart
-        className='h-5 w-5'
-        fill={active ? 'currentColor' : 'none'}
-        strokeWidth={active ? 0 : 2}
-      />
+      {active ? (
+        <AiFillHeart className='h-6 w-6' />
+      ) : (
+        <AiOutlineHeart className='h-6 w-6' />
+      )}
     </Button>
   )
 }
