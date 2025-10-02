@@ -11,6 +11,7 @@ type CardItem = {
     items?: string[]
     image: string
     href: string
+    count?: number
   }[]
 }
 
@@ -38,6 +39,11 @@ export function HomeCard({ cards }: { cards: CardItem[] }) {
                   <p className='text-center text-sm whitespace-nowrap overflow-hidden text-ellipsis'>
                     {item.name}
                   </p>
+                  {item.count !== undefined && (
+                    <p className='text-center text-xs text-muted-foreground mt-1'>
+                      ({item.count})
+                    </p>
+                  )}
                 </Link>
               ))}
             </div>

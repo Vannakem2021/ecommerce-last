@@ -18,8 +18,7 @@ import { getTranslations } from 'next-intl/server'
 export default async function HomePage() {
   const t = await getTranslations('Home')
   const { carousels } = await getSetting()
-  // Get flash deals - only show real deals with sale dates
-  const flashDeals = await getTodaysDeals({ limit: 10 })
+  const todaysDeals = await getTodaysDeals({ limit: 10 })
 
   const categoriesWithCounts = (await getAllCategoriesWithCounts()).slice(0, 4)
   const newArrivals = await getNewArrivalsForCard({ limit: 4 })
@@ -73,7 +72,7 @@ export default async function HomePage() {
 
       <div className='bg-background'>
         <Container className='md:py-4 md:space-y-4'>
-          {flashDeals.length > 0 && <FlashDeals products={flashDeals} />}
+          <FlashDeals products={todaysDeals} />
           <HomeCard cards={cards} />
         </Container>
       </div>
