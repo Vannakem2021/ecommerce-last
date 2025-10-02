@@ -1,5 +1,6 @@
 'use client'
 import { redirect } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -36,6 +37,7 @@ const signUpDefaultValues = createSecureFormDefaults({
 
 function GoogleSignUpButtons({ callbackUrl }: { callbackUrl: string }) {
   const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
   const locale = useLocale()
 
   const handleGoogleSignIn = async () => {
@@ -129,6 +131,7 @@ export default function SignUpForm({ callbackUrl = '/' }: { callbackUrl?: string
     setting: { site },
   } = useSettingStore()
   const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
 
   // Validate form defaults for security
   validateFormDefaults(signUpDefaultValues, 'signup')
@@ -144,6 +147,7 @@ export default function SignUpForm({ callbackUrl = '/' }: { callbackUrl?: string
     setIsLoading(true)
     try {
       const res = await registerUser(data)
+      console.log('Registration response:', res)
       if (!res.success) {
         setIsLoading(false)
         toast({
@@ -153,19 +157,64 @@ export default function SignUpForm({ callbackUrl = '/' }: { callbackUrl?: string
         })
         return
       }
+
+      // New flow: redirect to email verification
+      const typedRes = res as any;
+      console.log('Checking verification flow:', {
+        hasRequiresVerification: 'requiresVerification' in res,
+        requiresVerification: typedRes.requiresVerification,
+        hasUserId: 'userId' in res,
+        userId: typedRes.userId,
+        bothExist: typedRes.requiresVerification && typedRes.userId
+      })
+      
+      if (typedRes.requiresVerification && typedRes.userId) {
+        console.log('✅ Taking verification path')
+        console.log('Redirecting to:', `/verify-email?userId=${typedRes.userId}&email=${encodeURIComponent(data.email)}`)
+        setIsLoading(false)
+        toast({
+          title: 'Account Created',
+          description: 'Please check your email to verify your account.',
+        })
+        
+        // Redirect to verification page with userId and email
+        const verifyUrl = `/verify-email?userId=${typedRes.userId}&email=${encodeURIComponent(data.email)}`
+        console.log('Calling router.push with:', verifyUrl)
+        
+        try {
+          router.push(verifyUrl)
+          console.log('Router.push called successfully')
+        } catch (routerError) {
+          console.error('Router.push threw error:', routerError)
+          throw routerError
+        }
+        
+        console.log('Returning from onSubmit after successful redirect')
+        return
+      }
+
+      // Fallback: old behavior if verification not required (shouldn't happen)
+      console.log('❌ Taking fallback path - attempting auto sign-in')
+      console.log('This should NOT happen! Response was:', res)
       await signInWithCredentials({
         email: data.email,
         password: data.password,
       })
       redirect(callbackUrl)
     } catch (error) {
+      console.error('❌ Caught error in onSubmit:', error)
+      console.error('Error type:', error?.constructor?.name)
+      console.error('Error message:', (error as Error)?.message)
+      
       setIsLoading(false)
+      
       if (isRedirectError(error)) {
+        console.log('This is a redirect error, re-throwing')
         throw error
       }
       toast({
         title: 'Error',
-        description: 'Invalid email or password',
+        description: (error as Error)?.message || 'Invalid email or password',
         variant: 'destructive',
       })
     }

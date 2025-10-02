@@ -27,6 +27,7 @@ import {
 } from "../rbac";
 import { normalizeRole, canUserRoleManageTargetRole } from "../rbac-utils";
 import { sendPasswordResetEmail } from "../../emails";
+import { generateEmailOTP } from "./email-verification.actions";
 
 // CREATE
 export async function registerUser(userSignUp: IUserSignUp) {
@@ -41,7 +42,7 @@ export async function registerUser(userSignUp: IUserSignUp) {
     await connectToDatabase();
 
     // Create user with minimal required data for registration
-    await User.create({
+    const newUser = await User.create({
       name: user.name,
       email: user.email,
       password: await bcrypt.hash(user.password, 12),
@@ -49,7 +50,20 @@ export async function registerUser(userSignUp: IUserSignUp) {
       emailVerified: false,
       // paymentMethod and address are optional during registration
     });
-    return { success: true, message: "User created successfully" };
+    // Generate and send OTP for email verification
+    const otpResult = await generateEmailOTP(newUser._id.toString());
+
+    if (!otpResult.success) {
+      console.error('Failed to send verification OTP:', otpResult.error);
+      // Don't fail registration if email sending fails
+    }
+
+    return {
+      success: true,
+      message: "Account created. Please verify your email.",
+      userId: newUser._id.toString(),
+      requiresVerification: true,
+    };
   } catch (error) {
     return { success: false, error: formatError(error) };
   }
