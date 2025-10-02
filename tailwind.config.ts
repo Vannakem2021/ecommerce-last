@@ -11,8 +11,8 @@ const config: Config = withUt({
   theme: {
     extend: {
       fontFamily: {
-        sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
-        inter: ['var(--font-inter)', 'sans-serif'],
+        sans: ['Ubuntu', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+        ubuntu: ['var(--font-ubuntu)', 'sans-serif'],
         hanuman: ['var(--font-hanuman)', 'serif'],
       },
       colors: {
@@ -68,3 +68,4 @@ const config: Config = withUt({
 }) satisfies Config
 
 export default config
+

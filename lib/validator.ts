@@ -61,7 +61,7 @@ const ProductBaseSchema = z.object({
   description: z.string().min(1, "Description is required"),
   isPublished: z.boolean(),
   price: Price("Price"),
-  listPrice: Price("List price"),
+  listPrice: Price("List price").optional(),
   countInStock: z.coerce
     .number()
     .int()
@@ -188,7 +188,7 @@ export const ProductInputLegacySchema = z.object({
   description: z.string().min(1, "Description is required"),
   isPublished: z.boolean(),
   price: Price("Price"),
-  listPrice: Price("List price"),
+  listPrice: Price("List price").optional(),
   countInStock: z.coerce
     .number()
     .int()
@@ -909,3 +909,4 @@ export const PromotionValidationSchema = z.object({
   cartTotal: z.coerce.number().min(0, "Cart total must be non-negative"),
   userId: MongoId.optional(),
 });
+
