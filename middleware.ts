@@ -22,6 +22,7 @@ const publicPages = [
   '/sign-in',
   '/sign-up',
   '/forgot-password',
+  '/verify-email',
   '/reset-password/(.*)',
   '/cart',
   '/cart/(.*)',

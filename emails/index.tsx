@@ -3,6 +3,7 @@ import PurchaseReceiptEmail from './purchase-receipt'
 import { IOrder } from '@/lib/db/models/order.model'
 import AskReviewOrderItemsEmail from './ask-review-order-items'
 import PasswordResetEmail from './password-reset'
+import EmailVerificationOTP from './email-verification-otp'
 import { SENDER_EMAIL, SENDER_NAME } from '@/lib/constants'
 import { getSetting } from '@/lib/actions/setting.actions'
 import { getSecureEnvVar, isProduction } from '@/lib/utils/environment'
@@ -96,6 +97,50 @@ export const sendPasswordResetEmail = async ({
     return { success: true, data }
   } catch (error) {
     console.error('Error sending password reset email:', error)
+    return { success: false, error }
+  }
+}
+
+
+export const sendEmailVerificationOTP = async ({
+  otp,
+  userEmail,
+  userName,
+}: {
+  otp: string
+  userEmail: string
+  userName?: string
+}) => {
+  if (!resend) {
+    console.error('❌ ERROR: Email service not configured - cannot send verification OTP')
+    return { success: false, error: 'Email service not configured' }
+  }
+
+  try {
+    const { site } = await getSetting()
+
+    const { data, error } = await resend.emails.send({
+      from: `${SENDER_NAME} <${SENDER_EMAIL}>`,
+      to: [userEmail],
+      subject: `Verify your email - ${site.name}`,
+      react: <EmailVerificationOTP
+        otp={otp}
+        userEmail={userEmail}
+        userName={userName}
+        siteName={site.name}
+        siteLogo={site.logo}
+        expiresInMinutes={10}
+      />,
+    })
+
+    if (error) {
+      console.error('Error sending verification OTP email:', error)
+      return { success: false, error }
+    }
+
+    return { success: true, data }
+  } catch (error) {
+    console.error('Error sending verification OTP email:', error)
     return { success: false, error }
   }
 }

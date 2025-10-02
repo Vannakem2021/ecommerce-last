@@ -1,6 +1,6 @@
 'use client'
 import { useSearchParams } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 
@@ -45,6 +45,17 @@ export default function CredentialsSignInForm() {
   })
 
   const { control, handleSubmit } = form
+
+  // Show success message if coming from email verification
+  useEffect(() => {
+    const verified = searchParams.get('verified')
+    if (verified === 'true') {
+      toast({
+        title: 'Email Verified!',
+        description: 'Your email has been verified successfully. You can now sign in.',
+      })
+    }
+  }, [searchParams])
 
   const onSubmit = async (data: IUserSignIn) => {
     setIsLoading(true)
