@@ -1095,10 +1095,6 @@ We also provide helpful resources such as order tracking, product guides, and FA
       href: "/search?tag=best-seller",
     },
     {
-      name: "Browsing History",
-      href: "/#browsing-history",
-    },
-    {
       name: "Customer Service",
       href: "/page/customer-service",
     },
