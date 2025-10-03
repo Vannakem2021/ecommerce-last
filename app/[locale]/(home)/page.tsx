@@ -16,65 +16,108 @@ import {
   getSecondHandProductsForCard,
 } from '@/lib/actions/product.actions'
 import { getAllActiveBrandsWithCounts } from '@/lib/actions/brand.actions'
-import { getSetting } from '@/lib/actions/setting.actions'
+import { getNoCachedSetting } from '@/lib/actions/setting.actions'
 
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, getLocale } from 'next-intl/server'
 import { FEATURED_COLLECTIONS } from '@/lib/constants/collections'
 
 export default async function HomePage() {
   const t = await getTranslations('Home')
-  const { carousels } = await getSetting()
+  const locale = await getLocale()
+  const setting = await getNoCachedSetting() // Use no-cache to get fresh data
+  
   // Get flash deals - only show real deals with sale dates
   const flashDeals = await getTodaysDeals({ limit: 10 })
+  
   // Get brands with product counts
   const brands = await getAllActiveBrandsWithCounts(11)
 
-  const newArrivals = await getNewArrivalsForCard({ limit: 3 })
-  const bestSellers = await getBestSellersForCard({ limit: 3 })
-  const hotDeals = await getHotDealsForCard({ limit: 3 })
-  
-  // Get products by category for category sections
-  const smartphoneProducts = await getProductsByCategoryName({ categoryName: 'Smartphones', limit: 6 })
-  const laptopProducts = await getProductsByCategoryName({ categoryName: 'Laptops', limit: 6 })
-  const tabletProducts = await getProductsByCategoryName({ categoryName: 'Tablets', limit: 6 })
-  const secondHandProducts = await getSecondHandProductsForCard({ limit: 6 })
-  const cards = [
-    {
-      title: t('Discover Hot Deals'),
-      items: hotDeals,
-      link: {
-        text: t('View All'),
-        href: '/search?sort=price-high-to-low',
-      },
+  // Get enabled sections sorted by order
+  const sections = (setting.homePage?.sections || [])
+    .filter((s) => s.enabled)
+    .sort((a, b) => a.order - b.order)
+
+  // Fetch data for each section based on its type
+  const sectionData = await Promise.all(
+    sections.map(async (section) => {
+      let products = []
+      
+      switch (section.id) {
+        case 'hot-deals':
+          products = await getHotDealsForCard({ limit: section.limit })
+          break
+        case 'new-arrivals':
+          products = await getNewArrivalsForCard({ limit: section.limit })
+          break
+        case 'best-sellers':
+          products = await getBestSellersForCard({ limit: section.limit })
+          break
+        case 'second-hand':
+          products = await getSecondHandProductsForCard({ limit: section.limit })
+          break
+        default:
+          // Category sections
+          if (section.type === 'category' && section.categoryName) {
+            products = await getProductsByCategoryName({ 
+              categoryName: section.categoryName, 
+              limit: section.limit 
+            })
+          }
+      }
+      
+      return {
+        ...section,
+        products,
+      }
+    })
+  )
+
+  // Helper function to get href for sections
+  const getHrefForSection = (sectionId: string) => {
+    switch (sectionId) {
+      case 'hot-deals':
+        return '/search?sort=price-high-to-low'
+      case 'new-arrivals':
+        return '/search?sort=latest'
+      case 'best-sellers':
+        return '/search?sort=best-selling'
+      case 'second-hand':
+        return '/search?secondHand=true'
+      default:
+        return '/search'
+    }
+  }
+
+  // Prepare card sections (hot-deals, new-arrivals, best-sellers)
+  const cardSections = sectionData.filter(s => 
+    ['hot-deals', 'new-arrivals', 'best-sellers'].includes(s.id)
+  )
+
+  const cards = cardSections.map(section => ({
+    title: locale === 'kh' ? section.title.kh : section.title.en,
+    items: section.products,
+    showNewBadge: section.id === 'new-arrivals',
+    showRanking: section.id === 'best-sellers',
+    link: {
+      text: t('View All'),
+      href: getHrefForSection(section.id),
     },
-    {
-      title: t('Explore New Arrivals'),
-      items: newArrivals,
-      showNewBadge: true,
-      link: {
-        text: t('View All'),
-        href: '/search?sort=latest',
-      },
-    },
-    {
-      title: t('Discover Best Sellers'),
-      items: bestSellers,
-      showRanking: true,
-      link: {
-        text: t('View All'),
-        href: '/search?sort=best-selling',
-      },
-    },
-  ]
+  }))
+
+  // Get category sections (including second-hand)
+  const categorySections = sectionData.filter(s => 
+    !['hot-deals', 'new-arrivals', 'best-sellers'].includes(s.id) && 
+    s.products.length > 0
+  )
 
   return (
     <>
-      <HomeCarousel items={carousels} />
+      <HomeCarousel items={setting.carousels} />
 
       <div className='bg-background'>
         <Container className='md:py-4 md:space-y-4'>
           {flashDeals.length > 0 && <FlashDeals products={flashDeals} />}
-          <HomeCard cards={cards} />
+          {cards.length > 0 && <HomeCard cards={cards} />}
         </Container>
       </div>
 
@@ -91,42 +134,28 @@ export default async function HomePage() {
         </div>
       )}
 
-      {/* Category Sections - Smartphones, Laptops, Tablets */}
-      <div className='bg-background'>
-        <Container className='py-4 md:py-6 space-y-8 md:space-y-10'>
-          {smartphoneProducts.length > 0 && (
-            <CategorySection
-              title={t('Smartphones')}
-              products={smartphoneProducts}
-              categorySlug='smartphones'
-            />
-          )}
-          
-          {laptopProducts.length > 0 && (
-            <CategorySection
-              title={t('Laptops')}
-              products={laptopProducts}
-              categorySlug='laptops'
-            />
-          )}
-          
-          {tabletProducts.length > 0 && (
-            <CategorySection
-              title={t('Tablets')}
-              products={tabletProducts}
-              categorySlug='tablets'
-            />
-          )}
-          
-          {secondHandProducts.length > 0 && (
-            <CategorySection
-              title={t('Second Hand')}
-              products={secondHandProducts}
-              categorySlug='second-hand'
-            />
-          )}
-        </Container>
-      </div>
+      {/* Dynamic Category Sections from Settings */}
+      {categorySections.length > 0 && (
+        <div className='bg-background'>
+          <Container className='py-4 md:py-6 space-y-8 md:space-y-10'>
+            {categorySections.map((section) => {
+              const title = locale === 'kh' ? section.title.kh : section.title.en
+              const categorySlug = section.categoryName 
+                ? section.categoryName.toLowerCase() 
+                : section.id
+              
+              return (
+                <CategorySection
+                  key={section.id}
+                  title={title}
+                  products={section.products}
+                  categorySlug={categorySlug}
+                />
+              )
+            })}
+          </Container>
+        </div>
+      )}
 
       {/* Featured Collections Section */}
       {FEATURED_COLLECTIONS.length > 0 && (
