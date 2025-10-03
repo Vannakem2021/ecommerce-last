@@ -283,6 +283,7 @@ export const OrderItemSchema = z.object({
   price: Price("Price"),
   size: z.string().optional(),
   color: z.string().optional(),
+  sku: z.string().optional(),
 });
 
 // Favorites

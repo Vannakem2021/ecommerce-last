@@ -31,6 +31,7 @@ const orderSchema = new Schema<IOrder>(
         quantity: { type: Number, required: true },
         size: { type: String },
         color: { type: String },
+        sku: { type: String },
       },
     ],
     shippingAddress: {
@@ -99,6 +100,14 @@ const orderSchema = new Schema<IOrder>(
       freeShipping: { type: Boolean, default: false },
     },
     discountAmount: { type: Number, min: 0, default: 0 },
+    // Internal notes (admin only - not visible to customers)
+    internalNotes: [
+      {
+        note: { type: String, required: true },
+        createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
   },
   {
     timestamps: true,
