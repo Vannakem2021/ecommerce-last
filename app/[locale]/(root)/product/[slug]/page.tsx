@@ -19,6 +19,7 @@ import ProductSlider from '@/components/shared/product/product-slider'
 import PromotionBadge from '@/components/shared/promotion/promotion-badge'
 import { getTranslations } from 'next-intl/server'
 import FavoriteButton from '@/components/shared/product/favorite-button'
+import ProductDetailClient from './product-detail-client'
 
 export async function generateMetadata(props: {
   params: Promise<{ slug: string }>
@@ -62,12 +63,12 @@ export default async function ProductDetails(props: {
     <div>
       <AddToBrowsingHistory id={product._id} category={typeof product.category === 'object' ? (product.category as unknown as { name: string }).name : product.category} />
       <section>
-        <div className='grid grid-cols-1 md:grid-cols-5  '>
+        <div className='grid grid-cols-1 md:grid-cols-5 gap-4'>
           <div className='col-span-2'>
             <ProductGallery images={product.images} />
           </div>
 
-          <div className='flex w-full flex-col gap-2 md:p-5 col-span-2'>
+          <div className='flex w-full flex-col gap-2 md:p-5 col-span-3'>
             <div className='flex flex-col gap-3'>
               <p className='p-medium-16 rounded-full bg-grey-500/10   text-grey-500'>
                 {t('Product.Brand')} {typeof product.brand === 'object' ? (product.brand as unknown as { name: string }).name : product.brand} {typeof product.category === 'object' ? (product.category as unknown as { name: string }).name : product.category}
@@ -91,24 +92,20 @@ export default async function ProductDetails(props: {
                 size='lg'
                 className='mb-2'
               />
-
-              <div className='flex flex-col gap-3 sm:flex-row sm:items-center'>
-                <div className='flex gap-3'>
-                  <ProductPrice
-                    price={product.price}
-                    listPrice={product.listPrice}
-                    forListing={false}
-                  />
-                </div>
-              </div>
             </div>
-            <div>
-              <SelectVariant
-                product={product}
-                size={size || product.sizes[0]}
-                color={color || product.colors[0]}
-              />
-            </div>
+            
+            <Separator className='my-2' />
+            
+            {/* Variant Selection & Pricing */}
+            <ProductDetailClient 
+              product={product} 
+              translations={{
+                inStock: t('Product.In Stock'),
+                outOfStock: t('Product.Out of Stock'),
+                onlyXLeft: t('Product.Only X left in stock - order soon', { count: product.countInStock })
+              }}
+            />
+            
             <Separator className='my-2' />
             <div className='flex flex-col gap-2'>
               <p className='p-bold-20 text-grey-600'>
@@ -118,53 +115,6 @@ export default async function ProductDetails(props: {
                 {product.description}
               </p>
             </div>
-          </div>
-          <div>
-            <Card>
-              <CardContent className='p-4 flex flex-col  gap-4'>
-                <ProductPrice
-                  price={product.price}
-                  listPrice={product.listPrice}
-                />
-
-                {product.countInStock > 0 && product.countInStock <= 3 && (
-                  <div className='text-destructive font-bold'>
-                    {t('Product.Only X left in stock - order soon', {
-                      count: product.countInStock,
-                    })}
-                  </div>
-                )}
-                {product.countInStock !== 0 ? (
-                  <div className='text-green-700 text-xl'>
-                    {t('Product.In Stock')}
-                  </div>
-                ) : (
-                  <div className='text-destructive text-xl'>
-                    {t('Product.Out of Stock')}
-                  </div>
-                )}
-
-                {product.countInStock !== 0 && (
-                  <div className='flex justify-center items-center'>
-                    <AddToCart
-                      item={{
-                        clientId: generateId(),
-                        product: product._id,
-                        countInStock: product.countInStock,
-                        name: product.name,
-                        slug: product.slug,
-                        category: typeof product.category === 'object' ? (product.category as unknown as { name: string }).name : product.category,
-                        price: round2(product.price),
-                        quantity: 1,
-                        image: product.images[0],
-                        size: size || product.sizes[0],
-                        color: color || product.colors[0],
-                      }}
-                    />
-                  </div>
-                )}
-              </CardContent>
-            </Card>
           </div>
         </div>
       </section>

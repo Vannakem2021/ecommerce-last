@@ -16,6 +16,12 @@ export interface IProduct extends Document {
   tags: string[]
   colors: string[]
   sizes: string[]
+  // Variant pricing structure
+  variants?: {
+    storage?: { value: string; priceModifier: number }[]
+    ram?: { value: string; priceModifier: number }[]
+    colors?: string[]
+  }
   avgRating: number
   numReviews: number
   ratingDistribution: { rating: number; count: number }[]
@@ -134,6 +140,20 @@ const productSchema = new Schema<IProduct>(
       type: String,
       required: false,
       enum: ['Like New', 'Good', 'Fair', 'Poor'],
+    },
+    variants: {
+      type: {
+        storage: [{
+          value: { type: String, required: true },
+          priceModifier: { type: Number, required: true, default: 0 }
+        }],
+        ram: [{
+          value: { type: String, required: true },
+          priceModifier: { type: Number, required: true, default: 0 }
+        }],
+        colors: [String]
+      },
+      required: false,
     },
   },
   {

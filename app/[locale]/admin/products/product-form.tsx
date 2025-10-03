@@ -36,14 +36,300 @@ import { ProductInputSchema, ProductUpdateSchema } from '@/lib/validator'
 import { Checkbox } from '@/components/ui/checkbox'
 import { toSlug } from '@/lib/utils'
 import { IProductInput } from '@/types'
-import { PRODUCT_TAGS } from '@/lib/constants'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { CalendarIcon, X, Upload, Package, DollarSign, Image as ImageIcon, Tags, Settings } from 'lucide-react'
+import { CalendarIcon, X, Upload, Package, DollarSign, Image as ImageIcon, Settings, ChevronDown, ChevronUp } from 'lucide-react'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
+
+// Reusable Tag Input Component (simple strings)
+const TagInput = ({ 
+  value = [], 
+  onChange, 
+  placeholder 
+}: { 
+  value?: string[]
+  onChange: (value: string[]) => void
+  placeholder: string 
+}) => {
+  const [inputValue, setInputValue] = useState('')
+  
+  const handleAdd = () => {
+    const trimmedValue = inputValue.trim()
+    if (trimmedValue && !value.includes(trimmedValue)) {
+      onChange([...value, trimmedValue])
+      setInputValue('')
+    }
+  }
+
+  const handleRemove = (item: string) => {
+    onChange(value.filter((v) => v !== item))
+  }
+
+  return (
+    <>
+      {value.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mb-2">
+          {value.map((val) => (
+            <Badge key={val} variant="secondary" className="text-xs">
+              {val}
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-3 w-3 p-0 ml-1"
+                onClick={() => handleRemove(val)}
+              >
+                <X className="h-2.5 w-2.5" />
+              </Button>
+            </Badge>
+          ))}
+        </div>
+      )}
+      <div className="flex gap-2">
+        <Input
+          placeholder={placeholder}
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={(e) => { 
+            if (e.key === 'Enter') { 
+              e.preventDefault()
+              handleAdd()
+            } 
+          }}
+          className="text-sm"
+        />
+        <Button 
+          type="button" 
+          variant="outline" 
+          size="sm" 
+          onClick={handleAdd} 
+          disabled={!inputValue.trim()}
+        >
+          Add
+        </Button>
+      </div>
+    </>
+  )
+}
+
+// Predefined values for quick-fill
+const STORAGE_PRESETS = ['64GB', '128GB', '256GB', '512GB', '1TB', '2TB']
+const RAM_PRESETS = ['4GB', '6GB', '8GB', '12GB', '16GB', '32GB', '64GB']
+
+// Smart price suggestions based on common patterns
+const STORAGE_PRICE_MAP: Record<string, number> = {
+  '64GB': 0,
+  '128GB': 50,
+  '256GB': 100,
+  '512GB': 200,
+  '1TB': 400,
+  '2TB': 800,
+}
+
+const RAM_PRICE_MAP: Record<string, number> = {
+  '4GB': 0,
+  '6GB': 25,
+  '8GB': 50,
+  '12GB': 100,
+  '16GB': 150,
+  '32GB': 300,
+  '64GB': 600,
+}
+
+// Variant Input with Price Modifier Component
+const VariantInput = ({ 
+  value = [], 
+  onChange, 
+  placeholder,
+  label
+}: { 
+  value?: { value: string; priceModifier: number }[]
+  onChange: (value: { value: string; priceModifier: number }[]) => void
+  placeholder: string
+  label: string
+}) => {
+  const [variantValue, setVariantValue] = useState('')
+  const [priceModifier, setPriceModifier] = useState('0')
+  const { toast } = useToast()
+  
+  const handleAdd = () => {
+    const trimmedValue = variantValue.trim()
+    const price = parseFloat(priceModifier)
+    
+    if (trimmedValue && !value.some(v => v.value === trimmedValue)) {
+      onChange([...value, { value: trimmedValue, priceModifier: isNaN(price) ? 0 : price }])
+      setVariantValue('')
+      setPriceModifier('0')
+    }
+  }
+
+  const handleRemove = (item: string) => {
+    onChange(value.filter((v) => v.value !== item))
+  }
+
+  // Quick-fill handler with smart price suggestion
+  const handleQuickFill = (presetValue: string) => {
+    if (value.some(v => v.value === presetValue)) {
+      toast({
+        variant: 'destructive',
+        description: `${presetValue} already added`,
+      })
+      return
+    }
+
+    // Auto-fill value field
+    setVariantValue(presetValue)
+    
+    // Smart price suggestion
+    const priceMap = label === 'Storage' ? STORAGE_PRICE_MAP : RAM_PRICE_MAP
+    const suggestedPrice = priceMap[presetValue] || 0
+    setPriceModifier(suggestedPrice.toString())
+
+    toast({
+      description: `${presetValue} filled with suggested price +$${suggestedPrice}`,
+    })
+  }
+
+  const presets = label === 'Storage' ? STORAGE_PRESETS : RAM_PRESETS
+
+  return (
+    <>
+      {value.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mb-2">
+          {value.map((variant) => (
+            <Badge key={variant.value} variant="secondary" className="text-xs">
+              {variant.value} | {variant.priceModifier >= 0 ? '+' : ''}${variant.priceModifier}
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-3 w-3 p-0 ml-1"
+                onClick={() => handleRemove(variant.value)}
+              >
+                <X className="h-2.5 w-2.5" />
+              </Button>
+            </Badge>
+          ))}
+        </div>
+      )}
+      <div className="flex gap-2">
+        <Input
+          placeholder={placeholder}
+          value={variantValue}
+          onChange={(e) => setVariantValue(e.target.value)}
+          className="text-sm flex-1"
+        />
+        <Input
+          type="number"
+          placeholder="+$0"
+          value={priceModifier}
+          onChange={(e) => setPriceModifier(e.target.value)}
+          className="text-sm w-20"
+          step="0.01"
+        />
+        <Button 
+          type="button" 
+          variant="outline" 
+          size="sm" 
+          onClick={handleAdd} 
+          disabled={!variantValue.trim()}
+        >
+          Add
+        </Button>
+      </div>
+      
+      {/* Quick-fill buttons */}
+      <div className="mt-2">
+        <p className="text-xs text-muted-foreground mb-1.5">Quick fill:</p>
+        <div className="flex flex-wrap gap-1.5">
+          {presets.map((preset) => (
+            <Button
+              key={preset}
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs"
+              onClick={() => handleQuickFill(preset)}
+              disabled={value.some(v => v.value === preset)}
+            >
+              {preset}
+            </Button>
+          ))}
+        </div>
+      </div>
+    </>
+  )
+}
+
+// Smart SKU Generator for Electronics
+const generateSKU = (productName: string): string => {
+  if (!productName) return ''
+  
+  // Remove special characters and extra spaces
+  let cleaned = productName.toUpperCase().trim()
+  
+  // Common brand abbreviations for electronics
+  const brandMap: Record<string, string> = {
+    'IPHONE': 'IPHO',
+    'IPAD': 'IPAD',
+    'MACBOOK': 'MBPR',
+    'AIRPODS': 'APOD',
+    'APPLE WATCH': 'APWT',
+    'SAMSUNG GALAXY': 'SAMS',
+    'GALAXY': 'SAMS',
+    'GOOGLE PIXEL': 'GPXL',
+    'ONEPLUS': 'ONEP',
+    'XIAOMI': 'XIAO',
+    'HUAWEI': 'HUAW',
+    'OPPO': 'OPPO',
+    'SONY': 'SONY',
+    'LG': 'LG',
+    'DELL': 'DELL',
+    'HP': 'HP',
+    'LENOVO': 'LENO',
+    'ASUS': 'ASUS',
+    'ACER': 'ACER',
+  }
+  
+  // Replace known brands with abbreviations
+  for (const [brand, abbr] of Object.entries(brandMap)) {
+    if (cleaned.includes(brand)) {
+      cleaned = cleaned.replace(brand, abbr)
+      break
+    }
+  }
+  
+  // Extract model numbers, storage, and important info
+  const parts = cleaned.split(/\s+/)
+  let sku = ''
+  
+  // Build SKU from significant parts
+  for (const part of parts) {
+    // Keep important identifiers
+    if (
+      /^[A-Z]{2,}$/.test(part) || // Brand abbreviations (already processed)
+      /\d+/.test(part) || // Numbers (models, storage, etc)
+      ['PRO', 'PLUS', 'ULTRA', 'MAX', 'MINI', 'AIR', 'SE'].includes(part) // Model variants
+    ) {
+      sku += part
+    }
+  }
+  
+  // Fallback: if SKU is too short, use initials
+  if (sku.length < 4) {
+    sku = parts
+      .filter(p => p.length > 2)
+      .map(p => p.substring(0, 3))
+      .join('')
+      .substring(0, 12)
+  }
+  
+  // Limit length and ensure uppercase
+  return sku.substring(0, 16).toUpperCase()
+}
 
 const productDefaultValues: IProductInput = {
   name: '',
@@ -69,6 +355,11 @@ const productDefaultValues: IProductInput = {
   saleEndDate: undefined,
   secondHand: false,
   condition: undefined,
+  variants: {
+    storage: [],
+    ram: [],
+    colors: []
+  },
 }
 
 const ProductForm = ({
@@ -84,6 +375,7 @@ const ProductForm = ({
   const [brands, setBrands] = useState<IBrand[]>([])
   const [categories, setCategories] = useState<ICategory[]>([])
   const [loading, setLoading] = useState(true)
+  const [variantsCollapsed, setVariantsCollapsed] = useState(false)
 
   const form = useForm<IProductInput>({
     resolver:
@@ -93,6 +385,7 @@ const ProductForm = ({
     defaultValues:
       product && type === 'Update'
         ? {
+            _id: product._id,
             name: product.name,
             slug: product.slug,
             category: typeof product.category === 'object' ? (product.category as unknown as { _id: string })._id : product.category,
@@ -103,9 +396,22 @@ const ProductForm = ({
             images: product.images,
             brand: typeof product.brand === 'object' ? (product.brand as unknown as { _id: string })._id : product.brand,
             listPrice: product.listPrice,
-            tags: product.tags,
-            colors: product.colors,
-            sizes: product.sizes,
+            tags: product.tags || [],
+            colors: product.colors || [],
+            sizes: product.sizes || [],
+            variants: product.variants || {
+              storage: [],
+              ram: [],
+              colors: []
+            },
+            avgRating: product.avgRating || 0,
+            numReviews: product.numReviews || 0,
+            ratingDistribution: product.ratingDistribution || [],
+            numSales: product.numSales || 0,
+            reviews: product.reviews || [],
+            isPublished: product.isPublished || false,
+            secondHand: product.secondHand || false,
+            condition: product.condition,
             saleStartDate: product.saleStartDate ? new Date(product.saleStartDate) : undefined,
             saleEndDate: product.saleEndDate ? new Date(product.saleEndDate) : undefined
           }
@@ -171,13 +477,28 @@ const ProductForm = ({
   }
   const images = form.watch('images')
   const watchedFields = form.watch()
+  const productName = form.watch('name')
+
+  // Auto-generate SKU from product name
+  useEffect(() => {
+    const currentSku = form.getValues('sku')
+    
+    // Only auto-generate if SKU is empty or unchanged from previous auto-generation
+    if (productName && (!currentSku || currentSku === '')) {
+      const generatedSku = generateSKU(productName)
+      form.setValue('sku', generatedSku)
+    }
+  }, [productName, form])
 
   // Calculate form completion percentage
   const calculateProgress = () => {
-    const requiredFields = ['name', 'category', 'brand', 'price', 'countInStock']
+    const requiredFields = ['name', 'category', 'brand', 'price', 'countInStock', 'images', 'description', 'sku']
     const completedFields = requiredFields.filter(field => {
       const value = watchedFields[field as keyof typeof watchedFields]
-      return value !== '' && value !== 0 && value !== undefined
+      if (field === 'images') {
+        return Array.isArray(value) && value.length > 0
+      }
+      return value !== '' && value !== 0 && value !== undefined && value !== null
     })
     return Math.round((completedFields.length / requiredFields.length) * 100)
   }
@@ -241,6 +562,30 @@ const ProductForm = ({
 
                     <FormField
                       control={form.control}
+                      name='sku'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-medium">SKU * <span className="text-xs text-muted-foreground font-normal">(Auto-generated)</span></FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder='Auto-generated from product name' 
+                              {...field}
+                              onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                              className="font-mono"
+                            />
+                          </FormControl>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            💡 Internal inventory code - automatically created from product name
+                          </p>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4">
+                    <FormField
+                      control={form.control}
                       name='slug'
                       render={({ field }) => (
                         <FormItem>
@@ -248,7 +593,7 @@ const ProductForm = ({
                           <FormControl>
                             <div className='relative'>
                               <Input
-                                placeholder='Enter product slug'
+                                placeholder='seo-friendly-url-for-customers'
                                 {...field}
                               />
                               <Button
@@ -264,6 +609,9 @@ const ProductForm = ({
                               </Button>
                             </div>
                           </FormControl>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            🌐 SEO-friendly URL - example: yourstore.com/product/<span className="font-mono">{field.value || 'product-slug'}</span>
+                          </p>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -548,52 +896,97 @@ const ProductForm = ({
               </CardContent>
             </Card>
 
-            {/* Product Tags */}
+            {/* Product Variants - Electronics Attributes */}
             <Card>
               <CardContent className="p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <Tags className="h-5 w-5 text-primary" />
-                  <h3 className="text-lg font-semibold">Product Tags</h3>
+                <div 
+                  className="flex items-center gap-2 mb-4 cursor-pointer select-none"
+                  onClick={() => setVariantsCollapsed(!variantsCollapsed)}
+                >
+                  <Settings className="h-5 w-5 text-primary" />
+                  <h3 className="text-lg font-semibold">Product Variants</h3>
+                  <Badge variant="outline" className="ml-auto">Optional</Badge>
+                  {variantsCollapsed ? (
+                    <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                  ) : (
+                    <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                  )}
                 </div>
 
-                <FormField
-                  control={form.control}
-                  name='tags'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-medium">Select Tags</FormLabel>
-                      <FormDescription>
-                        Choose tags that best describe your product
-                      </FormDescription>
-                      <div className='grid grid-cols-1 gap-3 mt-3'>
-                        {PRODUCT_TAGS.map((tag) => (
-                          <FormItem
-                            key={tag}
-                            className='flex flex-row items-center space-x-3 space-y-0 p-2 border rounded-lg hover:bg-muted/50 transition-colors'
-                          >
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value?.includes(tag) || false}
-                                onCheckedChange={(checked) => {
-                                  const currentTags = field.value || []
-                                  if (checked) {
-                                    field.onChange([...currentTags, tag])
-                                  } else {
-                                    field.onChange(currentTags.filter((t) => t !== tag))
-                                  }
-                                }}
-                              />
-                            </FormControl>
-                            <FormLabel className='text-sm font-normal cursor-pointer flex-1'>
-                              {tag}
-                            </FormLabel>
-                          </FormItem>
-                        ))}
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {!variantsCollapsed && (
+                  <div className="space-y-4">
+                  {/* Storage Options with Price Modifiers */}
+                  <FormField
+                    control={form.control}
+                    name='variants.storage'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm">Storage</FormLabel>
+                        <FormDescription className="text-xs">
+                          Add price increment for each storage option
+                        </FormDescription>
+                        <FormControl>
+                          <VariantInput
+                            value={field.value}
+                            onChange={field.onChange}
+                            placeholder="e.g., 128GB, 256GB, 512GB"
+                            label="Storage"
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* RAM Options with Price Modifiers */}
+                  <FormField
+                    control={form.control}
+                    name='variants.ram'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm">RAM</FormLabel>
+                        <FormDescription className="text-xs">
+                          Add price increment for each RAM option
+                        </FormDescription>
+                        <FormControl>
+                          <VariantInput
+                            value={field.value}
+                            onChange={field.onChange}
+                            placeholder="e.g., 4GB, 8GB, 16GB, 32GB"
+                            label="RAM"
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Color Variants (no price impact) */}
+                  <FormField
+                    control={form.control}
+                    name='variants.colors'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm">Color</FormLabel>
+                        <FormDescription className="text-xs">
+                          Color options (no price change)
+                        </FormDescription>
+                        <FormControl>
+                          <TagInput
+                            value={field.value}
+                            onChange={field.onChange}
+                            placeholder="e.g., Black, Silver, Gold"
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  </div>
+                )}
+
+                {!variantsCollapsed && (
+                  <FormDescription className="mt-4 text-xs">
+                    Add variant options for this product. Customers can select from these when ordering.
+                  </FormDescription>
+                )}
               </CardContent>
             </Card>
 
@@ -788,38 +1181,56 @@ const ProductForm = ({
         {/* Sticky Action Bar */}
         <Card className="sticky bottom-4 border-2 shadow-lg">
           <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="text-sm text-muted-foreground">
-                  {progress === 100 ? (
-                    <span className="text-green-600 font-medium">✓ Ready to publish</span>
-                  ) : (
-                    <span>Complete required fields to continue</span>
-                  )}
+            <div className="space-y-3">
+              {/* Show validation errors */}
+              {Object.keys(form.formState.errors).length > 0 && (
+                <div className="bg-destructive/10 border border-destructive/20 rounded-md p-3">
+                  <p className="text-sm font-semibold text-destructive mb-2">
+                    ⚠️ Please fix the following errors:
+                  </p>
+                  <ul className="text-xs text-destructive space-y-1 list-disc list-inside">
+                    {Object.entries(form.formState.errors).map(([key, error]) => (
+                      <li key={key}>
+                        <span className="font-medium capitalize">{key.replace(/([A-Z])/g, ' $1')}:</span> {error?.message as string}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={form.formState.isSubmitting}
-                >
-                  Save Draft
-                </Button>
-                <Button
-                  type='submit'
-                  disabled={form.formState.isSubmitting || progress < 100}
-                  className="min-w-[120px]"
-                >
-                  {form.formState.isSubmitting ? (
-                    <>
-                      <Package className="mr-2 h-4 w-4 animate-spin" />
-                      Creating...
-                    </>
-                  ) : (
-                    `${type} Product`
-                  )}
-                </Button>
+              )}
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="text-sm text-muted-foreground">
+                    {progress === 100 ? (
+                      <span className="text-green-600 font-medium">✓ Ready to publish</span>
+                    ) : (
+                      <span>Complete required fields to continue</span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={form.formState.isSubmitting}
+                  >
+                    Save Draft
+                  </Button>
+                  <Button
+                    type='submit'
+                    disabled={form.formState.isSubmitting || progress < 100}
+                    className="min-w-[120px]"
+                  >
+                    {form.formState.isSubmitting ? (
+                      <>
+                        <Package className="mr-2 h-4 w-4 animate-spin" />
+                        Creating...
+                      </>
+                    ) : (
+                      `${type} Product`
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
           </CardContent>

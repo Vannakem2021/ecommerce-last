@@ -141,11 +141,19 @@ export async function getAllProductsForAdmin({
   page = 1,
   sort = 'latest',
   limit,
+  category,
+  brand,
+  stockStatus,
+  publishStatus,
 }: {
-  query: string
+  query?: string
   page?: number
   sort?: string
   limit?: number
+  category?: string
+  brand?: string
+  stockStatus?: string
+  publishStatus?: string
 }) {
   await connectToDatabase()
 
@@ -157,15 +165,48 @@ export async function getAllProductsForAdmin({
     common: { pageSize },
   } = await getSetting()
   limit = limit || pageSize
-  const queryFilter =
-    query && query !== 'all'
-      ? {
-          name: {
-            $regex: query,
-            $options: 'i',
-          },
-        }
-      : {}
+  
+  // Build filter query
+  const queryFilter: any = {}
+
+  // Search filter (name, SKU, description)
+  if (query && query !== 'all' && query.trim() !== '') {
+    queryFilter.$or = [
+      { name: { $regex: query, $options: 'i' } },
+      { sku: { $regex: query, $options: 'i' } },
+      { description: { $regex: query, $options: 'i' } }
+    ]
+  }
+
+  // Category filter
+  if (category && category !== 'all') {
+    queryFilter.category = category
+  }
+
+  // Brand filter
+  if (brand && brand !== 'all') {
+    queryFilter.brand = brand
+  }
+
+  // Stock status filter
+  if (stockStatus && stockStatus !== 'all') {
+    if (stockStatus === 'in-stock') {
+      queryFilter.countInStock = { $gt: 10 }
+    } else if (stockStatus === 'low-stock') {
+      queryFilter.countInStock = { $gte: 1, $lte: 10 }
+    } else if (stockStatus === 'out-of-stock') {
+      queryFilter.countInStock = 0
+    }
+  }
+
+  // Published status filter
+  if (publishStatus && publishStatus !== 'all') {
+    if (publishStatus === 'published') {
+      queryFilter.isPublished = true
+    } else if (publishStatus === 'draft') {
+      queryFilter.isPublished = false
+    }
+  }
 
   const order: Record<string, 1 | -1> =
     sort === 'best-selling'
@@ -177,9 +218,8 @@ export async function getAllProductsForAdmin({
           : sort === 'avg-customer-review'
             ? { avgRating: -1 }
             : { _id: -1 }
-  const products = await Product.find({
-    ...queryFilter,
-  })
+  
+  const products = await Product.find(queryFilter)
     .populate('brand', 'name')
     .populate('category', 'name')
     .sort(order)
@@ -187,9 +227,7 @@ export async function getAllProductsForAdmin({
     .limit(limit)
     .lean()
 
-  const countProducts = await Product.countDocuments({
-    ...queryFilter,
-  })
+  const countProducts = await Product.countDocuments(queryFilter)
 
   // Get global metrics for overview cards
   const metrics = await getProductMetrics()
@@ -204,10 +242,113 @@ export async function getAllProductsForAdmin({
   }
 }
 
+// GET PRODUCTS FOR EXPORT (No pagination, for Excel export)
+export async function getProductsForExport({
+  query,
+  category,
+  brand,
+  stockStatus,
+  publishStatus,
+}: {
+  query?: string
+  category?: string
+  brand?: string
+  stockStatus?: string
+  publishStatus?: string
+}) {
+  try {
+    // Check permission
+    await requirePermission('products.export')
+    
+    await connectToDatabase()
+    
+    // Ensure models are registered
+    void Brand
+    void Category
+    
+    // Build filter query (reuse same logic as getAllProductsForAdmin)
+    const queryFilter: any = {}
+
+    // Search filter (name, SKU, description)
+    if (query && query !== 'all' && query.trim() !== '') {
+      queryFilter.$or = [
+        { name: { $regex: query, $options: 'i' } },
+        { sku: { $regex: query, $options: 'i' } },
+        { description: { $regex: query, $options: 'i' } }
+      ]
+    }
+
+    // Category filter
+    if (category && category !== 'all') {
+      queryFilter.category = category
+    }
+
+    // Brand filter
+    if (brand && brand !== 'all') {
+      queryFilter.brand = brand
+    }
+
+    // Stock status filter
+    if (stockStatus && stockStatus !== 'all') {
+      if (stockStatus === 'in-stock') {
+        queryFilter.countInStock = { $gt: 10 }
+      } else if (stockStatus === 'low-stock') {
+        queryFilter.countInStock = { $gte: 1, $lte: 10 }
+      } else if (stockStatus === 'out-of-stock') {
+        queryFilter.countInStock = 0
+      }
+    }
+
+    // Published status filter
+    if (publishStatus && publishStatus !== 'all') {
+      if (publishStatus === 'published') {
+        queryFilter.isPublished = true
+      } else if (publishStatus === 'draft') {
+        queryFilter.isPublished = false
+      }
+    }
+
+    // Fetch all products matching filters (no pagination)
+    const products = await Product.find(queryFilter)
+      .populate('brand', 'name')
+      .populate('category', 'name')
+      .sort({ createdAt: -1 })
+      .lean()
+
+    return {
+      success: true,
+      data: JSON.parse(JSON.stringify(products)) as IProduct[],
+      count: products.length,
+    }
+  } catch (error) {
+    console.error('Export products error:', error)
+    return {
+      success: false,
+      message: formatError(error),
+      data: null,
+      count: 0,
+    }
+  }
+}
+
 export async function getAllCategories() {
   await connectToDatabase()
   const categories = await Category.find({ active: true }).select('name').lean()
   return categories.map((cat: any) => cat.name)
+}
+
+// GET ALL CATEGORIES FOR FILTER (with ID)
+export async function getAllCategoriesForFilter() {
+  await connectToDatabase()
+  const categories = await Category.find({}).select('_id name').sort({ name: 1 }).lean()
+  return JSON.parse(JSON.stringify(categories))
+}
+
+// GET ALL BRANDS FOR FILTER (with ID)
+export async function getAllBrandsForFilter() {
+  await connectToDatabase()
+  const brands = await Brand.find({}).select('_id name').sort({ name: 1 }).lean()
+  return JSON.parse(JSON.stringify(brands))
 }
 export async function getProductsForCard({
   tag,
