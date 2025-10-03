@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { PrinterIcon, DownloadIcon, EyeIcon, NotebookText } from 'lucide-react'
+import { PrinterIcon, DownloadIcon, EyeIcon } from 'lucide-react'
+import { FaFileInvoice } from 'react-icons/fa'
 import { useToast } from '@/hooks/use-toast'
 
 interface InvoiceActionsProps {
@@ -197,9 +198,9 @@ export function ViewInvoiceButton({
       variant={variant}
       size={size}
       onClick={handleView}
-      className={`flex items-center ${className}`}
+      className={`flex items-center justify-center ${className}`}
     >
-      <NotebookText className="h-3 w-3" />
+      <FaFileInvoice className="h-3 w-3" />
     </Button>
   )
 }
