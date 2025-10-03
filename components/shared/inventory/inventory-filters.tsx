@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -44,31 +45,77 @@ export default function InventoryFilters({
   currentRange = '',
   className = ''
 }: InventoryFiltersProps) {
-  const [searchValue, setSearchValue] = useState('')
-  const [isPending] = useState(false)
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  
+  const [searchValue, setSearchValue] = useState(searchParams.get('query') || '')
+  const [isPending, setIsPending] = useState(false)
   const [filters, setFilters] = useState<InventoryFilterState>({
-    brand: 'all',
-    category: 'all',
-    stockStatus: 'all',
-    sort: 'latest'
+    brand: searchParams.get('brand') || 'all',
+    category: searchParams.get('category') || 'all',
+    stockStatus: searchParams.get('stockStatus') || 'all',
+    sort: searchParams.get('sort') || 'latest'
   })
 
   const [showAdvanced, setShowAdvanced] = useState(false)
+  const debounceRef = React.useRef<NodeJS.Timeout | undefined>(undefined)
+
+  const updateURL = (updates: Partial<InventoryFilterState & { query: string }>) => {
+    const params = new URLSearchParams(searchParams.toString())
+    
+    // Update each parameter
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value && value !== 'all' && value !== '') {
+        params.set(key, value)
+      } else {
+        params.delete(key)
+      }
+    })
+    
+    // Reset to page 1 when filters change
+    params.set('page', '1')
+    
+    setIsPending(true)
+    router.push(`?${params.toString()}`)
+  }
 
   const handleSearchChange = (value: string) => {
     setSearchValue(value)
-    // TODO: Implement search functionality
+    
+    // Debounce search
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current)
+    }
+    
+    debounceRef.current = setTimeout(() => {
+      updateURL({ query: value })
+    }, 500)
   }
 
-  const handleFilterChange = (newFilters: InventoryFilterState) => {
+  const handleFilterChange = (key: keyof InventoryFilterState, value: string) => {
+    const newFilters = { ...filters, [key]: value }
     setFilters(newFilters)
-    // TODO: Implement filter functionality
+    updateURL({ [key]: value })
   }
+
+  // Clear isPending when searchParams change
+  useEffect(() => {
+    setIsPending(false)
+  }, [searchParams])
+
+  // Cleanup debounce on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current)
+      }
+    }
+  }, [])
 
   const stockStatuses = [
     { value: 'all', label: 'All Stock Levels' },
-    { value: 'in-stock', label: 'In Stock (>5)' },
-    { value: 'low-stock', label: 'Low Stock (1-5)' },
+    { value: 'in-stock', label: 'In Stock (>10)' },
+    { value: 'low-stock', label: 'Low Stock (1-10)' },
     { value: 'out-of-stock', label: 'Out of Stock (0)' }
   ]
 
@@ -81,22 +128,17 @@ export default function InventoryFilters({
     { value: 'stock-high', label: 'Stock High-Low' }
   ]
 
-  const handleSingleFilterChange = (key: keyof InventoryFilterState, value: string) => {
-    const newFilters = { ...filters, [key]: value }
-    setFilters(newFilters)
-    handleFilterChange(newFilters)
-  }
-
   const clearAllFilters = () => {
-    const resetFilters = {
+    setSearchValue('')
+    setFilters({
       brand: 'all',
       category: 'all',
       stockStatus: 'all',
       sort: 'latest'
-    }
-    setFilters(resetFilters)
-    handleFilterChange(resetFilters)
-    handleSearchChange('')
+    })
+    
+    // Clear all URL params
+    router.push(window.location.pathname)
   }
 
   const activeFiltersCount = Object.values(filters).filter(value => value !== 'all' && value !== 'latest').length + (searchValue ? 1 : 0)
@@ -171,7 +213,7 @@ export default function InventoryFilters({
                   <TagIcon className="h-3 w-3" />
                   Brand
                 </label>
-                <Select value={filters.brand} onValueChange={(value) => handleSingleFilterChange('brand', value)}>
+                <Select value={filters.brand} onValueChange={(value) => handleFilterChange('brand', value)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -192,7 +234,7 @@ export default function InventoryFilters({
                   <PackageIcon className="h-3 w-3" />
                   Category
                 </label>
-                <Select value={filters.category} onValueChange={(value) => handleSingleFilterChange('category', value)}>
+                <Select value={filters.category} onValueChange={(value) => handleFilterChange('category', value)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -213,7 +255,7 @@ export default function InventoryFilters({
                   <AlertTriangleIcon className="h-3 w-3" />
                   Stock Status
                 </label>
-                <Select value={filters.stockStatus} onValueChange={(value) => handleSingleFilterChange('stockStatus', value)}>
+                <Select value={filters.stockStatus} onValueChange={(value) => handleFilterChange('stockStatus', value)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -233,7 +275,7 @@ export default function InventoryFilters({
                   <SortAscIcon className="h-3 w-3" />
                   Sort By
                 </label>
-                <Select value={filters.sort} onValueChange={(value) => handleSingleFilterChange('sort', value)}>
+                <Select value={filters.sort} onValueChange={(value) => handleFilterChange('sort', value)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
