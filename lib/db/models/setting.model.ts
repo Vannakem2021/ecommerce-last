@@ -110,6 +110,23 @@ const settingSchema = new Schema<ISetting>(
         orderDelivered: { type: Boolean, default: false },
       },
     },
+    // Home Page sections configuration
+    homePage: {
+      sections: [
+        {
+          id: { type: String, required: true },
+          type: { type: String, required: true }, // 'dynamic', 'category'
+          title: {
+            en: { type: String, required: true },
+            kh: { type: String, required: true },
+          },
+          enabled: { type: Boolean, required: true, default: true },
+          limit: { type: Number, required: true, default: 6 },
+          order: { type: Number, required: true },
+          categoryName: { type: String }, // For category sections
+        },
+      ],
+    },
   },
   {
     timestamps: true,

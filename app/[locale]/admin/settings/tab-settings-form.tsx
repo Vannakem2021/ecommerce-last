@@ -22,6 +22,7 @@ import DeliveryDateForm from "./delivery-date-form";
 import SiteInfoForm from "./site-info-form";
 import CommonForm from "./common-form";
 import CarouselForm from "./carousel-form";
+import HomePageForm from "./home-page-form";
 
 // Mapping from hash to tab
 const HASH_TO_TAB: Record<string, string> = {
@@ -43,7 +44,7 @@ const TabSettingsForm = ({ setting }: { setting: ISettingInput }) => {
   // Compute initial tab from query params to avoid flicker
   const initialTab = (() => {
     const tab = searchParams.get("tab");
-    return tab && ["general", "commerce", "content", "integrations"].includes(tab)
+    return tab && ["general", "homepage", "commerce", "content", "integrations"].includes(tab)
       ? tab
       : "general";
   })();
@@ -191,10 +192,14 @@ const TabSettingsForm = ({ setting }: { setting: ISettingInput }) => {
               <div className="space-y-6">
                 {/* Enhanced Tab List with Icons */}
                 <div className="space-y-4">
-                  <TabsList className="grid w-full grid-cols-4 h-12 bg-muted/50 p-1 rounded-xl">
+                  <TabsList className="grid w-full grid-cols-5 h-12 bg-muted/50 p-1 rounded-xl">
                     <TabsTrigger value="general" className="flex items-center gap-2 h-10">
                       <Settings2 className="h-4 w-4" />
                       <span className="hidden sm:inline">General</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="homepage" className="flex items-center gap-2 h-10">
+                      <FileText className="h-4 w-4" />
+                      <span className="hidden sm:inline">Home Page</span>
                     </TabsTrigger>
                     <TabsTrigger value="commerce" className="flex items-center gap-2 h-10">
                       <ShoppingCart className="h-4 w-4" />
@@ -245,6 +250,10 @@ const TabSettingsForm = ({ setting }: { setting: ISettingInput }) => {
                 <TabsContent value="general" className="space-y-6 mt-6">
                   <SiteInfoForm id="setting-site-info" form={form} />
                   <CommonForm id="setting-common" form={form} />
+                </TabsContent>
+
+                <TabsContent value="homepage" className="space-y-6 mt-6">
+                  <HomePageForm form={form} />
                 </TabsContent>
 
                 <TabsContent value="commerce" className="space-y-6 mt-6">

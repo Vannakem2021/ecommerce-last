@@ -795,6 +795,27 @@ export const SettingInputSchema = z.object({
         .optional(),
     })
     .optional(),
+  // Home Page sections configuration
+  homePage: z
+    .object({
+      sections: z.array(
+        z.object({
+          id: z.string().min(1, "Section ID is required"),
+          type: z.enum(['dynamic', 'category'], {
+            errorMap: () => ({ message: "Type must be 'dynamic' or 'category'" }),
+          }),
+          title: z.object({
+            en: z.string().min(1, "English title is required"),
+            kh: z.string().min(1, "Khmer title is required"),
+          }),
+          enabled: z.boolean().default(true),
+          limit: z.coerce.number().min(1, "Limit must be at least 1").default(6),
+          order: z.coerce.number().min(0, "Order must be at least 0"),
+          categoryName: z.string().optional(),
+        })
+      ),
+    })
+    .optional(),
 });
 
 // PROMOTION
