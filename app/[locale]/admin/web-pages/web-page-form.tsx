@@ -21,6 +21,13 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
 import { createWebPage, updateWebPage } from '@/lib/actions/web-page.actions'
 import { IWebPage } from '@/lib/db/models/web-page.model'
@@ -40,6 +47,7 @@ const webPageDefaultValues = {
   title: '',
   slug: '',
   content: '',
+  section: 'more' as const,
 }
 
 const WebPageForm = ({
@@ -241,6 +249,33 @@ const WebPageForm = ({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
+              <FormField
+                control={form.control}
+                name='section'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium">Sidebar Section</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select section" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="shop">Shop</SelectItem>
+                        <SelectItem value="customer-service">Customer Service</SelectItem>
+                        <SelectItem value="legal">Legal</SelectItem>
+                        <SelectItem value="more">More</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      Choose which section this page should appear in the sidebar menu
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <FormField
                 control={form.control}
                 name='isPublished'

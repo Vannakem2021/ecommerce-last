@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Container from '@/components/shared/container'
-import { Laptop, Camera, Home, Tv, Printer, Gamepad2, MenuIcon } from 'lucide-react'
+import { Flame, Sparkles, TrendingUp, RefreshCcw } from 'lucide-react'
 import { auth } from '@/auth'
 import { Button } from '@/components/ui/button'
 import { getAllCategories } from '@/lib/actions/product.actions'
@@ -17,18 +17,18 @@ export default async function CategoryNav() {
   const staticMenus = data.headerMenus.filter(menu => !menu.href.startsWith('/page/'))
   const dynamicPageMenus = publishedPages.map(page => ({
     name: page.title,
-    href: `/page/${page.slug}`
+    href: `/page/${page.slug}`,
+    section: page.section || 'more'
   }))
 
   const allMenuItems = [...staticMenus, ...dynamicPageMenus]
 
+  // Get dynamic sections from settings for navbar
   const categories = [
-    { name: 'Laptops & Computers', icon: Laptop, href: '/search?category=Laptops' },
-    { name: 'CC TV & Camera', icon: Camera, href: '/search?category=Cameras' },
-    { name: 'Home Equipment', icon: Home, href: '/search?category=Home' },
-    { name: 'TV & Audios', icon: Tv, href: '/search?category=TV' },
-    { name: 'Printers & Ink', icon: Printer, href: '/search?category=Printers' },
-    { name: 'Gaming & Fun', icon: Gamepad2, href: '/search?category=Gaming' },
+    { name: 'Hot Deals', icon: Flame, href: '/search?discount=true' },
+    { name: 'New Arrivals', icon: Sparkles, href: '/search?sort=latest' },
+    { name: 'Best Sellers', icon: TrendingUp, href: '/search?sort=best-selling' },
+    { name: 'Second Hand', icon: RefreshCcw, href: '/search?secondHand=true' },
   ]
 
   return (

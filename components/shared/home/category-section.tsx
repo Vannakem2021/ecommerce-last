@@ -42,8 +42,8 @@ export function CategorySection({ title, products, categorySlug }: CategorySecti
         <div className='h-[3px] w-16 bg-primary rounded-full'></div>
       </div>
 
-      {/* Products Grid - 5 columns on desktop */}
-      <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4'>
+      {/* Products Grid - Responsive: 1 col mobile, 5 cols desktop */}
+      <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4'>
         {products.slice(0, 6).map((product) => (
           <ProductCard key={product._id} product={product} />
         ))}

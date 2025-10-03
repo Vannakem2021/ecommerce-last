@@ -333,6 +333,7 @@ export async function getAllProducts({
   rating,
   sort,
   secondHand = 'all',
+  discount = 'all',
 }: {
   query: string
   category: string
@@ -343,6 +344,7 @@ export async function getAllProducts({
   rating?: string
   sort?: string
   secondHand?: string
+  discount?: string
 }) {
   const {
     common: { pageSize },
@@ -406,6 +408,12 @@ export async function getAllProducts({
         ? { $or: [{ secondHand: { $ne: true } }, { secondHand: { $exists: false } }] }
         : {}
   
+  // Discount filter - products with listPrice (discounted products)
+  const discountFilter =
+    discount === 'true'
+      ? { listPrice: { $exists: true, $ne: null, $gt: 0 } }
+      : {}
+  
   // 10-50
   const priceFilter =
     price && price !== 'all'
@@ -435,6 +443,7 @@ export async function getAllProducts({
     ...priceFilter,
     ...ratingFilter,
     ...secondHandFilter,
+    ...discountFilter,
   })
     .populate('brand', 'name')
     .populate('category', 'name')
@@ -450,6 +459,7 @@ export async function getAllProducts({
     ...priceFilter,
     ...ratingFilter,
     ...secondHandFilter,
+    ...discountFilter,
   })
   return {
     products: JSON.parse(JSON.stringify(products)) as IProduct[],

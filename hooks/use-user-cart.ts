@@ -7,7 +7,7 @@
  * even after they sign out. Authentication is only required at checkout.
  */
 
-import { useEffect, useCallback, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import useCartStore from './use-cart-store'
 import { useAuthSession } from './use-auth-session'
 
@@ -15,20 +15,7 @@ export function useUserCart() {
   const cartStore = useCartStore()
   const { user, status } = useAuthSession()
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
-
-  // Debounced initialization to prevent excessive calls
-  const debouncedInitialize = useCallback((userId: string | null) => {
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current)
-    }
-    debounceRef.current = setTimeout(() => {
-      try {
-        cartStore.initializeForUser(userId)
-      } catch (error) {
-        console.error('Failed to initialize cart for user:', error)
-      }
-    }, 100) // 100ms debounce
-  }, [cartStore])
+  const lastUserIdRef = useRef<string | null | undefined>(undefined)
 
   // Update cart store with current user ID for tracking
   // Cart items will persist regardless of authentication state
@@ -36,7 +23,24 @@ export function useUserCart() {
     if (status === 'loading') return
 
     const userId = user?.id || null
-    debouncedInitialize(userId)
+    
+    // Only initialize if user ID actually changed
+    if (lastUserIdRef.current === userId) return
+    lastUserIdRef.current = userId
+
+    // Clear any pending debounce
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current)
+    }
+
+    // Debounced initialization to prevent excessive calls
+    debounceRef.current = setTimeout(() => {
+      try {
+        cartStore.initializeForUser(userId)
+      } catch (error) {
+        console.error('Failed to initialize cart for user:', error)
+      }
+    }, 100) // 100ms debounce
 
     // Cleanup debounce on unmount
     return () => {
@@ -45,7 +49,7 @@ export function useUserCart() {
       }
     }
      
-  }, [user?.id, status, debouncedInitialize])
+  }, [user?.id, status, cartStore])
 
   // Enhanced cart store with error handling wrappers
   const enhancedCartStore = {
