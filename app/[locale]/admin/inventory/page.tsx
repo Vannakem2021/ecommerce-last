@@ -4,8 +4,9 @@ import { getAllProductsForInventory } from '@/lib/actions/inventory.actions'
 import InventoryList from './inventory-list'
 import InventoryOverviewCards from '@/components/shared/inventory/inventory-overview-cards'
 import InventoryFilters from '@/components/shared/inventory/inventory-filters'
+import { ExportInventoryButton } from '@/components/shared/inventory/export-inventory-button'
 import { Button } from '@/components/ui/button'
-import { Upload, Download, Plus, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'Admin Inventory',
@@ -17,6 +18,7 @@ export default async function AdminInventoryPage(props: {
     query: string
     brand: string
     category: string
+    stockStatus: string
     sort: string
   }>
 }) {
@@ -25,24 +27,26 @@ export default async function AdminInventoryPage(props: {
   const searchText = searchParams.query || ''
   const selectedBrand = searchParams.brand || ''
   const selectedCategory = searchParams.category || ''
+  const selectedStockStatus = searchParams.stockStatus || 'all'
   const sort = searchParams.sort || 'latest'
 
   const data = await getAllProductsForInventory({
     query: searchText,
     brand: selectedBrand,
     category: selectedCategory,
+    stockStatus: selectedStockStatus,
     page,
     sort: sort as 'latest' | 'oldest' | 'name-asc' | 'name-desc' | 'stock-low' | 'stock-high',
   })
 
-  // Calculate inventory metrics
+  // Calculate inventory metrics (align with products page: low-stock 1-10, in-stock > 10)
   const inventoryMetrics = {
     totalProducts: data.success ? data.totalProducts : 0,
-    lowStockCount: data.success ? data.products.filter(p => p.countInStock > 0 && p.countInStock <= 5).length : 0,
+    lowStockCount: data.success ? data.products.filter(p => p.countInStock >= 1 && p.countInStock <= 10).length : 0,
     outOfStockCount: data.success ? data.products.filter(p => p.countInStock === 0).length : 0,
     totalInventoryValue: data.success ? data.products.reduce((sum, product) => sum + (product.price * product.countInStock), 0) : 0,
     averageStockLevel: data.success && data.totalProducts > 0 ? data.products.reduce((sum, product) => sum + product.countInStock, 0) / data.totalProducts : 0,
-    inStockCount: data.success ? data.products.filter(p => p.countInStock > 5).length : 0
+    inStockCount: data.success ? data.products.filter(p => p.countInStock > 10).length : 0
   }
 
   const currentPage = Number(page)
@@ -80,20 +84,16 @@ export default async function AdminInventoryPage(props: {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" className="flex items-center gap-2">
-            <Download className="h-4 w-4" />
-            Export
-          </Button>
-          <Button variant="outline" className="flex items-center gap-2">
-            <Upload className="h-4 w-4" />
-            Import
-          </Button>
-          <Button asChild className="flex items-center gap-2">
-            <Link href="/admin/products/create">
-              <Plus className="h-4 w-4" />
-              Add Product
-            </Link>
-          </Button>
+          <ExportInventoryButton
+            filters={{
+              query: searchText,
+              brand: selectedBrand,
+              category: selectedCategory,
+              stockStatus: selectedStockStatus,
+              sort: sort,
+            }}
+            totalProducts={data.totalProducts}
+          />
         </div>
       </div>
 
@@ -132,7 +132,7 @@ export default async function AdminInventoryPage(props: {
                 disabled={currentPage <= 1}
               >
                 <Link
-                  href={currentPage <= 1 ? '#' : `?page=${currentPage - 1}&query=${searchText}&brand=${selectedBrand}&category=${selectedCategory}&sort=${sort}`}
+                  href={currentPage <= 1 ? '#' : `?page=${currentPage - 1}&query=${searchText}&brand=${selectedBrand}&category=${selectedCategory}&stockStatus=${selectedStockStatus}&sort=${sort}`}
                   className={currentPage <= 1 ? 'pointer-events-none opacity-50' : ''}
                 >
                   <ChevronLeft className="h-4 w-4" />
@@ -150,7 +150,7 @@ export default async function AdminInventoryPage(props: {
                 disabled={currentPage >= data.totalPages}
               >
                 <Link
-                  href={currentPage >= data.totalPages ? '#' : `?page=${currentPage + 1}&query=${searchText}&brand=${selectedBrand}&category=${selectedCategory}&sort=${sort}`}
+                  href={currentPage >= data.totalPages ? '#' : `?page=${currentPage + 1}&query=${searchText}&brand=${selectedBrand}&category=${selectedCategory}&stockStatus=${selectedStockStatus}&sort=${sort}`}
                   className={currentPage >= data.totalPages ? 'pointer-events-none opacity-50' : ''}
                 >
                   Next

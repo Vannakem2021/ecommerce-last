@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/table'
 import { IInventoryProduct } from '@/types'
 import { formatDateTime, formatCurrency } from '@/lib/utils'
-import { Edit, History, Package, AlertTriangle, Eye } from 'lucide-react'
+import { Edit, History, Package, AlertTriangle } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -87,7 +87,7 @@ export default function InventoryList({
             <TableHead className="text-right">PRICE</TableHead>
             <TableHead>STATUS</TableHead>
             <TableHead>UPDATED</TableHead>
-            <TableHead className="w-32 text-center">ACTIONS</TableHead>
+            <TableHead className="w-24 text-center">ACTIONS</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -211,17 +211,6 @@ export default function InventoryList({
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>View history</TooltipContent>
-                      </Tooltip>
-
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button asChild variant="outline" size="sm" className="h-8 w-8 p-0">
-                            <Link href={`/admin/products/${product._id}`}>
-                              <Eye className="h-3 w-3" />
-                            </Link>
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Edit product</TooltipContent>
                       </Tooltip>
                     </div>
                   </TooltipProvider>

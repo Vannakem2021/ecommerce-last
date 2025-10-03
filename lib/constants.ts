@@ -62,7 +62,7 @@ export const ROLE_PERMISSIONS = {
     // Brand management
     'brands.create', 'brands.read', 'brands.update', 'brands.delete',
     // Inventory management
-    'inventory.read', 'inventory.update',
+    'inventory.read', 'inventory.update', 'inventory.export',
     // Settings management
     'settings.read', 'settings.update',
     // Page management

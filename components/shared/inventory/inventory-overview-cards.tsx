@@ -1,14 +1,11 @@
 'use client'
 
 import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import {
   PackageIcon,
-  AlertTriangleIcon,
   XCircleIcon,
-  DollarSignIcon,
-  TrendingUpIcon,
-  BarChart3Icon
+  ClockIcon,
+  DollarSignIcon
 } from 'lucide-react'
 
 interface InventoryMetrics {
@@ -28,8 +25,8 @@ interface InventoryOverviewCardsProps {
 export default function InventoryOverviewCards({ metrics, className = '' }: InventoryOverviewCardsProps) {
   const {
     totalProducts,
-    lowStockCount,
     outOfStockCount,
+    lowStockCount,
     totalInventoryValue,
     averageStockLevel
   } = metrics
@@ -41,25 +38,28 @@ export default function InventoryOverviewCards({ metrics, className = '' }: Inve
       subtitle: 'All Inventory Items',
       icon: PackageIcon,
       iconColor: 'text-blue-600',
-      bgColor: 'bg-blue-50 dark:bg-blue-950'
-    },
-    {
-      title: 'Low Stock',
-      value: lowStockCount,
-      subtitle: 'Need Restocking',
-      icon: AlertTriangleIcon,
-      iconColor: 'text-amber-600',
-      bgColor: 'bg-amber-50 dark:bg-amber-950',
-      alert: lowStockCount > 0
+      bgColor: 'bg-blue-50 dark:bg-blue-950',
+      badge: null
     },
     {
       title: 'Out of Stock',
       value: outOfStockCount,
-      subtitle: 'Unavailable Items',
+      subtitle: 'Needs Urgent Restock',
       icon: XCircleIcon,
       iconColor: 'text-red-600',
       bgColor: 'bg-red-50 dark:bg-red-950',
-      alert: outOfStockCount > 0
+      badge: outOfStockCount > 0 ? 'URGENT' : null,
+      badgeVariant: 'destructive' as const
+    },
+    {
+      title: 'Low Stock',
+      value: lowStockCount,
+      subtitle: 'Restock Soon (1-10)',
+      icon: ClockIcon,
+      iconColor: 'text-amber-600',
+      bgColor: 'bg-amber-50 dark:bg-amber-950',
+      badge: lowStockCount > 0 ? 'Action Required' : null,
+      badgeVariant: 'default' as const
     },
     {
       title: 'Inventory Value',
@@ -67,7 +67,8 @@ export default function InventoryOverviewCards({ metrics, className = '' }: Inve
       subtitle: `Avg: ${averageStockLevel.toFixed(0)} units`,
       icon: DollarSignIcon,
       iconColor: 'text-emerald-600',
-      bgColor: 'bg-emerald-50 dark:bg-emerald-950'
+      bgColor: 'bg-emerald-50 dark:bg-emerald-950',
+      badge: null
     }
   ]
 
@@ -79,15 +80,19 @@ export default function InventoryOverviewCards({ metrics, className = '' }: Inve
           <Card key={index} className="relative overflow-hidden">
             <CardContent className="p-4">
               <div className="flex items-start justify-between">
-                <div className="space-y-2">
+                <div className="space-y-2 flex-1">
                   <div className="flex items-center gap-2">
                     <div className={`p-2 rounded-lg ${card.bgColor}`}>
                       <Icon className={`h-4 w-4 ${card.iconColor}`} />
                     </div>
-                    {card.alert && (
-                      <Badge variant="destructive" className="text-xs">
-                        Alert
-                      </Badge>
+                    {card.badge && (
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                        card.badgeVariant === 'destructive' 
+                          ? 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300' 
+                          : 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300'
+                      }`}>
+                        {card.badge}
+                      </span>
                     )}
                   </div>
                   <div>
@@ -103,22 +108,6 @@ export default function InventoryOverviewCards({ metrics, className = '' }: Inve
                   </div>
                 </div>
               </div>
-
-              {/* Optional trend indicator */}
-              {card.title === 'Total Products' && (
-                <div className="mt-3 flex items-center gap-1 text-xs text-green-600">
-                  <TrendingUpIcon className="h-3 w-3" />
-                  <span>+3 this week</span>
-                </div>
-              )}
-
-              {/* Stock health indicator */}
-              {card.title === 'Low Stock' && lowStockCount === 0 && (
-                <div className="mt-3 flex items-center gap-1 text-xs text-green-600">
-                  <BarChart3Icon className="h-3 w-3" />
-                  <span>All stock healthy</span>
-                </div>
-              )}
             </CardContent>
           </Card>
         )

@@ -500,3 +500,238 @@ export async function generateProductsExcel(products: any[]): Promise<Buffer> {
   const buffer = await workbook.xlsx.writeBuffer()
   return Buffer.from(buffer)
 }
+
+/**
+ * Get stock status text based on count
+ */
+function getInventoryStockStatus(stock: number): string {
+  if (stock > 10) return 'In Stock'
+  if (stock >= 1) return 'Low Stock'
+  return 'Out of Stock'
+}
+
+/**
+ * Get stock status color for inventory
+ */
+function getInventoryStockStatusColor(stock: number): string {
+  if (stock > 10) return 'FF16A34A' // Green
+  if (stock >= 1) return 'FFF59E0B' // Orange
+  return 'FFDC2626' // Red
+}
+
+/**
+ * Get action status text
+ */
+function getActionStatus(stock: number): string {
+  if (stock === 0) return 'RESTOCK URGENT'
+  if (stock <= 10) return 'Restock Soon'
+  return 'Stock OK'
+}
+
+/**
+ * Get action status color
+ */
+function getActionStatusColor(stock: number): string {
+  if (stock === 0) return 'FFDC2626' // Red
+  if (stock <= 10) return 'FFF59E0B' // Orange
+  return 'FF16A34A' // Green
+}
+
+/**
+ * Generate Excel file from inventory data
+ * @param products - Array of products to export
+ * @returns Excel file buffer
+ */
+export async function generateInventoryExcel(products: any[]): Promise<Buffer> {
+  const workbook = new ExcelJS.Workbook()
+  
+  // Set workbook properties
+  workbook.creator = 'E-Commerce Admin'
+  workbook.created = new Date()
+  workbook.modified = new Date()
+  
+  // Create Inventory Summary Sheet
+  const worksheet = workbook.addWorksheet('Inventory Summary', {
+    views: [{ state: 'frozen', xSplit: 0, ySplit: 1 }] // Freeze header row
+  })
+  
+  // Define columns
+  worksheet.columns = [
+    { header: 'SKU', key: 'sku', width: 15 },
+    { header: 'Product Name', key: 'name', width: 30 },
+    { header: 'Category', key: 'category', width: 20 },
+    { header: 'Brand', key: 'brand', width: 20 },
+    { header: 'Current Stock', key: 'stock', width: 12 },
+    { header: 'Stock Status', key: 'stockStatus', width: 15 },
+    { header: 'Unit Price', key: 'price', width: 12 },
+    { header: 'Total Value', key: 'totalValue', width: 15 },
+    { header: 'Last Updated', key: 'updatedAt', width: 20 },
+    { header: 'Status', key: 'publishStatus', width: 12 },
+  ]
+  
+  // Style header row
+  const headerRow = worksheet.getRow(1)
+  headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } }
+  headerRow.fill = {
+    type: 'pattern',
+    pattern: 'solid',
+    fgColor: { argb: 'FF4F46E5' }, // Indigo color
+  }
+  headerRow.alignment = { vertical: 'middle', horizontal: 'center' }
+  headerRow.height = 25
+  
+  // Add data rows
+  products.forEach((product) => {
+    const categoryName = typeof product.category === 'object' && product.category !== null
+      ? product.category.name
+      : 'N/A'
+    const brandName = typeof product.brand === 'object' && product.brand !== null
+      ? product.brand.name
+      : 'N/A'
+    
+    const row = worksheet.addRow({
+      sku: product.sku || 'N/A',
+      name: product.name,
+      category: categoryName,
+      brand: brandName,
+      stock: product.countInStock,
+      stockStatus: getInventoryStockStatus(product.countInStock),
+      price: product.price,
+      totalValue: product.price * product.countInStock,
+      updatedAt: new Date(product.updatedAt),
+      publishStatus: product.isPublished ? 'Published' : 'Draft',
+    })
+    
+    // Format currency columns
+    row.getCell('price').numFmt = '$#,##0.00'
+    row.getCell('totalValue').numFmt = '$#,##0.00'
+    
+    // Format date column
+    const dateCell = row.getCell('updatedAt')
+    dateCell.numFmt = 'yyyy-mm-dd hh:mm:ss'
+    
+    // Center align numeric columns
+    row.getCell('stock').alignment = { horizontal: 'center' }
+    row.getCell('stockStatus').alignment = { horizontal: 'center' }
+    row.getCell('publishStatus').alignment = { horizontal: 'center' }
+    
+    // Color code stock status
+    const stockStatusCell = row.getCell('stockStatus')
+    stockStatusCell.font = { 
+      color: { argb: getInventoryStockStatusColor(product.countInStock) },
+      bold: true
+    }
+    
+    // Color code publish status
+    const statusCell = row.getCell('publishStatus')
+    if (product.isPublished) {
+      statusCell.font = { color: { argb: 'FF16A34A' }, bold: true } // Green
+    } else {
+      statusCell.font = { color: { argb: 'FF6B7280' }, bold: true } // Gray
+    }
+  })
+  
+  // Enable auto-filter on header row
+  worksheet.autoFilter = {
+    from: { row: 1, column: 1 },
+    to: { row: 1, column: worksheet.columns.length },
+  }
+  
+  // Add borders to all cells
+  worksheet.eachRow((row, rowNumber) => {
+    row.eachCell((cell) => {
+      cell.border = {
+        top: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+        left: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+        bottom: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+        right: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+      }
+    })
+  })
+  
+  // Create Stock Analysis Sheet
+  const analysisSheet = workbook.addWorksheet('Stock Analysis', {
+    views: [{ state: 'frozen', xSplit: 0, ySplit: 1 }]
+  })
+  
+  analysisSheet.columns = [
+    { header: 'SKU', key: 'sku', width: 15 },
+    { header: 'Product Name', key: 'name', width: 30 },
+    { header: 'Current Stock', key: 'stock', width: 12 },
+    { header: 'Reorder Point', key: 'reorderPoint', width: 15 },
+    { header: 'Units Below Reorder', key: 'deficit', width: 15 },
+    { header: 'Stock Value', key: 'value', width: 15 },
+    { header: 'Days Supply', key: 'daysSupply', width: 12 },
+    { header: 'Action', key: 'action', width: 20 },
+  ]
+  
+  // Style header
+  const analysisHeaderRow = analysisSheet.getRow(1)
+  analysisHeaderRow.font = { bold: true, color: { argb: 'FFFFFFFF' } }
+  analysisHeaderRow.fill = {
+    type: 'pattern',
+    pattern: 'solid',
+    fgColor: { argb: 'FF10B981' }, // Green color
+  }
+  analysisHeaderRow.alignment = { vertical: 'middle', horizontal: 'center' }
+  analysisHeaderRow.height = 25
+  
+  // Add analysis data
+  products.forEach((product) => {
+    const reorderPoint = 10
+    const deficit = Math.max(0, reorderPoint - product.countInStock)
+    const daysSupply = product.numSales > 0 
+      ? Math.floor(product.countInStock / (product.numSales / 30)) 
+      : 999
+    
+    const row = analysisSheet.addRow({
+      sku: product.sku || 'N/A',
+      name: product.name,
+      stock: product.countInStock,
+      reorderPoint: reorderPoint,
+      deficit: deficit,
+      value: product.price * product.countInStock,
+      daysSupply: daysSupply > 365 ? 'N/A' : daysSupply,
+      action: getActionStatus(product.countInStock),
+    })
+    
+    // Format currency
+    row.getCell('value').numFmt = '$#,##0.00'
+    
+    // Center align
+    row.getCell('stock').alignment = { horizontal: 'center' }
+    row.getCell('reorderPoint').alignment = { horizontal: 'center' }
+    row.getCell('deficit').alignment = { horizontal: 'center' }
+    row.getCell('daysSupply').alignment = { horizontal: 'center' }
+    row.getCell('action').alignment = { horizontal: 'center' }
+    
+    // Color code action
+    const actionCell = row.getCell('action')
+    actionCell.font = {
+      color: { argb: getActionStatusColor(product.countInStock) },
+      bold: true
+    }
+  })
+  
+  // Enable auto-filter
+  analysisSheet.autoFilter = {
+    from: { row: 1, column: 1 },
+    to: { row: 1, column: analysisSheet.columns.length },
+  }
+  
+  // Add borders
+  analysisSheet.eachRow((row) => {
+    row.eachCell((cell) => {
+      cell.border = {
+        top: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+        left: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+        bottom: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+        right: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+      }
+    })
+  })
+  
+  // Generate buffer
+  const buffer = await workbook.xlsx.writeBuffer()
+  return Buffer.from(buffer)
+}

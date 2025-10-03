@@ -21,7 +21,7 @@ export async function getAllProductsForInventory(filters: IInventoryFilters) {
     const validatedFilters = InventoryFiltersSchema.parse(filters)
     await connectToDatabase()
 
-    const { query, brand, category, page, sort } = validatedFilters
+    const { query, brand, category, page, sort, stockStatus } = validatedFilters
     const pageSize = 20
 
     // Build search query
@@ -60,6 +60,17 @@ export async function getAllProductsForInventory(filters: IInventoryFilters) {
         if (categoryDoc) {
           searchQuery.category = categoryDoc._id
         }
+      }
+    }
+
+    // Stock status filter (align with products page: in-stock > 10, low-stock 1-10, out-of-stock 0)
+    if (stockStatus && stockStatus !== 'all') {
+      if (stockStatus === 'in-stock') {
+        searchQuery.countInStock = { $gt: 10 }
+      } else if (stockStatus === 'low-stock') {
+        searchQuery.countInStock = { $gte: 1, $lte: 10 }
+      } else if (stockStatus === 'out-of-stock') {
+        searchQuery.countInStock = 0
       }
     }
 
@@ -142,6 +153,120 @@ export async function getAllProductsForInventory(filters: IInventoryFilters) {
       currentPage: 1,
       brands: [],
       categories: []
+    }
+  }
+}
+
+// GET INVENTORY FOR EXPORT (No pagination, for Excel export)
+export async function getInventoryForExport({
+  query,
+  brand,
+  category,
+  stockStatus,
+  sort,
+}: {
+  query?: string
+  brand?: string
+  category?: string
+  stockStatus?: string
+  sort?: string
+}) {
+  try {
+    // Check permission
+    await requirePermission('inventory.export')
+    
+    await connectToDatabase()
+    
+    // Build search query (reuse same logic as getAllProductsForInventory)
+    const searchQuery: Record<string, unknown> = {}
+
+    if (query) {
+      searchQuery.$or = [
+        { name: { $regex: query, $options: 'i' } },
+        { sku: { $regex: query, $options: 'i' } }
+      ]
+    }
+
+    // Handle brand filtering
+    if (brand && brand !== 'all') {
+      if (typeof brand === 'string' && brand.length === 24) {
+        searchQuery.brand = brand
+      } else {
+        const brandDoc = await Brand.findOne({ name: brand })
+        if (brandDoc) {
+          searchQuery.brand = brandDoc._id
+        }
+      }
+    }
+
+    // Handle category filtering
+    if (category && category !== 'all') {
+      if (typeof category === 'string' && category.length === 24) {
+        searchQuery.category = category
+      } else {
+        const categoryDoc = await Category.findOne({ name: category })
+        if (categoryDoc) {
+          searchQuery.category = categoryDoc._id
+        }
+      }
+    }
+
+    // Stock status filter
+    if (stockStatus && stockStatus !== 'all') {
+      if (stockStatus === 'in-stock') {
+        searchQuery.countInStock = { $gt: 10 }
+      } else if (stockStatus === 'low-stock') {
+        searchQuery.countInStock = { $gte: 1, $lte: 10 }
+      } else if (stockStatus === 'out-of-stock') {
+        searchQuery.countInStock = 0
+      }
+    }
+
+    // Build sort query
+    let sortQuery: { [key: string]: 1 | -1 } = {}
+    switch (sort) {
+      case 'latest':
+        sortQuery = { createdAt: -1 }
+        break
+      case 'oldest':
+        sortQuery = { createdAt: 1 }
+        break
+      case 'name-asc':
+        sortQuery = { name: 1 }
+        break
+      case 'name-desc':
+        sortQuery = { name: -1 }
+        break
+      case 'stock-low':
+        sortQuery = { countInStock: 1 }
+        break
+      case 'stock-high':
+        sortQuery = { countInStock: -1 }
+        break
+      default:
+        sortQuery = { createdAt: -1 }
+    }
+
+    // Fetch all products matching filters (no pagination)
+    const products = await Product.find(searchQuery)
+      .select('name sku brand category countInStock price isPublished numSales createdAt updatedAt')
+      .populate('brand', 'name')
+      .populate('category', 'name')
+      .sort(sortQuery)
+      .lean()
+
+    return {
+      success: true,
+      data: JSON.parse(JSON.stringify(products)),
+      count: products.length,
+    }
+  } catch (error) {
+    console.error('Export inventory error:', error)
+    return {
+      success: false,
+      message: formatError(error),
+      data: null,
+      count: 0,
     }
   }
 }

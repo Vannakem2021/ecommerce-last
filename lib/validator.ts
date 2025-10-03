@@ -273,6 +273,7 @@ export const InventoryFiltersSchema = z.object({
   query: z.string().optional(),
   brand: z.union([z.string(), MongoId]).optional(),
   category: z.union([z.string(), MongoId]).optional(),
+  stockStatus: z.enum(["all", "in-stock", "low-stock", "out-of-stock"]).optional(),
   page: z.number().int().positive().default(1),
   sort: z
     .enum([
