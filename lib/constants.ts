@@ -54,7 +54,7 @@ export const ROLE_PERMISSIONS = {
     // User management
     'users.create', 'users.read', 'users.update', 'users.delete',
     // Product management
-    'products.create', 'products.read', 'products.update', 'products.delete',
+    'products.create', 'products.read', 'products.update', 'products.delete', 'products.export',
     // Order management
     'orders.create', 'orders.read', 'orders.update', 'orders.delete', 'orders.export',
     // Category management

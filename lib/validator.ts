@@ -66,9 +66,20 @@ const ProductBaseSchema = z.object({
     .number()
     .int()
     .nonnegative("count in stock must be a non-negative number"),
-  tags: z.array(z.string()).default([]),
-  sizes: z.array(z.string()).default([]),
-  colors: z.array(z.string()).default([]),
+  tags: z.array(z.string()).optional().default([]),
+  sizes: z.array(z.string()).optional().default([]),
+  colors: z.array(z.string()).optional().default([]),
+  variants: z.object({
+    storage: z.array(z.object({
+      value: z.string(),
+      priceModifier: z.number()
+    })).optional().default([]),
+    ram: z.array(z.object({
+      value: z.string(),
+      priceModifier: z.number()
+    })).optional().default([]),
+    colors: z.array(z.string()).optional().default([])
+  }).optional(),
   avgRating: z.coerce
     .number()
     .min(0, "Average rating must be at least 0")
@@ -195,9 +206,20 @@ export const ProductInputLegacySchema = z.object({
     .number()
     .int()
     .nonnegative("count in stock must be a non-negative number"),
-  tags: z.array(z.string()).default([]),
-  sizes: z.array(z.string()).default([]),
-  colors: z.array(z.string()).default([]),
+  tags: z.array(z.string()).optional().default([]),
+  sizes: z.array(z.string()).optional().default([]),
+  colors: z.array(z.string()).optional().default([]),
+  variants: z.object({
+    storage: z.array(z.object({
+      value: z.string(),
+      priceModifier: z.number()
+    })).optional().default([]),
+    ram: z.array(z.object({
+      value: z.string(),
+      priceModifier: z.number()
+    })).optional().default([]),
+    colors: z.array(z.string()).optional().default([])
+  }).optional(),
   avgRating: z.coerce
     .number()
     .min(0, "Average rating must be at least 0")

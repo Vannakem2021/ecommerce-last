@@ -214,3 +214,289 @@ export async function generateOrdersExcel(orders: IOrderList[]): Promise<Buffer>
   const buffer = await workbook.xlsx.writeBuffer()
   return Buffer.from(buffer)
 }
+
+/**
+ * Get stock status text based on count
+ */
+function getStockStatus(stock: number): string {
+  if (stock > 10) return 'In Stock'
+  if (stock >= 1) return 'Low Stock'
+  return 'Out of Stock'
+}
+
+/**
+ * Get stock status color
+ */
+function getStockStatusColor(stock: number): string {
+  if (stock > 10) return 'FF16A34A' // Green
+  if (stock >= 1) return 'FFF59E0B' // Orange
+  return 'FFDC2626' // Red
+}
+
+/**
+ * Generate Excel file from products data
+ * @param products - Array of products to export
+ * @returns Excel file buffer
+ */
+export async function generateProductsExcel(products: any[]): Promise<Buffer> {
+  const workbook = new ExcelJS.Workbook()
+  
+  // Set workbook properties
+  workbook.creator = 'E-Commerce Admin'
+  workbook.created = new Date()
+  workbook.modified = new Date()
+  
+  // Create Products Summary Sheet
+  const worksheet = workbook.addWorksheet('Products Summary', {
+    views: [{ state: 'frozen', xSplit: 0, ySplit: 1 }] // Freeze header row
+  })
+  
+  // Define columns
+  worksheet.columns = [
+    { header: 'SKU', key: 'sku', width: 15 },
+    { header: 'Product Name', key: 'name', width: 30 },
+    { header: 'Category', key: 'category', width: 20 },
+    { header: 'Brand', key: 'brand', width: 20 },
+    { header: 'Price', key: 'price', width: 12 },
+    { header: 'List Price', key: 'listPrice', width: 12 },
+    { header: 'Stock', key: 'stock', width: 10 },
+    { header: 'Stock Status', key: 'stockStatus', width: 15 },
+    { header: 'Status', key: 'status', width: 12 },
+    { header: 'Rating', key: 'rating', width: 10 },
+    { header: 'Reviews', key: 'reviews', width: 10 },
+    { header: 'Sales', key: 'sales', width: 10 },
+    { header: 'Created Date', key: 'createdAt', width: 20 },
+  ]
+  
+  // Style header row
+  const headerRow = worksheet.getRow(1)
+  headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } }
+  headerRow.fill = {
+    type: 'pattern',
+    pattern: 'solid',
+    fgColor: { argb: 'FF4F46E5' }, // Indigo color
+  }
+  headerRow.alignment = { vertical: 'middle', horizontal: 'center' }
+  headerRow.height = 25
+  
+  // Add data rows
+  products.forEach((product) => {
+    const categoryName = typeof product.category === 'object' && product.category !== null
+      ? product.category.name
+      : 'N/A'
+    const brandName = typeof product.brand === 'object' && product.brand !== null
+      ? product.brand.name
+      : 'N/A'
+    
+    const row = worksheet.addRow({
+      sku: product.sku || 'N/A',
+      name: product.name,
+      category: categoryName,
+      brand: brandName,
+      price: product.price,
+      listPrice: product.listPrice || product.price,
+      stock: product.countInStock,
+      stockStatus: getStockStatus(product.countInStock),
+      status: product.isPublished ? 'Published' : 'Draft',
+      rating: product.avgRating || 0,
+      reviews: product.numReviews || 0,
+      sales: product.numSales || 0,
+      createdAt: new Date(product.createdAt),
+    })
+    
+    // Format currency columns
+    row.getCell('price').numFmt = '$#,##0.00'
+    row.getCell('listPrice').numFmt = '$#,##0.00'
+    
+    // Format date column
+    const dateCell = row.getCell('createdAt')
+    dateCell.numFmt = 'yyyy-mm-dd hh:mm:ss'
+    
+    // Format rating (1 decimal)
+    const ratingCell = row.getCell('rating')
+    ratingCell.numFmt = '0.0'
+    
+    // Center align numeric columns
+    row.getCell('stock').alignment = { horizontal: 'center' }
+    row.getCell('stockStatus').alignment = { horizontal: 'center' }
+    row.getCell('status').alignment = { horizontal: 'center' }
+    row.getCell('rating').alignment = { horizontal: 'center' }
+    row.getCell('reviews').alignment = { horizontal: 'center' }
+    row.getCell('sales').alignment = { horizontal: 'center' }
+    
+    // Color code stock status
+    const stockStatusCell = row.getCell('stockStatus')
+    stockStatusCell.font = { 
+      color: { argb: getStockStatusColor(product.countInStock) },
+      bold: true
+    }
+    
+    // Color code publish status
+    const statusCell = row.getCell('status')
+    if (product.isPublished) {
+      statusCell.font = { color: { argb: 'FF16A34A' }, bold: true } // Green
+    } else {
+      statusCell.font = { color: { argb: 'FF6B7280' }, bold: true } // Gray
+    }
+  })
+  
+  // Enable auto-filter on header row
+  worksheet.autoFilter = {
+    from: { row: 1, column: 1 },
+    to: { row: 1, column: worksheet.columns.length },
+  }
+  
+  // Add borders to all cells
+  worksheet.eachRow((row, rowNumber) => {
+    row.eachCell((cell) => {
+      cell.border = {
+        top: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+        left: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+        bottom: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+        right: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+      }
+    })
+  })
+  
+  // Create Product Variants Sheet
+  const variantsSheet = workbook.addWorksheet('Product Variants', {
+    views: [{ state: 'frozen', xSplit: 0, ySplit: 1 }]
+  })
+  
+  variantsSheet.columns = [
+    { header: 'SKU', key: 'sku', width: 15 },
+    { header: 'Product Name', key: 'name', width: 30 },
+    { header: 'Variant Type', key: 'variantType', width: 15 },
+    { header: 'Variant Value', key: 'variantValue', width: 20 },
+    { header: 'Price Modifier', key: 'priceModifier', width: 15 },
+    { header: 'Final Price', key: 'finalPrice', width: 15 },
+  ]
+  
+  // Style header
+  const variantsHeaderRow = variantsSheet.getRow(1)
+  variantsHeaderRow.font = { bold: true, color: { argb: 'FFFFFFFF' } }
+  variantsHeaderRow.fill = {
+    type: 'pattern',
+    pattern: 'solid',
+    fgColor: { argb: 'FF10B981' }, // Green color
+  }
+  variantsHeaderRow.alignment = { vertical: 'middle', horizontal: 'center' }
+  variantsHeaderRow.height = 25
+  
+  // Add variant data
+  products.forEach((product) => {
+    const basePrice = product.price
+    const sku = product.sku || 'N/A'
+    const name = product.name
+    
+    // Storage variants
+    if (product.variants?.storage && Array.isArray(product.variants.storage)) {
+      product.variants.storage.forEach((variant: any) => {
+        const row = variantsSheet.addRow({
+          sku,
+          name,
+          variantType: 'Storage',
+          variantValue: variant.value,
+          priceModifier: variant.priceModifier || 0,
+          finalPrice: basePrice + (variant.priceModifier || 0),
+        })
+        
+        // Format currency
+        row.getCell('priceModifier').numFmt = '$#,##0.00'
+        row.getCell('finalPrice').numFmt = '$#,##0.00'
+        
+        // Center align
+        row.getCell('variantType').alignment = { horizontal: 'center' }
+        row.getCell('variantValue').alignment = { horizontal: 'center' }
+      })
+    }
+    
+    // RAM variants
+    if (product.variants?.ram && Array.isArray(product.variants.ram)) {
+      product.variants.ram.forEach((variant: any) => {
+        const row = variantsSheet.addRow({
+          sku,
+          name,
+          variantType: 'RAM',
+          variantValue: variant.value,
+          priceModifier: variant.priceModifier || 0,
+          finalPrice: basePrice + (variant.priceModifier || 0),
+        })
+        
+        // Format currency
+        row.getCell('priceModifier').numFmt = '$#,##0.00'
+        row.getCell('finalPrice').numFmt = '$#,##0.00'
+        
+        // Center align
+        row.getCell('variantType').alignment = { horizontal: 'center' }
+        row.getCell('variantValue').alignment = { horizontal: 'center' }
+      })
+    }
+    
+    // Color variants (no price modifier)
+    if (product.variants?.colors && Array.isArray(product.variants.colors)) {
+      product.variants.colors.forEach((color: string) => {
+        const row = variantsSheet.addRow({
+          sku,
+          name,
+          variantType: 'Color',
+          variantValue: color,
+          priceModifier: 0,
+          finalPrice: basePrice,
+        })
+        
+        // Format currency
+        row.getCell('priceModifier').numFmt = '$#,##0.00'
+        row.getCell('finalPrice').numFmt = '$#,##0.00'
+        
+        // Center align
+        row.getCell('variantType').alignment = { horizontal: 'center' }
+        row.getCell('variantValue').alignment = { horizontal: 'center' }
+      })
+    }
+    
+    // Legacy support: colors array (old format)
+    if (!product.variants?.colors && product.colors && Array.isArray(product.colors) && product.colors.length > 0) {
+      product.colors.forEach((color: string) => {
+        const row = variantsSheet.addRow({
+          sku,
+          name,
+          variantType: 'Color',
+          variantValue: color,
+          priceModifier: 0,
+          finalPrice: basePrice,
+        })
+        
+        // Format currency
+        row.getCell('priceModifier').numFmt = '$#,##0.00'
+        row.getCell('finalPrice').numFmt = '$#,##0.00'
+        
+        // Center align
+        row.getCell('variantType').alignment = { horizontal: 'center' }
+        row.getCell('variantValue').alignment = { horizontal: 'center' }
+      })
+    }
+  })
+  
+  // Enable auto-filter
+  variantsSheet.autoFilter = {
+    from: { row: 1, column: 1 },
+    to: { row: 1, column: variantsSheet.columns.length },
+  }
+  
+  // Add borders
+  variantsSheet.eachRow((row) => {
+    row.eachCell((cell) => {
+      cell.border = {
+        top: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+        left: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+        bottom: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+        right: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+      }
+    })
+  })
+  
+  // Generate buffer
+  const buffer = await workbook.xlsx.writeBuffer()
+  return Buffer.from(buffer)
+}

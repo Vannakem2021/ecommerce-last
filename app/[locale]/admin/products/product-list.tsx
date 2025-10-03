@@ -4,7 +4,8 @@ import Image from 'next/image'
 
 import DeleteDialog from '@/components/shared/delete-dialog'
 import ProductOverviewCards from '@/components/shared/product/product-overview-cards'
-import ProductFilters, { ProductFilterState } from '@/components/shared/product/product-filters'
+import ProductFilters, { ProductFilterState } from '@/components/shared/product/product-filters-new'
+import { ExportProductsButton } from '@/components/shared/product/export-products-button'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -46,27 +47,34 @@ type ProductListDataProps = {
 const ProductList = () => {
   const [page, setPage] = useState<number>(1)
   const [searchValue, setSearchValue] = useState<string>('')
-  const [, setFilters] = useState<ProductFilterState>({
+  const [filters, setFilters] = useState<ProductFilterState>({
     category: 'all',
+    brand: 'all',
     stockStatus: 'all',
-    priceRange: 'all',
-    rating: 'all',
-    tags: []
+    publishStatus: 'all'
   })
   const [data, setData] = useState<ProductListDataProps>()
   const [isPending, startTransition] = useTransition()
   const debounceRef = React.useRef<NodeJS.Timeout | undefined>(undefined)
 
-  const handlePageChange = (changeType: 'next' | 'prev') => {
-    const newPage = changeType === 'next' ? page + 1 : page - 1
-    setPage(newPage)
+  const fetchProducts = async (pageNum: number, query: string, currentFilters: ProductFilterState) => {
     startTransition(async () => {
       const data = await getAllProductsForAdmin({
-        query: searchValue,
-        page: newPage,
+        query,
+        page: pageNum,
+        category: currentFilters.category,
+        brand: currentFilters.brand,
+        stockStatus: currentFilters.stockStatus,
+        publishStatus: currentFilters.publishStatus,
       })
       setData(data)
     })
+  }
+
+  const handlePageChange = (changeType: 'next' | 'prev') => {
+    const newPage = changeType === 'next' ? page + 1 : page - 1
+    setPage(newPage)
+    fetchProducts(newPage, searchValue, filters)
   }
 
   const handleSearchChange = (value: string) => {
@@ -75,28 +83,18 @@ const ProductList = () => {
       clearTimeout(debounceRef.current)
     }
     debounceRef.current = setTimeout(() => {
-      setPage(1) // Reset page when searching
-      startTransition(async () => {
-        const data = await getAllProductsForAdmin({ query: value, page: 1 })
-        setData(data)
-      })
+      setPage(1)
+      fetchProducts(1, value, filters)
     }, 500)
   }
 
   const handleFilterChange = (newFilters: ProductFilterState) => {
     setFilters(newFilters)
     setPage(1)
-    // TODO: Implement actual filtering logic based on filters
-    startTransition(async () => {
-      const data = await getAllProductsForAdmin({ query: searchValue, page: 1 })
-      setData(data)
-    })
+    fetchProducts(1, searchValue, newFilters)
   }
   useEffect(() => {
-    startTransition(async () => {
-      const data = await getAllProductsForAdmin({ query: '' })
-      setData(data)
-    })
+    fetchProducts(1, '', filters)
 
     // Cleanup debounce on unmount
     return () => {
@@ -104,6 +102,7 @@ const ProductList = () => {
         clearTimeout(debounceRef.current)
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Use global metrics from backend instead of calculating from current page
@@ -127,12 +126,24 @@ const ProductList = () => {
             Manage your product catalog and inventory
           </p>
         </div>
-        <Button asChild className="flex items-center gap-2">
-          <Link href="/admin/products/create">
-            <Plus className="h-4 w-4" />
-            Create Product
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <ExportProductsButton
+            filters={{
+              query: searchValue,
+              category: filters.category,
+              brand: filters.brand,
+              stockStatus: filters.stockStatus,
+              publishStatus: filters.publishStatus,
+            }}
+            totalProducts={data?.totalProducts || 0}
+          />
+          <Button asChild className="flex items-center gap-2">
+            <Link href="/admin/products/create">
+              <Plus className="h-4 w-4" />
+              Create Product
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Product Overview Cards */}
