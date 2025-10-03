@@ -49,6 +49,7 @@ export async function generateMetadata(props: {
     rating: string
     sort: string
     page: string
+    secondHand: string
   }>
 }) {
   const searchParams = await props.searchParams
@@ -91,6 +92,7 @@ export default async function SearchPage(props: {
     rating: string
     sort: string
     page: string
+    secondHand: string
   }>
 }) {
   const searchParams = await props.searchParams
@@ -103,9 +105,10 @@ export default async function SearchPage(props: {
     rating = 'all',
     sort = 'best-selling',
     page = '1',
+    secondHand = 'all',
   } = searchParams
 
-  const params = { q, category, tag, price, rating, sort, page }
+  const params = { q, category, tag, price, rating, sort, page, secondHand }
 
   const categories = await getAllCategories()
   const tags = await getAllTags()
@@ -117,6 +120,7 @@ export default async function SearchPage(props: {
     rating,
     page: Number(page),
     sort,
+    secondHand,
   })
   const t = await getTranslations()
   return (
@@ -173,11 +177,100 @@ export default async function SearchPage(props: {
               {(category !== 'all' ||
                 price !== 'all' ||
                 rating !== 'all' ||
-                tag !== 'all') && (
+                tag !== 'all' ||
+                secondHand !== 'all') && (
                 <Button variant='link' size='sm' asChild className='h-auto p-0'>
                   <Link href='/search'>{t('Search.Clear All')}</Link>
                 </Button>
               )}
+            </div>
+
+            {/* Second-Hand Filter */}
+            <div>
+              <div className='font-semibold mb-3'>{t('Search.Condition')}</div>
+              <div className='space-y-2'>
+                <Link
+                  href={getFilterUrl({ secondHand: 'all', params })}
+                  className='flex items-center gap-2 hover:text-primary transition-colors'
+                >
+                  <div
+                    className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
+                      'all' === secondHand || '' === secondHand
+                        ? 'bg-primary border-primary'
+                        : 'border-muted-foreground'
+                    }`}
+                  >
+                    {('all' === secondHand || '' === secondHand) && (
+                      <svg
+                        className='w-3 h-3 text-primary-foreground'
+                        fill='none'
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        strokeWidth='2'
+                        viewBox='0 0 24 24'
+                        stroke='currentColor'
+                      >
+                        <path d='M5 13l4 4L19 7'></path>
+                      </svg>
+                    )}
+                  </div>
+                  <span className='text-sm'>{t('Search.All Products')}</span>
+                </Link>
+                <Link
+                  href={getFilterUrl({ secondHand: 'false', params })}
+                  className='flex items-center gap-2 hover:text-primary transition-colors'
+                >
+                  <div
+                    className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
+                      secondHand === 'false'
+                        ? 'bg-primary border-primary'
+                        : 'border-muted-foreground'
+                    }`}
+                  >
+                    {secondHand === 'false' && (
+                      <svg
+                        className='w-3 h-3 text-primary-foreground'
+                        fill='none'
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        strokeWidth='2'
+                        viewBox='0 0 24 24'
+                        stroke='currentColor'
+                      >
+                        <path d='M5 13l4 4L19 7'></path>
+                      </svg>
+                    )}
+                  </div>
+                  <span className='text-sm'>{t('Search.New Products')}</span>
+                </Link>
+                <Link
+                  href={getFilterUrl({ secondHand: 'true', params })}
+                  className='flex items-center gap-2 hover:text-primary transition-colors'
+                >
+                  <div
+                    className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
+                      secondHand === 'true'
+                        ? 'bg-primary border-primary'
+                        : 'border-muted-foreground'
+                    }`}
+                  >
+                    {secondHand === 'true' && (
+                      <svg
+                        className='w-3 h-3 text-primary-foreground'
+                        fill='none'
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        strokeWidth='2'
+                        viewBox='0 0 24 24'
+                        stroke='currentColor'
+                      >
+                        <path d='M5 13l4 4L19 7'></path>
+                      </svg>
+                    )}
+                  </div>
+                  <span className='text-sm'>{t('Search.Second Hand')}</span>
+                </Link>
+              </div>
             </div>
 
             <div>

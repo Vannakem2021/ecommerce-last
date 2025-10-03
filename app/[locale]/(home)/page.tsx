@@ -13,6 +13,7 @@ import {
   getTodaysDeals,
   getHotDealsForCard,
   getProductsByCategoryName,
+  getSecondHandProductsForCard,
 } from '@/lib/actions/product.actions'
 import { getAllActiveBrandsWithCounts } from '@/lib/actions/brand.actions'
 import { getSetting } from '@/lib/actions/setting.actions'
@@ -36,6 +37,7 @@ export default async function HomePage() {
   const smartphoneProducts = await getProductsByCategoryName({ categoryName: 'Smartphones', limit: 6 })
   const laptopProducts = await getProductsByCategoryName({ categoryName: 'Laptops', limit: 6 })
   const tabletProducts = await getProductsByCategoryName({ categoryName: 'Tablets', limit: 6 })
+  const secondHandProducts = await getSecondHandProductsForCard({ limit: 6 })
   const cards = [
     {
       title: t('Discover Hot Deals'),
@@ -113,6 +115,14 @@ export default async function HomePage() {
               title={t('Tablets')}
               products={tabletProducts}
               categorySlug='tablets'
+            />
+          )}
+          
+          {secondHandProducts.length > 0 && (
+            <CategorySection
+              title={t('Second Hand')}
+              products={secondHandProducts}
+              categorySlug='second-hand'
             />
           )}
         </Container>

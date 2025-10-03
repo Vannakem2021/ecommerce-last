@@ -1,4 +1,12 @@
 {
+  "Condition": {
+    "Like New": "Like New",
+    "Good": "Good",
+    "Fair": "Fair",
+    "Poor": "Poor",
+    "New": "New",
+    "Second Hand": "Second Hand"
+  },
   "Header": {
     "Hello": "Hello",
     "Welcome": "Welcome",
@@ -60,6 +68,7 @@
     "Smartphones": "Smartphones",
     "Laptops": "Laptops",
     "Tablets": "Tablets",
+    "Second Hand": "Second Hand",
     "day ago": "day ago",
     "days ago": "days ago",
     "week ago": "week ago",
@@ -188,6 +197,12 @@
     "Clear": "Clear",
     "Clear All": "Clear All",
     "Filters": "Filters",
+    "Condition": "Condition",
+    "All Products": "All Products",
+    "New Products": "New Products",
+    "Second Hand": "Second Hand",
+    "Department": "Department",
+    "Any": "Any",
     "All": "All",
     "Customer Review": "Customer Review",
     "& Up": "& Up",

@@ -3,6 +3,7 @@ import Link from 'next/link'
 import React from 'react'
 
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import { IProduct } from '@/lib/db/models/product.model'
 
 import Rating from './rating'
@@ -63,6 +64,13 @@ const ProductCard = ({
             useInternalToggle={!favoriteButtonControlled}
           />
         </div>
+        {product.secondHand && (
+          <div className='absolute top-2 left-2 z-10'>
+            <Badge className='bg-orange-500 hover:bg-orange-600 text-white font-medium text-xs px-2 py-0.5'>
+              Second Hand
+            </Badge>
+          </div>
+        )}
         {/* Promotion Badge - Disabled in product cards to reduce server action calls */}
         {/* <div className='absolute top-2 left-2 z-10'>
           <PromotionBadge

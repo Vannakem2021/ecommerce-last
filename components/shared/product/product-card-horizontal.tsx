@@ -53,6 +53,13 @@ const ProductCardHorizontal = ({
 
           {/* Badges on Image */}
           <div className='absolute top-0 left-0 flex flex-col gap-1'>
+            {/* Second Hand Badge */}
+            {product.secondHand && (
+              <Badge className='bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs px-1.5 py-0.5'>
+                Second Hand
+              </Badge>
+            )}
+            
             {/* Ranking Badge for Best Sellers */}
             {ranking && ranking <= 3 && (
               <Badge

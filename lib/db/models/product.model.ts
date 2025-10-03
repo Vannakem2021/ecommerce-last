@@ -24,6 +24,8 @@ export interface IProduct extends Document {
   reviews: Schema.Types.ObjectId[]
   saleStartDate?: Date
   saleEndDate?: Date
+  secondHand?: boolean
+  condition?: string
   createdAt: Date
   updatedAt: Date
 
@@ -122,6 +124,16 @@ const productSchema = new Schema<IProduct>(
     saleEndDate: {
       type: Date,
       required: false,
+    },
+    secondHand: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+    condition: {
+      type: String,
+      required: false,
+      enum: ['Like New', 'Good', 'Fair', 'Poor'],
     },
   },
   {
