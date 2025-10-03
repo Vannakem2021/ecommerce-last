@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import React from 'react'
 
 import { auth } from '@/auth'
-import { getOrderById } from '@/lib/actions/order.actions'
+import { getOrderWithNotes } from '@/lib/actions/order.actions'
 import OrderDetailsForm from '@/components/shared/order/order-details-form'
 import OrderOverviewHeader from '@/components/shared/order/order-overview-header'
 import { generateOrderNumber } from '@/lib/utils/order-utils'
@@ -23,7 +23,7 @@ const AdminOrderDetailsPage = async (props: {
 
   const { id } = params
 
-  const order = await getOrderById(id)
+  const order = await getOrderWithNotes(id)
   if (!order) notFound()
 
   const session = await auth()
@@ -67,7 +67,7 @@ const AdminOrderDetailsPage = async (props: {
           ...order,
           abaLastStatusCheck: order.abaLastStatusCheck ? order.abaLastStatusCheck.toISOString() : undefined,
         } as Parameters<typeof OrderDetailsForm>[0]['order']}
-        isAdmin={session?.user?.role === 'Admin' || false}
+        isAdmin={session?.user?.role?.toLowerCase() === 'admin' || false}
       />
     </main>
   )

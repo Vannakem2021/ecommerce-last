@@ -143,12 +143,14 @@ export default function OrderOverviewHeader({ order }: OrderOverviewHeaderProps)
               <span>Customer</span>
             </div>
             <div>
-              <div className="font-medium">
+              <div className="font-semibold">
                 {typeof order.user === 'object' && order.user ? order.user.name : 'Guest Customer'}
               </div>
-              <div className="text-sm text-muted-foreground">
-                {order.paymentMethod}
-              </div>
+              {typeof order.user === 'object' && order.user?.email && (
+                <div className="text-sm text-muted-foreground">
+                  {order.user.email}
+                </div>
+              )}
               <div className="text-sm text-muted-foreground">
                 {order.shippingAddress.phone}
               </div>

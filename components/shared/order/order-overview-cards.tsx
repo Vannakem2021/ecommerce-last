@@ -3,9 +3,8 @@
 import { Card, CardContent } from '@/components/ui/card'
 import {
   ShoppingCartIcon,
-  CheckCircleIcon,
-  DollarSignIcon,
-  TrendingUpIcon,
+  ClockIcon,
+  TruckIcon,
   PackageIcon
 } from 'lucide-react'
 
@@ -14,6 +13,7 @@ interface OrderMetrics {
   paidOrders: number
   unpaidOrders: number
   deliveredOrders: number
+  processingOrders: number
   totalRevenue: number
   averageOrderValue: number
 }
@@ -26,11 +26,9 @@ interface OrderOverviewCardsProps {
 export default function OrderOverviewCards({ metrics, className = '' }: OrderOverviewCardsProps) {
   const {
     totalOrders,
-    paidOrders,
     unpaidOrders,
+    processingOrders,
     deliveredOrders,
-    totalRevenue,
-    averageOrderValue
   } = metrics
 
   const cards = [
@@ -40,31 +38,35 @@ export default function OrderOverviewCards({ metrics, className = '' }: OrderOve
       subtitle: 'All Orders',
       icon: ShoppingCartIcon,
       iconColor: 'text-blue-600',
-      bgColor: 'bg-blue-50 dark:bg-blue-950'
+      bgColor: 'bg-blue-50 dark:bg-blue-950',
+      badge: null
     },
     {
-      title: 'Paid Orders',
-      value: paidOrders,
-      subtitle: `${unpaidOrders} Unpaid`,
-      icon: CheckCircleIcon,
-      iconColor: 'text-green-600',
-      bgColor: 'bg-green-50 dark:bg-green-950'
+      title: 'Awaiting Payment',
+      value: unpaidOrders,
+      subtitle: 'Needs Payment',
+      icon: ClockIcon,
+      iconColor: 'text-yellow-600',
+      bgColor: 'bg-yellow-50 dark:bg-yellow-950',
+      badge: unpaidOrders > 0 ? 'Action Required' : null
+    },
+    {
+      title: 'Processing',
+      value: processingOrders,
+      subtitle: 'Ready to Ship',
+      icon: PackageIcon,
+      iconColor: 'text-blue-600',
+      bgColor: 'bg-blue-50 dark:bg-blue-950',
+      badge: processingOrders > 0 ? 'Ready' : null
     },
     {
       title: 'Delivered',
       value: deliveredOrders,
-      subtitle: 'Completed Orders',
-      icon: PackageIcon,
-      iconColor: 'text-purple-600',
-      bgColor: 'bg-purple-50 dark:bg-purple-950'
-    },
-    {
-      title: 'Total Revenue',
-      value: `$${(totalRevenue / 1000).toFixed(1)}K`,
-      subtitle: `Avg: $${averageOrderValue.toFixed(0)}`,
-      icon: DollarSignIcon,
-      iconColor: 'text-emerald-600',
-      bgColor: 'bg-emerald-50 dark:bg-emerald-950'
+      subtitle: 'Completed',
+      icon: TruckIcon,
+      iconColor: 'text-green-600',
+      bgColor: 'bg-green-50 dark:bg-green-950',
+      badge: null
     }
   ]
 
@@ -76,11 +78,16 @@ export default function OrderOverviewCards({ metrics, className = '' }: OrderOve
           <Card key={index} className="relative overflow-hidden">
             <CardContent className="p-4">
               <div className="flex items-start justify-between">
-                <div className="space-y-2">
+                <div className="space-y-2 flex-1">
                   <div className="flex items-center gap-2">
                     <div className={`p-2 rounded-lg ${card.bgColor}`}>
                       <Icon className={`h-4 w-4 ${card.iconColor}`} />
                     </div>
+                    {card.badge && (
+                      <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300">
+                        {card.badge}
+                      </span>
+                    )}
                   </div>
                   <div>
                     <div className="text-2xl font-bold text-foreground">
@@ -95,14 +102,6 @@ export default function OrderOverviewCards({ metrics, className = '' }: OrderOve
                   </div>
                 </div>
               </div>
-
-              {/* Optional trend indicator */}
-              {card.title === 'Total Orders' && (
-                <div className="mt-3 flex items-center gap-1 text-xs text-green-600">
-                  <TrendingUpIcon className="h-3 w-3" />
-                  <span>+8% this month</span>
-                </div>
-              )}
             </CardContent>
           </Card>
         )

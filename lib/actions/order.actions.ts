@@ -425,6 +425,164 @@ export async function deleteOrder(id: string) {
 
 // GET ALL ORDERS
 
+// GET ORDERS FOR EXPORT (No pagination, for Excel export)
+export async function getOrdersForExport({
+  search,
+  status,
+  dateRange,
+  startDate,
+  endDate,
+}: {
+  search?: string
+  status?: string
+  dateRange?: string
+  startDate?: Date
+  endDate?: Date
+}) {
+  try {
+    // Check permission
+    await requirePermission('orders.export')
+    
+    await connectToDatabase()
+    
+    // Ensure models are registered
+    void User
+    
+    // Build filter query (reuse same logic as getAllOrders)
+    const query: any = {}
+
+    // Search filter
+    if (search && search.trim()) {
+      const searchTerm = search.trim()
+      const searchRegex = new RegExp(searchTerm, 'i')
+      
+      const matchingUsers = await User.find({
+        $or: [
+          { name: searchRegex },
+          { email: searchRegex }
+        ]
+      }).select('_id')
+      
+      const userIds = matchingUsers.map(u => u._id)
+      
+      const orderNumberPattern = /^ORD-\d{6}-([A-Z0-9]{4})$/i
+      const orderNumberMatch = searchTerm.match(orderNumberPattern)
+      
+      const orConditions = []
+      
+      if (userIds.length > 0) {
+        orConditions.push({ user: { $in: userIds } })
+      }
+      
+      if (orderNumberMatch) {
+        const lastFourChars = orderNumberMatch[1].toUpperCase()
+        const allOrders = await Order.find({}).select('_id')
+        const matchingOrderIds = allOrders
+          .filter(order => order._id.toString().slice(-4).toUpperCase() === lastFourChars)
+          .map(order => order._id)
+        
+        if (matchingOrderIds.length > 0) {
+          orConditions.push({ _id: { $in: matchingOrderIds } })
+        }
+      } else if (mongoose.Types.ObjectId.isValid(searchTerm)) {
+        orConditions.push({ _id: searchTerm })
+      } else if (searchTerm.length === 4) {
+        const allOrders = await Order.find({}).select('_id')
+        const matchingOrderIds = allOrders
+          .filter(order => order._id.toString().slice(-4).toUpperCase() === searchTerm.toUpperCase())
+          .map(order => order._id)
+        
+        if (matchingOrderIds.length > 0) {
+          orConditions.push({ _id: { $in: matchingOrderIds } })
+        }
+      }
+      
+      if (orConditions.length > 0) {
+        query.$or = orConditions
+      } else {
+        query.$or = [{ _id: null }]
+      }
+    }
+
+    // Status filter
+    if (status && status !== 'all') {
+      if (status === 'pending') {
+        query.isPaid = false
+      } else if (status === 'paid') {
+        query.isPaid = true
+      } else if (status === 'delivered') {
+        query.isPaid = true
+        query.isDelivered = true
+      }
+    }
+
+    // Date range filter - use custom dates if provided, otherwise use preset ranges
+    if (startDate && endDate) {
+      query.createdAt = { $gte: startDate, $lte: endDate }
+    } else if (dateRange && dateRange !== 'all') {
+      const now = new Date()
+      let start: Date
+      let end: Date | undefined
+
+      if (dateRange === 'today') {
+        start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0)
+        end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)
+      } else if (dateRange === 'last7days') {
+        start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+        start.setHours(0, 0, 0, 0)
+      } else if (dateRange === 'last30days') {
+        start = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+        start.setHours(0, 0, 0, 0)
+      } else if (dateRange === 'thisMonth') {
+        start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0)
+      } else if (dateRange === 'lastMonth') {
+        const firstDayOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0)
+        const lastDayOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59)
+        start = firstDayOfLastMonth
+        end = lastDayOfLastMonth
+      } else {
+        start = new Date(0)
+      }
+
+      if (end) {
+        query.createdAt = { $gte: start, $lte: end }
+      } else {
+        query.createdAt = { $gte: start }
+      }
+    }
+
+    // Limit to 10,000 orders for export to prevent memory issues
+    const MAX_EXPORT_ROWS = 10000
+    const ordersCount = await Order.countDocuments(query)
+    
+    if (ordersCount > MAX_EXPORT_ROWS) {
+      return {
+        success: false,
+        message: `Too many orders to export (${ordersCount}). Please narrow your filters. Maximum: ${MAX_EXPORT_ROWS} orders.`,
+        data: null
+      }
+    }
+
+    // Fetch all orders with populated data
+    const orders = await Order.find(query)
+      .populate('user', 'name email')
+      .sort({ createdAt: 'desc' })
+      .lean()
+
+    return {
+      success: true,
+      message: `Found ${orders.length} orders for export`,
+      data: JSON.parse(JSON.stringify(orders)) as IOrderList[]
+    }
+  } catch (error) {
+    return {
+      success: false,
+      message: formatError(error),
+      data: null
+    }
+  }
+}
+
 export async function getAllOrders({
   limit,
   page,
@@ -570,14 +728,25 @@ export async function getAllOrders({
     .skip(skipAmount)
     .limit(limit)
   
+  // Get counts based on the current query filters
   const ordersCount = await Order.countDocuments(query)
-  const paidOrdersCount = await Order.countDocuments({ isPaid: true })
+  const paidOrdersCount = await Order.countDocuments({ ...query, isPaid: true })
+  const deliveredOrdersCount = await Order.countDocuments({ ...query, isDelivered: true })
+  
+  // Calculate total revenue from filtered paid orders
+  const revenueResult = await Order.aggregate([
+    { $match: { ...query, isPaid: true } },
+    { $group: { _id: null, total: { $sum: '$totalPrice' } } }
+  ])
+  const totalRevenue = revenueResult[0]?.total || 0
   
   return {
     data: JSON.parse(JSON.stringify(orders)) as IOrderList[],
     totalPages: Math.ceil(ordersCount / limit),
     totalOrders: ordersCount,
     totalPaidOrders: paidOrdersCount,
+    totalDeliveredOrders: deliveredOrdersCount,
+    totalRevenue: totalRevenue,
   }
 }
 export async function getMyOrders({
@@ -613,6 +782,7 @@ export async function getMyOrders({
 export async function getOrderById(orderId: string): Promise<IOrder> {
   await connectToDatabase()
   const order = await Order.findById(orderId)
+    .populate('user', 'name email')
   return JSON.parse(JSON.stringify(order))
 }
 
@@ -990,34 +1160,30 @@ export const createManualOrder = async (orderData: any) => {
       }
     }
 
-    // Calculate expected delivery date (default to 3 days from now)
-    const expectedDeliveryDate = new Date()
-    expectedDeliveryDate.setDate(expectedDeliveryDate.getDate() + 3)
+    // Use the expected delivery date from the order data
+    const expectedDeliveryDate = orderData.expectedDeliveryDate || new Date()
 
+    // Get current admin session for internal notes
+    const session = await auth()
+    
     // Prepare order data
     const order = {
       user: user._id,
       items: orderData.items.map((item: any) => ({
         product: item.product,
-        clientId: `admin-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        clientId: item.clientId || `admin-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         name: item.name,
         slug: item.slug,
+        sku: item.sku,
         image: item.image,
         category: item.category,
         price: item.price,
         quantity: item.quantity,
         countInStock: item.countInStock,
+        color: item.color || '',
+        size: item.size || '',
       })),
-      shippingAddress: {
-        fullName: orderData.shippingAddress.fullName,
-        phone: orderData.shippingAddress.phone,
-        city: orderData.shippingAddress.city,
-        province: orderData.shippingAddress.city, // Simplified
-        country: orderData.shippingAddress.country,
-        postalCode: orderData.shippingAddress.postalCode,
-        // For legacy compatibility, use address as street
-        street: orderData.shippingAddress.address,
-      },
+      shippingAddress: orderData.shippingAddress,
       expectedDeliveryDate,
       paymentMethod: orderData.paymentMethod,
       itemsPrice: orderData.itemsPrice,
@@ -1027,6 +1193,14 @@ export const createManualOrder = async (orderData: any) => {
       isPaid: orderData.isPaid,
       paidAt: orderData.isPaid ? new Date() : undefined,
       isDelivered: false,
+      // Add internal note if notes provided
+      internalNotes: orderData.notes && orderData.notes.trim() && session?.user?.id ? [
+        {
+          note: orderData.notes.trim(),
+          createdBy: session.user.id,
+          createdAt: new Date(),
+        }
+      ] : [],
     }
 
     // Create the order
@@ -1072,5 +1246,64 @@ export const createManualOrder = async (orderData: any) => {
     }
   } catch (error) {
     return { success: false, message: formatError(error) }
+  }
+}
+
+// Add internal note to order (admin only)
+export async function addInternalNote(
+  orderId: string,
+  note: string
+): Promise<{ success: boolean; message: string }> {
+  try {
+    const session = await auth()
+    if (!session || session.user.role?.toLowerCase() !== 'admin') {
+      throw new Error('Unauthorized: Admin access required')
+    }
+
+    await connectToDatabase()
+
+    const order = await Order.findById(orderId)
+    if (!order) {
+      throw new Error('Order not found')
+    }
+
+    // Add the note
+    order.internalNotes.push({
+      note,
+      createdBy: session.user.id,
+      createdAt: new Date(),
+    })
+
+    await order.save()
+
+    revalidatePath(`/admin/orders/${orderId}`)
+    revalidatePath('/admin/orders')
+
+    return {
+      success: true,
+      message: 'Note added successfully',
+    }
+  } catch (error) {
+    return { success: false, message: formatError(error) }
+  }
+}
+
+// Get order with populated internal notes
+export async function getOrderWithNotes(orderId: string) {
+  try {
+    await connectToDatabase()
+
+    const order = await Order.findById(orderId)
+      .populate('user', 'name email')
+      .populate('internalNotes.createdBy', 'name')
+
+    if (!order) {
+      return null
+    }
+
+    return JSON.parse(JSON.stringify(order))
+  } catch (error) {
+    console.error('Error fetching order with notes:', error)
+    return null
   }
 }

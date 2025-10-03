@@ -20,6 +20,9 @@ import ProductPrice from '@/components/shared/product/product-price'
 import { ViewInvoiceButton } from '@/components/shared/invoice/invoice-actions'
 import OrderOverviewCards from '@/components/shared/order/order-overview-cards'
 import OrderFilters from '@/components/shared/order/order-filters'
+import { ExportOrdersButton } from '@/components/shared/order/export-orders-button'
+import { MarkDeliveredDialog } from '@/components/shared/order/mark-delivered-dialog'
+import { MarkPaidDialog } from '@/components/shared/order/mark-paid-dialog'
 import { Eye, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
@@ -36,18 +39,18 @@ const generateOrderNumber = (id: string, createdAt: Date) => {
   return `ORD-${year}${month}${day}-${shortId}`
 }
 
-// Helper component for status badges
-const StatusBadge = ({ isPaid, isDelivered, paidAt, deliveredAt }: {
+// Helper component for ORDER FULFILLMENT status badges (not payment status)
+const OrderStatusBadge = ({ isPaid, isDelivered, deliveredAt }: {
   isPaid: boolean
   isDelivered: boolean
-  paidAt?: Date
   deliveredAt?: Date
 }) => {
+  // Order has been delivered - final state
   if (isDelivered && deliveredAt) {
     return (
       <div className="flex flex-col gap-1">
         <Badge variant="default" className="bg-green-600 hover:bg-green-700 w-fit">
-          Delivered
+          ✓ Delivered
         </Badge>
         <span className="text-xs text-muted-foreground">
           {formatDateTime(deliveredAt).dateTime}
@@ -55,21 +58,20 @@ const StatusBadge = ({ isPaid, isDelivered, paidAt, deliveredAt }: {
       </div>
     )
   }
-  if (isPaid && paidAt) {
+  
+  // Order is paid, awaiting delivery
+  if (isPaid) {
     return (
-      <div className="flex flex-col gap-1">
-        <Badge variant="default" className="bg-blue-600 hover:bg-blue-700 w-fit">
-          Paid
-        </Badge>
-        <span className="text-xs text-muted-foreground">
-          {formatDateTime(paidAt).dateTime}
-        </span>
-      </div>
+      <Badge variant="default" className="bg-blue-600 hover:bg-blue-700 w-fit">
+        📦 Processing
+      </Badge>
     )
   }
+  
+  // Order is not paid yet
   return (
-    <Badge variant="destructive" className="w-fit">
-      Unpaid
+    <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200 w-fit">
+      ⏳ Awaiting Payment
     </Badge>
   )
 }
@@ -104,14 +106,15 @@ export default async function OrdersPage(props: {
     dateRange,
   })
 
-  // Calculate order metrics for overview cards
+  // Calculate order metrics for overview cards (workflow-focused)
   const orderMetrics = {
     totalOrders: orders.totalOrders,
     paidOrders: orders.totalPaidOrders,
     unpaidOrders: orders.totalOrders - orders.totalPaidOrders,
-    deliveredOrders: orders.data.filter(order => order.isDelivered).length,
-    totalRevenue: orders.data.reduce((sum, order) => sum + (order.isPaid ? order.totalPrice : 0), 0),
-    averageOrderValue: orders.totalOrders > 0 ? orders.data.reduce((sum, order) => sum + order.totalPrice, 0) / orders.totalOrders : 0
+    deliveredOrders: orders.totalDeliveredOrders,
+    processingOrders: orders.totalPaidOrders - orders.totalDeliveredOrders, // Paid but not delivered
+    totalRevenue: orders.totalRevenue,
+    averageOrderValue: orders.totalOrders > 0 ? orders.totalRevenue / orders.totalOrders : 0
   }
 
   const currentPage = Number(page)
@@ -128,12 +131,22 @@ export default async function OrdersPage(props: {
             Manage customer orders and track deliveries
           </p>
         </div>
-        <Button asChild className="flex items-center gap-2">
-          <Link href="/admin/orders/create">
-            <Plus className="h-4 w-4" />
-            Create Order
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <ExportOrdersButton
+            filters={{
+              search,
+              status,
+              dateRange,
+            }}
+            totalOrders={orders.totalOrders}
+          />
+          <Button asChild className="flex items-center gap-2">
+            <Link href="/admin/orders/create">
+              <Plus className="h-4 w-4" />
+              Create Order
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Order Overview Cards */}
@@ -154,8 +167,8 @@ export default async function OrdersPage(props: {
               <TableHead>DATE</TableHead>
               <TableHead>CUSTOMER</TableHead>
               <TableHead className="text-right">TOTAL</TableHead>
-              <TableHead>PAYMENT</TableHead>
-              <TableHead>STATUS</TableHead>
+              <TableHead>PAYMENT STATUS</TableHead>
+              <TableHead>ORDER STATUS</TableHead>
               <TableHead className="w-24 text-center">ACTIONS</TableHead>
             </TableRow>
           </TableHeader>
@@ -192,10 +205,9 @@ export default async function OrdersPage(props: {
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <StatusBadge
+                  <OrderStatusBadge
                     isPaid={order.isPaid}
                     isDelivered={order.isDelivered}
-                    paidAt={order.paidAt}
                     deliveredAt={order.deliveredAt}
                   />
                 </TableCell>
@@ -213,6 +225,26 @@ export default async function OrdersPage(props: {
                         <TooltipContent>View order details</TooltipContent>
                       </Tooltip>
 
+                      {!order.isPaid && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div>
+                              <MarkPaidDialog
+                                orderId={order._id}
+                                orderNumber={generateOrderNumber(order._id, order.createdAt!)}
+                                customerName={order.user?.name || 'Customer'}
+                                totalPrice={order.totalPrice}
+                                variant="outline"
+                                size="sm"
+                                className="h-8 w-8 p-0"
+                                showLabel={false}
+                              />
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>Mark as Paid</TooltipContent>
+                        </Tooltip>
+                      )}
+
                       {order.isPaid && (
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -225,6 +257,26 @@ export default async function OrdersPage(props: {
                             />
                           </TooltipTrigger>
                           <TooltipContent>Download invoice</TooltipContent>
+                        </Tooltip>
+                      )}
+
+                      {order.isPaid && !order.isDelivered && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div>
+                              <MarkDeliveredDialog
+                                orderId={order._id}
+                                orderNumber={generateOrderNumber(order._id, order.createdAt!)}
+                                customerName={order.user?.name || 'Customer'}
+                                totalPrice={order.totalPrice}
+                                variant="outline"
+                                size="sm"
+                                className="h-8 w-8 p-0"
+                                showLabel={false}
+                              />
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>Mark as Delivered</TooltipContent>
                         </Tooltip>
                       )}
                     </div>

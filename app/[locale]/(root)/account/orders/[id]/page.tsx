@@ -46,7 +46,7 @@ export default async function OrderDetailsPage(props: {
           ...order,
           abaLastStatusCheck: order.abaLastStatusCheck ? order.abaLastStatusCheck.toISOString() : undefined,
         } as Parameters<typeof OrderDetailsForm>[0]['order']}
-        isAdmin={session?.user?.role === 'Admin' || false}
+        isAdmin={session?.user?.role?.toLowerCase() === 'admin' || false}
       />
     </>
   )
