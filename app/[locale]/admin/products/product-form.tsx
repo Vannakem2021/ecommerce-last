@@ -67,6 +67,8 @@ const productDefaultValues: IProductInput = {
   reviews: [],
   saleStartDate: undefined,
   saleEndDate: undefined,
+  secondHand: false,
+  condition: undefined,
 }
 
 const ProductForm = ({
@@ -717,6 +719,65 @@ const ProductForm = ({
                         </FormItem>
                       )}
                     />
+                  </div>
+
+                  {/* Second Hand Product */}
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-medium text-muted-foreground">Product Condition</h4>
+                    <FormField
+                      control={form.control}
+                      name='secondHand'
+                      render={({ field }) => (
+                        <FormItem className='flex flex-row items-center justify-between rounded-lg border p-3'>
+                          <div className="space-y-0.5">
+                            <FormLabel className='text-sm font-medium'>
+                              Second Hand Product
+                            </FormLabel>
+                            <FormDescription>
+                              Mark this product as second-hand/used
+                            </FormDescription>
+                          </div>
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+
+                    {form.watch('secondHand') && (
+                      <FormField
+                        control={form.control}
+                        name='condition'
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Condition *</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder='Select condition' />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value='Like New'>Like New</SelectItem>
+                                <SelectItem value='Good'>Good</SelectItem>
+                                <SelectItem value='Fair'>Fair</SelectItem>
+                                <SelectItem value='Poor'>Poor</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormDescription>
+                              Condition of the second-hand product
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
                   </div>
                 </div>
               </CardContent>

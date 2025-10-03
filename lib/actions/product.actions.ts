@@ -332,6 +332,7 @@ export async function getAllProducts({
   price,
   rating,
   sort,
+  secondHand = 'all',
 }: {
   query: string
   category: string
@@ -341,6 +342,7 @@ export async function getAllProducts({
   price?: string
   rating?: string
   sort?: string
+  secondHand?: string
 }) {
   const {
     common: { pageSize },
@@ -395,6 +397,15 @@ export async function getAllProducts({
           },
         }
       : {}
+  
+  // Second-hand filter
+  const secondHandFilter =
+    secondHand === 'true'
+      ? { secondHand: true }
+      : secondHand === 'false'
+        ? { $or: [{ secondHand: { $ne: true } }, { secondHand: { $exists: false } }] }
+        : {}
+  
   // 10-50
   const priceFilter =
     price && price !== 'all'
@@ -423,6 +434,7 @@ export async function getAllProducts({
     ...categoryFilter,
     ...priceFilter,
     ...ratingFilter,
+    ...secondHandFilter,
   })
     .populate('brand', 'name')
     .populate('category', 'name')
@@ -437,6 +449,7 @@ export async function getAllProducts({
     ...categoryFilter,
     ...priceFilter,
     ...ratingFilter,
+    ...secondHandFilter,
   })
   return {
     products: JSON.parse(JSON.stringify(products)) as IProduct[],
@@ -653,6 +666,56 @@ export async function getProductsByCategoryName({
   const products = await Product.find({ 
     isPublished: true,
     category: category._id,
+  })
+    .populate('brand', 'name')
+    .populate('category', 'name')
+    .sort({ createdAt: -1 }) // Most recent first
+    .limit(limit)
+    .lean()
+  
+  return JSON.parse(JSON.stringify(products)) as IProduct[]
+}
+
+// GET SECOND-HAND PRODUCTS - For second-hand section
+export async function getSecondHandProducts({
+  limit = 10,
+}: {
+  limit?: number
+} = {}) {
+  await connectToDatabase()
+  
+  // Ensure models are registered
+  void Brand
+  void Category
+  
+  const products = await Product.find({
+    isPublished: true,
+    secondHand: true,
+  })
+    .populate('brand', 'name')
+    .populate('category', 'name')
+    .sort({ createdAt: -1 }) // Most recent first
+    .limit(limit)
+    .lean()
+  
+  return JSON.parse(JSON.stringify(products)) as IProduct[]
+}
+
+// GET SECOND-HAND PRODUCTS FOR CARD - For home page section
+export async function getSecondHandProductsForCard({
+  limit = 6,
+}: {
+  limit?: number
+} = {}) {
+  await connectToDatabase()
+  
+  // Ensure models are registered
+  void Brand
+  void Category
+  
+  const products = await Product.find({
+    isPublished: true,
+    secondHand: true,
   })
     .populate('brand', 'name')
     .populate('category', 'name')

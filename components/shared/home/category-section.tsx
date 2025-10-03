@@ -17,6 +17,11 @@ export function CategorySection({ title, products, categorySlug }: CategorySecti
     return null
   }
 
+  // Determine the correct href based on categorySlug
+  const viewAllHref = categorySlug === 'second-hand' 
+    ? '/search?secondHand=true'
+    : `/search?category=${categorySlug}`
+
   return (
     <div className='space-y-4'>
       {/* Category Title and View All Link */}
@@ -25,7 +30,7 @@ export function CategorySection({ title, products, categorySlug }: CategorySecti
           <h2 className='h2-bold'>{title}</h2>
           {categorySlug && (
             <Link
-              href={`/search?category=${categorySlug}`}
+              href={viewAllHref}
               className='flex items-center gap-1 text-sm font-medium text-primary hover:underline'
             >
               {t('View All')}

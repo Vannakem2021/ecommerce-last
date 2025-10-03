@@ -87,6 +87,8 @@ const ProductBaseSchema = z.object({
     .nonnegative("Number of sales must be a non-negative number"),
   saleStartDate: z.date().optional(),
   saleEndDate: z.date().optional(),
+  secondHand: z.boolean().optional().default(false),
+  condition: z.enum(['Like New', 'Good', 'Fair', 'Poor']).optional(),
 });
 
 export const ProductInputSchema = ProductBaseSchema.superRefine((data, ctx) => {

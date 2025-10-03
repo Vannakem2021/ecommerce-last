@@ -1,4 +1,12 @@
 {
+  "Condition": {
+    "Like New": "ដូចថ្មី",
+    "Good": "ល្អ",
+    "Fair": "មធ្យម",
+    "Poor": "ខូច",
+    "New": "ថ្មី",
+    "Second Hand": "ប្រើប្រាស់មកហើយ"
+  },
   "Header": {
     "Hello": "សួស្តី",
     "sign in": "ចូលគណនី",
@@ -58,6 +66,7 @@
     "Smartphones": "ស្មាតហ្វូន",
     "Laptops": "កុំព្យូទ័រយួរដៃ",
     "Tablets": "តាប់ឡេត",
+    "Second Hand": "ប្រើប្រាស់មកហើយ",
     "MacBook Pro with M3 Chip": "MacBook Pro ជាមួយឈីប M3",
     "iPad Pro - Unleash Your Creativity": "iPad Pro - បញ្ចេញភាពច្នៃប្រឌិតរបស់អ្នក"
   },
@@ -162,6 +171,12 @@
     "Clear": "សម្អាត",
     "Clear All": "សម្អាតទាំងអស់",
     "Filters": "តម្រង",
+    "Condition": "លក្ខខណ្ឌ",
+    "All Products": "ផលិតផលទាំងអស់",
+    "New Products": "ផលិតផលថ្មី",
+    "Second Hand": "ប្រើប្រាស់មកហើយ",
+    "Department": "ផ្នែក",
+    "Any": "ណាមួយ",
     "All": "ទាំងអស់",
     "Customer Review": "ការវាយតម្លៃពីអតិថិជន",
     "& Up": "និងលើសពីនេះ",

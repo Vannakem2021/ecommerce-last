@@ -391,6 +391,8 @@ const products: IProductInput[] = [
     sizes: ["256GB", "512GB", "1TB"],
     colors: ["Natural Titanium", "Blue Titanium", "White Titanium", "Black Titanium"],
     reviews: [],
+    secondHand: true,
+    condition: "Good",
   },
   {
     name: "Apple iPhone 15",
@@ -417,6 +419,8 @@ const products: IProductInput[] = [
     sizes: ["128GB", "256GB", "512GB"],
     colors: ["Pink", "Green", "Blue", "Black"],
     reviews: [],
+    secondHand: true,
+    condition: "Good",
   },
   {
     name: "Samsung Galaxy S25 Ultra",
@@ -548,6 +552,8 @@ const products: IProductInput[] = [
     sizes: ["256GB", "512GB"],
     colors: ["Silver Shadow", "Mint", "Blue", "Peach"],
     reviews: [],
+    secondHand: true,
+    condition: "Good",
   },
   {
     name: "Samsung Galaxy S24 FE",
@@ -574,6 +580,8 @@ const products: IProductInput[] = [
     sizes: ["128GB", "256GB"],
     colors: ["Graphite", "Blue", "Mint", "Green"],
     reviews: [],
+    secondHand: true,
+    condition: "Like New",
   },
   {
     name: "Oppo Find X8 Pro",
@@ -600,6 +608,8 @@ const products: IProductInput[] = [
     sizes: ["256GB", "512GB"],
     colors: ["Space Black", "Pearl White", "Desert Silver"],
     reviews: [],
+    secondHand: true,
+    condition: "Fair",
   },
   {
     name: "Oppo Find X8",
@@ -758,6 +768,8 @@ const products: IProductInput[] = [
     sizes: ["256GB", "512GB", "1TB", "2TB"],
     colors: ["Midnight", "Starlight", "Silver", "Space Gray"],
     reviews: [],
+    secondHand: true,
+    condition: "Good",
   },
   // iPad Series
   {
@@ -785,6 +797,8 @@ const products: IProductInput[] = [
     sizes: ["256GB", "512GB", "1TB", "2TB"],
     colors: ["Silver", "Space Black"],
     reviews: [],
+    secondHand: true,
+    condition: "Like New",
   },
   {
     name: "iPad Pro 11-inch M4",
