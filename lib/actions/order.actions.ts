@@ -428,23 +428,151 @@ export async function deleteOrder(id: string) {
 export async function getAllOrders({
   limit,
   page,
+  search,
+  status,
+  dateRange,
 }: {
   limit?: number
   page: number
+  search?: string
+  status?: string
+  dateRange?: string
 }) {
   const {
     common: { pageSize },
   } = await getSetting()
   limit = limit || pageSize
   await connectToDatabase()
+  
+  // Build filter query
+  const query: any = {}
+
+  // Search filter - search by order ID, customer name, or email
+  if (search && search.trim()) {
+    const searchTerm = search.trim()
+    const searchRegex = new RegExp(searchTerm, 'i')
+    
+    // Get users matching the search
+    const matchingUsers = await User.find({
+      $or: [
+        { name: searchRegex },
+        { email: searchRegex }
+      ]
+    }).select('_id')
+    
+    const userIds = matchingUsers.map(u => u._id)
+    
+    // Check if search term matches formatted order number pattern (ORD-YYMMDD-XXXX)
+    const orderNumberPattern = /^ORD-\d{6}-([A-Z0-9]{4})$/i
+    const orderNumberMatch = searchTerm.match(orderNumberPattern)
+    
+    const orConditions = []
+    
+    // Add user search condition
+    if (userIds.length > 0) {
+      orConditions.push({ user: { $in: userIds } })
+    }
+    
+    if (orderNumberMatch) {
+      // Extract last 4 characters from formatted order number
+      const lastFourChars = orderNumberMatch[1].toUpperCase()
+      
+      // Find all orders and filter by ObjectId ending
+      const allOrders = await Order.find({}).select('_id')
+      const matchingOrderIds = allOrders
+        .filter(order => order._id.toString().slice(-4).toUpperCase() === lastFourChars)
+        .map(order => order._id)
+      
+      if (matchingOrderIds.length > 0) {
+        orConditions.push({ _id: { $in: matchingOrderIds } })
+      }
+    } else if (mongoose.Types.ObjectId.isValid(searchTerm)) {
+      // Direct ObjectId search
+      orConditions.push({ _id: searchTerm })
+    } else if (searchTerm.length === 4) {
+      // Search by last 4 characters of ObjectId
+      const allOrders = await Order.find({}).select('_id')
+      const matchingOrderIds = allOrders
+        .filter(order => order._id.toString().slice(-4).toUpperCase() === searchTerm.toUpperCase())
+        .map(order => order._id)
+      
+      if (matchingOrderIds.length > 0) {
+        orConditions.push({ _id: { $in: matchingOrderIds } })
+      }
+    }
+    
+    // Set query conditions
+    if (orConditions.length > 0) {
+      query.$or = orConditions
+    } else {
+      // Force no results if no valid conditions
+      query.$or = [{ _id: null }]
+    }
+  }
+
+  // Status filter
+  if (status && status !== 'all') {
+    if (status === 'pending') {
+      // Unpaid orders only
+      query.isPaid = false
+    } else if (status === 'paid') {
+      // All paid orders (regardless of delivery status)
+      query.isPaid = true
+    } else if (status === 'delivered') {
+      // Delivered orders (must be both paid and delivered)
+      query.isPaid = true
+      query.isDelivered = true
+    }
+  }
+
+  // Date range filter
+  if (dateRange && dateRange !== 'all') {
+    const now = new Date()
+    let startDate: Date
+    let endDate: Date | undefined
+
+    if (dateRange === 'today') {
+      // Today from 00:00:00 to 23:59:59
+      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0)
+      endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)
+    } else if (dateRange === 'last7days') {
+      // Last 7 days (including today)
+      startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+      startDate.setHours(0, 0, 0, 0)
+    } else if (dateRange === 'last30days') {
+      // Last 30 days (including today)
+      startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+      startDate.setHours(0, 0, 0, 0)
+    } else if (dateRange === 'thisMonth') {
+      // This month from 1st to today
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0)
+    } else if (dateRange === 'lastMonth') {
+      // Previous month from 1st to last day
+      const firstDayOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0)
+      const lastDayOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59)
+      startDate = firstDayOfLastMonth
+      endDate = lastDayOfLastMonth
+    } else {
+      startDate = new Date(0) // Beginning of time
+    }
+
+    if (endDate) {
+      query.createdAt = { $gte: startDate, $lte: endDate }
+    } else {
+      query.createdAt = { $gte: startDate }
+    }
+  }
+
   const skipAmount = (Number(page) - 1) * limit
-  const orders = await Order.find()
+  const orders = await Order.find(query)
     .populate('user', 'name')
     .sort({ createdAt: 'desc' })
     .skip(skipAmount)
     .limit(limit)
-  const ordersCount = await Order.countDocuments()
+  
+  const ordersCount = await Order.countDocuments(query)
   const paidOrdersCount = await Order.countDocuments({ isPaid: true })
+  
   return {
     data: JSON.parse(JSON.stringify(orders)) as IOrderList[],
     totalPages: Math.ceil(ordersCount / limit),

@@ -3,7 +3,6 @@ import Link from 'next/link'
 
 import { auth } from '@/auth'
 import { hasPermission } from '@/lib/rbac-utils'
-import DeleteDialog from '@/components/shared/delete-dialog'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -14,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { deleteOrder, getAllOrders } from '@/lib/actions/order.actions'
+import { getAllOrders } from '@/lib/actions/order.actions'
 import { formatDateTime } from '@/lib/utils'
 import { IOrderList } from '@/types'
 import ProductPrice from '@/components/shared/product/product-price'
@@ -76,11 +75,21 @@ const StatusBadge = ({ isPaid, isDelivered, paidAt, deliveredAt }: {
 }
 
 export default async function OrdersPage(props: {
-  searchParams: Promise<{ page: string }>
+  searchParams: Promise<{ 
+    page: string
+    search?: string
+    status?: string
+    dateRange?: string
+  }>
 }) {
   const searchParams = await props.searchParams
 
-  const { page = '1' } = searchParams
+  const { 
+    page = '1',
+    search,
+    status,
+    dateRange,
+  } = searchParams
 
   const session = await auth()
 
@@ -90,6 +99,9 @@ export default async function OrdersPage(props: {
 
   const orders = await getAllOrders({
     page: Number(page),
+    search,
+    status,
+    dateRange,
   })
 
   // Calculate order metrics for overview cards
@@ -144,7 +156,7 @@ export default async function OrdersPage(props: {
               <TableHead className="text-right">TOTAL</TableHead>
               <TableHead>PAYMENT</TableHead>
               <TableHead>STATUS</TableHead>
-              <TableHead className="w-32 text-center">ACTIONS</TableHead>
+              <TableHead className="w-24 text-center">ACTIONS</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -215,15 +227,6 @@ export default async function OrdersPage(props: {
                           <TooltipContent>Download invoice</TooltipContent>
                         </Tooltip>
                       )}
-
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div>
-                            <DeleteDialog id={order._id} action={deleteOrder} />
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>Delete order</TooltipContent>
-                      </Tooltip>
                     </div>
                   </TooltipProvider>
                 </TableCell>

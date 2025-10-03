@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useTransition } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -17,9 +18,7 @@ import {
   FilterIcon,
   XIcon,
   ShoppingCartIcon,
-  DollarSignIcon,
   CalendarIcon,
-  CreditCardIcon
 } from 'lucide-react'
 
 interface OrderFiltersProps {
@@ -30,9 +29,7 @@ interface OrderFiltersProps {
 
 export interface OrderFilterState {
   status: string
-  paymentStatus: string
   dateRange: string
-  amountRange: string
 }
 
 export default function OrderFilters({
@@ -40,55 +37,73 @@ export default function OrderFilters({
   currentRange = '',
   className = ''
 }: OrderFiltersProps) {
-  const [searchValue, setSearchValue] = useState('')
-  const [isPending] = useState(false)
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const [isPending, startTransition] = useTransition()
+
+  // Initialize from URL params
+  const [searchValue, setSearchValue] = useState(searchParams.get('search') || '')
   const [filters, setFilters] = useState<OrderFilterState>({
-    status: 'all',
-    paymentStatus: 'all',
-    dateRange: 'all',
-    amountRange: 'all'
+    status: searchParams.get('status') || 'all',
+    dateRange: searchParams.get('dateRange') || 'all',
   })
 
-  const [showAdvanced, setShowAdvanced] = useState(false)
+  const [showAdvanced, setShowAdvanced] = useState(
+    filters.status !== 'all' || 
+    filters.dateRange !== 'all'
+  )
+
+  // Update URL with current filters
+  const updateURL = (newFilters: OrderFilterState, newSearch: string) => {
+    const params = new URLSearchParams()
+    
+    if (newSearch) params.set('search', newSearch)
+    if (newFilters.status !== 'all') params.set('status', newFilters.status)
+    if (newFilters.dateRange !== 'all') params.set('dateRange', newFilters.dateRange)
+    
+    // Keep page param if it exists
+    const currentPage = searchParams.get('page')
+    if (currentPage && currentPage !== '1') {
+      params.set('page', currentPage)
+    }
+
+    startTransition(() => {
+      router.push(`/admin/orders?${params.toString()}`)
+    })
+  }
 
   const handleSearchChange = (value: string) => {
     setSearchValue(value)
-    // TODO: Implement search functionality
   }
+
+  // Debounced search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      updateURL(filters, searchValue)
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [searchValue])
 
   const handleFilterChange = (newFilters: OrderFilterState) => {
     setFilters(newFilters)
-    // TODO: Implement filter functionality
+    updateURL(newFilters, searchValue)
   }
 
   const statuses = [
-    { value: 'all', label: 'All Orders' },
-    { value: 'pending', label: 'Pending' },
-    { value: 'paid', label: 'Paid' },
-    { value: 'delivered', label: 'Delivered' }
-  ]
-
-  const paymentStatuses = [
-    { value: 'all', label: 'All Payments' },
-    { value: 'paid', label: 'Paid' },
-    { value: 'unpaid', label: 'Unpaid' },
-    { value: 'refunded', label: 'Refunded' }
+    { value: 'all', label: 'All Orders', icon: '📦' },
+    { value: 'pending', label: 'Pending Payment', icon: '⏳' },
+    { value: 'paid', label: 'Paid', icon: '✅' },
+    { value: 'delivered', label: 'Delivered', icon: '🚚' }
   ]
 
   const dateRanges = [
-    { value: 'all', label: 'All Time' },
-    { value: 'today', label: 'Today' },
-    { value: 'week', label: 'This Week' },
-    { value: 'month', label: 'This Month' },
-    { value: 'quarter', label: 'This Quarter' }
-  ]
-
-  const amountRanges = [
-    { value: 'all', label: 'All Amounts' },
-    { value: '0-50', label: '$0 - $50' },
-    { value: '50-100', label: '$50 - $100' },
-    { value: '100-500', label: '$100 - $500' },
-    { value: '500+', label: '$500+' }
+    { value: 'all', label: 'All Time', icon: '📅' },
+    { value: 'today', label: 'Today', icon: '📆' },
+    { value: 'last7days', label: 'Last 7 Days', icon: '📅' },
+    { value: 'last30days', label: 'Last 30 Days', icon: '📅' },
+    { value: 'thisMonth', label: 'This Month', icon: '📅' },
+    { value: 'lastMonth', label: 'Last Month', icon: '📅' }
   ]
 
   const handleSingleFilterChange = (key: keyof OrderFilterState, value: string) => {
@@ -100,13 +115,11 @@ export default function OrderFilters({
   const clearAllFilters = () => {
     const resetFilters = {
       status: 'all',
-      paymentStatus: 'all',
       dateRange: 'all',
-      amountRange: 'all'
     }
     setFilters(resetFilters)
+    setSearchValue('')
     handleFilterChange(resetFilters)
-    handleSearchChange('')
   }
 
   const activeFiltersCount = Object.values(filters).filter(value => value !== 'all').length + (searchValue ? 1 : 0)
@@ -171,15 +184,15 @@ export default function OrderFilters({
           </div>
         </div>
 
-        {/* Advanced Filters */}
+        {/* Simplified Filters */}
         {showAdvanced && (
           <div className="border-t pt-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Status Filter */}
               <div className="space-y-2">
                 <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1">
                   <ShoppingCartIcon className="h-3 w-3" />
-                  Status
+                  Order Status
                 </label>
                 <Select value={filters.status} onValueChange={(value) => handleSingleFilterChange('status', value)}>
                   <SelectTrigger>
@@ -188,27 +201,10 @@ export default function OrderFilters({
                   <SelectContent>
                     {statuses.map((status) => (
                       <SelectItem key={status.value} value={status.value}>
-                        {status.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Payment Status Filter */}
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1">
-                  <CreditCardIcon className="h-3 w-3" />
-                  Payment
-                </label>
-                <Select value={filters.paymentStatus} onValueChange={(value) => handleSingleFilterChange('paymentStatus', value)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {paymentStatuses.map((status) => (
-                      <SelectItem key={status.value} value={status.value}>
-                        {status.label}
+                        <span className="flex items-center gap-2">
+                          <span>{status.icon}</span>
+                          <span>{status.label}</span>
+                        </span>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -228,27 +224,10 @@ export default function OrderFilters({
                   <SelectContent>
                     {dateRanges.map((range) => (
                       <SelectItem key={range.value} value={range.value}>
-                        {range.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Amount Range Filter */}
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1">
-                  <DollarSignIcon className="h-3 w-3" />
-                  Amount Range
-                </label>
-                <Select value={filters.amountRange} onValueChange={(value) => handleSingleFilterChange('amountRange', value)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {amountRanges.map((range) => (
-                      <SelectItem key={range.value} value={range.value}>
-                        {range.label}
+                        <span className="flex items-center gap-2">
+                          <span>{range.icon}</span>
+                          <span>{range.label}</span>
+                        </span>
                       </SelectItem>
                     ))}
                   </SelectContent>
