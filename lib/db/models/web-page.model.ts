@@ -27,6 +27,11 @@ const webPageSchema = new Schema<IWebPage>(
       required: true,
       default: false,
     },
+    section: {
+      type: String,
+      enum: ['shop', 'customer-service', 'legal', 'more'],
+      default: 'more',
+    },
   },
   {
     timestamps: true,

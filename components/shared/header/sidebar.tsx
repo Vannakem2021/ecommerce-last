@@ -22,7 +22,7 @@ export default async function Sidebar({
   menuItems = [],
 }: {
   categories: string[]
-  menuItems?: { name: string; href: string }[]
+  menuItems?: { name: string; href: string; section?: string }[]
 }) {
   const session = await auth()
 
@@ -65,40 +65,167 @@ export default async function Sidebar({
           {/* Navigation Menu */}
           <div className='flex-1 overflow-y-auto'>
             <nav>
-              {menuItems.map((item) => (
-                <DrawerClose asChild key={item.href}>
-                  <Link
-                    href={item.href}
-                    className='flex items-center justify-between px-5 py-3.5 border-b hover:bg-muted/50 transition-colors'
-                  >
-                    <span className='font-medium text-sm uppercase'>{item.name}</span>
-                    <ChevronRight className='h-4 w-4 text-muted-foreground' />
-                  </Link>
-                </DrawerClose>
-              ))}
+              {/* Shop Section */}
+              {menuItems.filter(item => 
+                ['Today\'s Deal', 'New Arrivals', 'Featured Products', 'Best Sellers'].includes(item.name) ||
+                item.section === 'shop'
+              ).length > 0 && (
+                <>
+                  <div className='px-5 py-2 bg-muted/30'>
+                    <span className='text-xs font-bold text-primary uppercase tracking-wider'>
+                      Shop
+                    </span>
+                  </div>
+                  {menuItems
+                    .filter(item => 
+                      ['Today\'s Deal', 'New Arrivals', 'Featured Products', 'Best Sellers'].includes(item.name) ||
+                      item.section === 'shop'
+                    )
+                    .map((item) => (
+                      <DrawerClose asChild key={item.href}>
+                        <Link
+                          href={item.href}
+                          className='flex items-center justify-between px-5 py-3 hover:bg-muted/50 transition-colors'
+                        >
+                          <span className='font-medium text-sm'>{item.name}</span>
+                          <ChevronRight className='h-4 w-4 text-muted-foreground' />
+                        </Link>
+                      </DrawerClose>
+                    ))}
+                </>
+              )}
 
-              {categories.map((category) => (
-                <DrawerClose asChild key={category}>
-                  <Link
-                    href={`/search?category=${category}`}
-                    className='flex items-center justify-between px-5 py-3.5 border-b hover:bg-muted/50 transition-colors'
-                  >
-                    <span className='font-medium text-sm uppercase'>{category}</span>
-                    <ChevronRight className='h-4 w-4 text-muted-foreground' />
-                  </Link>
-                </DrawerClose>
-              ))}
+              {/* Categories Section */}
+              {categories.length > 0 && (
+                <>
+                  <div className='px-5 py-2 bg-muted/30 border-t'>
+                    <span className='text-xs font-bold text-primary uppercase tracking-wider'>
+                      Categories
+                    </span>
+                  </div>
+                  {categories.map((category) => (
+                    <DrawerClose asChild key={category}>
+                      <Link
+                        href={`/search?category=${category}`}
+                        className='flex items-center justify-between px-5 py-3 hover:bg-muted/50 transition-colors'
+                      >
+                        <span className='font-medium text-sm'>{category}</span>
+                        <ChevronRight className='h-4 w-4 text-muted-foreground' />
+                      </Link>
+                    </DrawerClose>
+                  ))}
+                </>
+              )}
+
+              {/* Customer Service Section */}
+              {menuItems.filter(item => 
+                ['About Us', 'Customer Service', 'Help', 'Contact Us'].includes(item.name) ||
+                item.section === 'customer-service'
+              ).length > 0 && (
+                <>
+                  <div className='px-5 py-2 bg-muted/30 border-t'>
+                    <span className='text-xs font-bold text-primary uppercase tracking-wider'>
+                      Customer Service
+                    </span>
+                  </div>
+                  {menuItems
+                    .filter(item => 
+                      ['About Us', 'Customer Service', 'Help', 'Contact Us'].includes(item.name) ||
+                      item.section === 'customer-service'
+                    )
+                    .map((item) => (
+                      <DrawerClose asChild key={item.href}>
+                        <Link
+                          href={item.href}
+                          className='flex items-center justify-between px-5 py-3 hover:bg-muted/50 transition-colors'
+                        >
+                          <span className='font-medium text-sm'>{item.name}</span>
+                          <ChevronRight className='h-4 w-4 text-muted-foreground' />
+                        </Link>
+                      </DrawerClose>
+                    ))}
+                </>
+              )}
+
+              {/* Legal Section */}
+              {menuItems.filter(item => 
+                ['Conditions of Use', 'Privacy Policy'].includes(item.name) ||
+                item.section === 'legal'
+              ).length > 0 && (
+                <>
+                  <div className='px-5 py-2 bg-muted/30 border-t'>
+                    <span className='text-xs font-bold text-primary uppercase tracking-wider'>
+                      Legal
+                    </span>
+                  </div>
+                  {menuItems
+                    .filter(item => 
+                      ['Conditions of Use', 'Privacy Policy'].includes(item.name) ||
+                      item.section === 'legal'
+                    )
+                    .map((item) => (
+                      <DrawerClose asChild key={item.href}>
+                        <Link
+                          href={item.href}
+                          className='flex items-center justify-between px-5 py-3 hover:bg-muted/50 transition-colors'
+                        >
+                          <span className='font-medium text-sm'>{item.name}</span>
+                          <ChevronRight className='h-4 w-4 text-muted-foreground' />
+                        </Link>
+                      </DrawerClose>
+                    ))}
+                </>
+              )}
+
+              {/* Other Menu Items (fallback for items not in groups) */}
+              {menuItems.filter(item => 
+                ![
+                  'Today\'s Deal', 'New Arrivals', 'Featured Products', 'Best Sellers',
+                  'About Us', 'Customer Service', 'Help', 'Contact Us',
+                  'Conditions of Use', 'Privacy Policy'
+                ].includes(item.name) &&
+                !['shop', 'customer-service', 'legal'].includes(item.section || '')
+              ).length > 0 && (
+                <>
+                  <div className='px-5 py-2 bg-muted/30 border-t'>
+                    <span className='text-xs font-bold text-primary uppercase tracking-wider'>
+                      More
+                    </span>
+                  </div>
+                  {menuItems
+                    .filter(item => 
+                      ![
+                        'Today\'s Deal', 'New Arrivals', 'Featured Products', 'Best Sellers',
+                        'About Us', 'Customer Service', 'Help', 'Contact Us',
+                        'Conditions of Use', 'Privacy Policy'
+                      ].includes(item.name) &&
+                      !['shop', 'customer-service', 'legal'].includes(item.section || '')
+                    )
+                    .map((item) => (
+                      <DrawerClose asChild key={item.href}>
+                        <Link
+                          href={item.href}
+                          className='flex items-center justify-between px-5 py-3 hover:bg-muted/50 transition-colors'
+                        >
+                          <span className='font-medium text-sm'>{item.name}</span>
+                          <ChevronRight className='h-4 w-4 text-muted-foreground' />
+                        </Link>
+                      </DrawerClose>
+                    ))}
+                </>
+              )}
             </nav>
           </div>
 
-          {/* Bottom Links */}
+          {/* Bottom Contact Link */}
           <div className='border-t'>
             <DrawerClose asChild>
               <Link
                 href='/page/contact-us'
-                className='flex items-center justify-between px-5 py-3.5 border-b hover:bg-muted/50 transition-colors'
+                className='flex items-center justify-between px-5 py-3.5 hover:bg-muted/50 transition-colors'
               >
                 <span className='font-medium text-sm uppercase'>CONTACT</span>
+                <ChevronRight className='h-4 w-4 text-muted-foreground' />
               </Link>
             </DrawerClose>
           </div>

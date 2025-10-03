@@ -50,6 +50,7 @@ export async function generateMetadata(props: {
     sort: string
     page: string
     secondHand: string
+    discount: string
   }>
 }) {
   const searchParams = await props.searchParams
@@ -93,6 +94,7 @@ export default async function SearchPage(props: {
     sort: string
     page: string
     secondHand: string
+    discount: string
   }>
 }) {
   const searchParams = await props.searchParams
@@ -106,9 +108,10 @@ export default async function SearchPage(props: {
     sort = 'best-selling',
     page = '1',
     secondHand = 'all',
+    discount = 'all',
   } = searchParams
 
-  const params = { q, category, tag, price, rating, sort, page, secondHand }
+  const params = { q, category, tag, price, rating, sort, page, secondHand, discount }
 
   const categories = await getAllCategories()
   const tags = await getAllTags()
@@ -121,6 +124,7 @@ export default async function SearchPage(props: {
     page: Number(page),
     sort,
     secondHand,
+    discount,
   })
   const t = await getTranslations()
   return (

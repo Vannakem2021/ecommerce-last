@@ -92,6 +92,6 @@ export async function getWebPageBySlug(slug: string) {
 // GET PUBLISHED PAGES FOR NAVIGATION
 export async function getPublishedWebPagesForNavigation() {
   await connectToDatabase()
-  const webPages = await WebPage.find({ isPublished: true }).select('title slug').sort({ title: 1 })
-  return JSON.parse(JSON.stringify(webPages)) as Pick<IWebPage, '_id' | 'title' | 'slug'>[]
+  const webPages = await WebPage.find({ isPublished: true }).select('title slug section').sort({ title: 1 })
+  return JSON.parse(JSON.stringify(webPages)) as Pick<IWebPage, '_id' | 'title' | 'slug' | 'section'>[]
 }
