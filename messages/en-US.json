@@ -303,5 +303,19 @@
   "Favorites": {
     "Your Favorites": "Your Favorites",
     "No favorites yet": "No favorites yet"
+  },
+  "chatbot": {
+    "title": "Help Center",
+    "openChat": "Open help chat",
+    "closeChat": "Close chat",
+    "searchPlaceholder": "Search questions...",
+    "clearSearch": "Clear search",
+    "allCategories": "All Categories",
+    "loading": "Loading...",
+    "noResults": "No questions found",
+    "tryDifferentQuery": "Try a different search term",
+    "question": "question",
+    "questions": "questions",
+    "footer": "Need more help? Contact support"
   }
 }
