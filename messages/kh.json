@@ -276,5 +276,19 @@
   "Favorites": {
     "Your Favorites": "?????????????????????",
     "No favorites yet": "?????????????????????????"
+  },
+  "chatbot": {
+    "title": "មជ្ឈមណ្ឌលជំនួយ",
+    "openChat": "បើកជជែកជំនួយ",
+    "closeChat": "បិទជជែក",
+    "searchPlaceholder": "ស្វែងរកសំណួរ...",
+    "clearSearch": "សម្អាតការស្វែងរក",
+    "allCategories": "ប្រភេទទាំងអស់",
+    "loading": "កំពុងផ្ទុក...",
+    "noResults": "រកមិនឃើញសំណួរ",
+    "tryDifferentQuery": "សាកល្បងពាក្យស្វែងរកផ្សេង",
+    "question": "សំណួរ",
+    "questions": "សំណួរ",
+    "footer": "ត្រូវការជំនួយបន្ថែម? ទាក់ទងផ្នែកគាំទ្រ"
   }
 }

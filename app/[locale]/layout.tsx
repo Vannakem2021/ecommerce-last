@@ -10,6 +10,7 @@ import { getSetting } from "@/lib/actions/setting.actions";
 import { cookies } from "next/headers";
 import { SessionProvider } from "next-auth/react";
 import { auth } from "@/auth";
+import { Toaster } from "sonner";
 
 // Google Fonts setup
 const ubuntu = Ubuntu({
@@ -82,6 +83,7 @@ export default async function AppLayout({
             </ClientProviders>
           </SessionProvider>
         </NextIntlClientProvider>
+        <Toaster position="top-right" richColors />
       </body>
     </html>
   );
