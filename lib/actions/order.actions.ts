@@ -977,6 +977,69 @@ export async function getOrderSummary(date: DateRange) {
   ])
   const totalSales = totalSalesResult[0] ? totalSalesResult[0].totalSales : 0
 
+  // Calculate Average Order Value (AOV)
+  const averageOrderValue = ordersCount > 0 ? totalSales / ordersCount : 0
+
+  // Get stock metrics
+  const lowStockCount = await Product.countDocuments({
+    countInStock: { $lte: 10, $gt: 0 }
+  })
+  const outOfStockCount = await Product.countDocuments({ countInStock: 0 })
+
+  // Calculate previous period for comparison
+  const periodDuration = date.to && date.from ? date.to.getTime() - date.from.getTime() : 0
+  const previousPeriodEnd = date.from ? new Date(date.from.getTime() - 1) : new Date()
+  const previousPeriodStart = new Date(previousPeriodEnd.getTime() - periodDuration)
+
+  // Get previous period metrics for trend comparison
+  const previousPeriodOrdersCount = await Order.countDocuments({
+    createdAt: {
+      $gte: previousPeriodStart,
+      $lte: previousPeriodEnd,
+    },
+  })
+
+  const previousPeriodSalesResult = await Order.aggregate([
+    {
+      $match: {
+        createdAt: {
+          $gte: previousPeriodStart,
+          $lte: previousPeriodEnd,
+        },
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        sales: { $sum: '$totalPrice' },
+      },
+    },
+    { $project: { totalSales: { $ifNull: ['$sales', 0] } } },
+  ])
+  const previousPeriodSales = previousPeriodSalesResult[0] ? previousPeriodSalesResult[0].totalSales : 0
+  const previousAverageOrderValue = previousPeriodOrdersCount > 0 ? previousPeriodSales / previousPeriodOrdersCount : 0
+
+  const previousPeriodUsersCount = await User.countDocuments({
+    createdAt: {
+      $gte: previousPeriodStart,
+      $lte: previousPeriodEnd,
+    },
+  })
+
+  // Calculate percentage changes
+  const salesChange = previousPeriodSales > 0 
+    ? ((totalSales - previousPeriodSales) / previousPeriodSales) * 100 
+    : 0
+  const ordersChange = previousPeriodOrdersCount > 0 
+    ? ((ordersCount - previousPeriodOrdersCount) / previousPeriodOrdersCount) * 100 
+    : 0
+  const usersChange = previousPeriodUsersCount > 0 
+    ? ((usersCount - previousPeriodUsersCount) / previousPeriodUsersCount) * 100 
+    : 0
+  const aovChange = previousAverageOrderValue > 0 
+    ? ((averageOrderValue - previousAverageOrderValue) / previousAverageOrderValue) * 100 
+    : 0
+
   const today = new Date()
   const sixMonthEarlierDate = new Date(
     today.getFullYear(),
@@ -1023,6 +1086,14 @@ export async function getOrderSummary(date: DateRange) {
     productsCount,
     usersCount,
     totalSales,
+    averageOrderValue,
+    lowStockCount,
+    outOfStockCount,
+    // Trend data
+    salesChange,
+    ordersChange,
+    usersChange,
+    aovChange,
     monthlySales: JSON.parse(JSON.stringify(monthlySales)),
     salesChartData: JSON.parse(JSON.stringify(await getSalesChartData(date))),
     topSalesCategories: JSON.parse(JSON.stringify(topSalesCategories)),
@@ -1135,14 +1206,48 @@ async function getTopSalesCategories(date: DateRange, limit = 5) {
     },
     // Step 1: Unwind orderItems array
     { $unwind: '$items' },
-    // Step 2: Group by productId to calculate total sales per product
+    // Step 2: Try to convert category to ObjectId (only if it's a valid ObjectId string)
+    {
+      $addFields: {
+        categoryId: {
+          $cond: {
+            if: {
+              $and: [
+                { $eq: [{ $type: '$items.category' }, 'string'] },
+                { $eq: [{ $strLenCP: '$items.category' }, 24] }
+              ]
+            },
+            then: { $toObjectId: '$items.category' },
+            else: null
+          }
+        }
+      }
+    },
+    // Step 3: Lookup category details (only for ObjectIds)
+    {
+      $lookup: {
+        from: 'categories',
+        localField: 'categoryId',
+        foreignField: '_id',
+        as: 'categoryInfo'
+      }
+    },
+    // Step 4: Unwind category info
+    { $unwind: { path: '$categoryInfo', preserveNullAndEmptyArrays: true } },
+    // Step 5: Group by category name (use lookup result if available, otherwise use original value)
     {
       $group: {
-        _id: '$items.category',
-        totalSales: { $sum: '$items.quantity' }, // Assume quantity field in orderItems represents units sold
+        _id: { 
+          $cond: {
+            if: { $ifNull: ['$categoryInfo.name', false] },
+            then: '$categoryInfo.name',
+            else: '$items.category'
+          }
+        },
+        totalSales: { $sum: '$items.quantity' },
       },
     },
-    // Step 3: Sort by totalSales in descending order
+    // Step 6: Sort by totalSales in descending order
     { $sort: { totalSales: -1 } },
     // Step 4: Limit to top N products
     { $limit: limit },

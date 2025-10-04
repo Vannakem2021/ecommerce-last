@@ -12,6 +12,7 @@ type TableChartProps = {
     image?: string
     value: number
     id?: string
+    rank?: number
   }[]
 }
 
@@ -44,39 +45,80 @@ export default function TableChart({
   data = [],
 }: TableChartProps) {
   const max = Math.max(...data.map((item) => item.value))
-  const dataWithPercentage = data.map((x) => ({
-    ...x,
-    label: labelType === 'month' ? getMonthName(x.label) : x.label,
-    percentage: Math.round((x.value / max) * 100),
-  }))
+  
+  // Calculate growth trends for months
+  const dataWithPercentage = data.map((x, index) => {
+    const percentage = Math.round((x.value / max) * 100)
+    let trend = 0
+    if (labelType === 'month' && index > 0) {
+      const previousValue = data[index - 1].value
+      if (previousValue > 0) {
+        trend = ((x.value - previousValue) / previousValue) * 100
+      }
+    }
+    return {
+      ...x,
+      label: labelType === 'month' ? getMonthName(x.label) : x.label,
+      percentage,
+      trend,
+    }
+  })
+  
   return (
     <div className='space-y-3'>
-      {dataWithPercentage.map(({ label, id, value, image, percentage }) => (
+      {dataWithPercentage.map(({ label, id, value, image, percentage, trend }, index) => (
         <div
           key={label}
-          className='grid grid-cols-[100px_1fr_80px] md:grid-cols-[250px_1fr_80px] gap-2 space-y-4  '
+          className='grid grid-cols-[auto_1fr_auto] gap-3 items-center'
         >
-          {image ? (
-            <Link className='flex items-end' href={`/admin/products/${id}`}>
-              <Image
-                className='rounded border  aspect-square object-scale-down max-w-full h-auto mx-auto mr-1'
-                src={image!}
-                alt={label}
-                width={36}
-                height={36}
-              />
-              <p className='text-center text-sm whitespace-nowrap overflow-hidden text-ellipsis'>
-                {label}
-              </p>
-            </Link>
-          ) : (
-            <div className='flex items-end text-sm'>{label}</div>
-          )}
+          {/* Left: Rank/Image/Name */}
+          <div className='flex items-center gap-2 min-w-0'>
+            {labelType === 'product' && (
+              <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                index === 0 ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300' :
+                index === 1 ? 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' :
+                index === 2 ? 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300' :
+                'bg-muted text-muted-foreground'
+              }`}>
+                {index + 1}
+              </div>
+            )}
+            
+            {image ? (
+              <Link className='flex items-center gap-2 min-w-0 flex-1' href={`/admin/products/${id}`}>
+                <Image
+                  className='rounded border aspect-square object-scale-down flex-shrink-0'
+                  src={image!}
+                  alt={label}
+                  width={40}
+                  height={40}
+                />
+                <div className='min-w-0 flex-1'>
+                  <p className='text-xs md:text-sm font-medium truncate hover:text-primary transition-colors'>
+                    {label}
+                  </p>
+                </div>
+              </Link>
+            ) : (
+              <div className='text-xs md:text-sm font-medium'>{label}</div>
+            )}
+          </div>
 
-          <ProgressBar value={percentage} />
+          {/* Center: Progress Bar */}
+          <div className='flex-1 min-w-[80px] max-w-[200px]'>
+            <ProgressBar value={percentage} />
+          </div>
 
-          <div className='text-sm text-right flex items-center'>
-            <ProductPrice price={value} plain />
+          {/* Right: Value & Trend */}
+          <div className='flex items-center justify-end gap-2 flex-shrink-0'>
+            <ProductPrice price={value} plain className='text-xs md:text-sm font-semibold' />
+            {labelType === 'month' && trend !== 0 && (
+              <span className={`text-[10px] md:text-xs font-medium ${
+                trend > 0 ? 'text-green-600' : 'text-red-600'
+              }`}>
+                {trend > 0 ? '↑' : '↓'}{Math.abs(trend).toFixed(0)}%
+              </span>
+            )}
           </div>
         </div>
       ))}

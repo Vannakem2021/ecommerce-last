@@ -1,6 +1,6 @@
 'use client';
 
-import { BadgeDollarSign, Barcode, CreditCard, Users, BarChart3, TrendingUp, PieChart, Clock, ChevronLeft, LayoutDashboard } from 'lucide-react';
+import { BadgeDollarSign, Barcode, CreditCard, Users, BarChart3, TrendingUp, BarChart2, Clock, ChevronLeft, LayoutDashboard } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 import Link from 'next/link';
@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/table';
 import { calculatePastDate, formatDateTime, formatNumber } from '@/lib/utils';
 
-import SalesCategoryPieChart from './sales-category-pie-chart';
+import SalesCategoryBarChart from './sales-category-bar-chart';
 
 import React, { useEffect, useState, useTransition } from 'react';
 import { DateRange } from 'react-day-picker';
@@ -73,46 +73,52 @@ export default function OverviewReport() {
           </div>
 
           {/* Page Header */}
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-950">
-                  <LayoutDashboard className="h-6 w-6 text-blue-600" />
-                </div>
-                <div>
-                  <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-                  <p className="text-muted-foreground mt-1">
-                    Monitor your store performance and key metrics
-                  </p>
-                </div>
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-950">
+                <LayoutDashboard className="h-6 w-6 text-blue-600" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+                <p className="text-muted-foreground mt-1">
+                  Monitor your store performance and key metrics
+                </p>
               </div>
             </div>
-            <Skeleton className="h-10 w-64" />
+            
+            {/* Date Range Filter Skeleton */}
+            <div className="flex gap-2">
+              <Skeleton className="h-9 w-28" />
+              <Skeleton className="h-9 w-32" />
+              <Skeleton className="h-9 w-28" />
+              <Skeleton className="h-9 w-28" />
+              <Skeleton className="h-9 w-24" />
+            </div>
           </div>
         </div>
         {/* First Row */}
         <div className="flex gap-4">
-          {[...Array(4)].map((_, index) => (
+          {[...Array(3)].map((_, index) => (
             <Skeleton key={index} className="h-36 w-full" />
           ))}
         </div>
 
-        {/* Second Row */}
+        {/* Third Row - Charts */}
         <div>
           <Skeleton className="h-[30rem] w-full" />
         </div>
 
-        {/* Third Row */}
-        <div className="flex gap-4">
+        {/* Fourth Row */}
+        <div className="grid gap-4 md:grid-cols-2">
           {[...Array(2)].map((_, index) => (
-            <Skeleton key={index} className="h-60 w-full" />
+            <Skeleton key={index} className="h-80 w-full" />
           ))}
         </div>
 
-        {/* Fourth Row */}
-        <div className="flex gap-4">
+        {/* Fifth Row */}
+        <div className="grid gap-4 md:grid-cols-2">
           {[...Array(2)].map((_, index) => (
-            <Skeleton key={index} className="h-60 w-full" />
+            <Skeleton key={index} className="h-96 w-full" />
           ))}
         </div>
       </div>
@@ -136,26 +142,28 @@ export default function OverviewReport() {
         </div>
 
         {/* Page Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-950">
-                <LayoutDashboard className="h-6 w-6 text-blue-600" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-foreground">{t('Dashboard')}</h1>
-                <p className="text-muted-foreground mt-1">
-                  Monitor your store performance and key metrics
-                </p>
-              </div>
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-950">
+              <LayoutDashboard className="h-6 w-6 text-blue-600" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">{t('Dashboard')}</h1>
+              <p className="text-muted-foreground mt-1">
+                Monitor your store performance and key metrics
+              </p>
             </div>
           </div>
-          <CalendarDateRangePicker defaultDate={date} setDate={setDate} />
+          
+          {/* Date Range Filter */}
+          <div>
+            <CalendarDateRangePicker defaultDate={date} setDate={setDate} />
+          </div>
         </div>
       </div>
 
       <div className="space-y-6">
-        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
@@ -214,24 +222,6 @@ export default function OverviewReport() {
               </div>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                {t('Products')}
-              </CardTitle>
-              <div className="p-2 rounded-lg bg-orange-50 dark:bg-orange-950">
-                <Barcode className="h-4 w-4 text-orange-600" />
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="text-2xl font-bold">{data.productsCount}</div>
-              <div>
-                <Link className="text-xs" href="/admin/products">
-                  {t('View products')}
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
         </div>
         <div>
           <Card>
@@ -252,15 +242,19 @@ export default function OverviewReport() {
         <div className="grid gap-4 md:grid-cols-2">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <div className="p-1.5 rounded-md bg-amber-50 dark:bg-amber-950">
-                  <TrendingUp className="h-4 w-4 text-amber-600" />
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-md bg-emerald-50 dark:bg-emerald-950">
+                      <TrendingUp className="h-4 w-4 text-emerald-600" />
+                    </div>
+                    Revenue by Month
+                  </CardTitle>
+                  <CardDescription className="mt-1.5">
+                    {t('Last 6 months')} · Monthly performance
+                  </CardDescription>
                 </div>
-How much you&apos;re earning
-              </CardTitle>
-              <CardDescription>
-                {t('Estimated')} · {t('Last 6 months')}
-              </CardDescription>
+              </div>
             </CardHeader>
             <CardContent>
               <TableChart data={data.monthlySales} labelType="month" />
@@ -268,16 +262,20 @@ How much you&apos;re earning
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <div className="p-1.5 rounded-md bg-violet-50 dark:bg-violet-950">
-                  <Barcode className="h-4 w-4 text-violet-600" />
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-md bg-blue-50 dark:bg-blue-950">
+                      <Barcode className="h-4 w-4 text-blue-600" />
+                    </div>
+                    Top Selling Products
+                  </CardTitle>
+                  <CardDescription className="mt-1.5">
+                    {formatDateTime(date!.from!).dateOnly} to{' '}
+                    {formatDateTime(date!.to!).dateOnly}
+                  </CardDescription>
                 </div>
-                {t('Product Performance')}
-              </CardTitle>
-              <CardDescription>
-                {formatDateTime(date!.from!).dateOnly} to{' '}
-                {formatDateTime(date!.to!).dateOnly}
-              </CardDescription>
+              </div>
             </CardHeader>
             <CardContent>
               <TableChart data={data.topSalesProducts} labelType="product" />
@@ -290,57 +288,82 @@ How much you&apos;re earning
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <div className="p-1.5 rounded-md bg-rose-50 dark:bg-rose-950">
-                  <PieChart className="h-4 w-4 text-rose-600" />
+                  <BarChart2 className="h-4 w-4 text-rose-600" />
                 </div>
                 {t('Best-Selling Categories')}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <SalesCategoryPieChart data={data.topSalesCategories} />
+              <SalesCategoryBarChart data={data.topSalesCategories} />
             </CardContent>
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <div className="p-1.5 rounded-md bg-cyan-50 dark:bg-cyan-950">
-                  <Clock className="h-4 w-4 text-cyan-600" />
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-md bg-indigo-50 dark:bg-indigo-950">
+                      <Clock className="h-4 w-4 text-indigo-600" />
+                    </div>
+                    Recent Orders
+                  </CardTitle>
+                  <CardDescription className="mt-1.5">
+                    Latest {data.latestOrders.length} customer transactions
+                  </CardDescription>
                 </div>
-                {t('Recent Sales')}
-              </CardTitle>
+                <Link href="/admin/orders">
+                  <Button variant="ghost" size="sm" className="text-xs">
+                    View All
+                  </Button>
+                </Link>
+              </div>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t('Buyer')}</TableHead>
-                    <TableHead>{t('Date')}</TableHead>
-                    <TableHead>{t('Total')}</TableHead>
-                    <TableHead>{t('Actions')}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {data.latestOrders.map((order: IOrderList) => (
-                    <TableRow key={order._id}>
-                      <TableCell>
-                        {order.user ? order.user.name : t('Deleted User')}
-                      </TableCell>
+              <div className="space-y-3">
+                {data.latestOrders.map((order: IOrderList, index: number) => (
+                  <Link 
+                    key={order._id} 
+                    href={`/admin/orders/${order._id}`}
+                    className="block"
+                  >
+                    <div className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors group">
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        {/* Order Number Badge */}
+                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                          <span className="text-xs font-bold text-primary">#{index + 1}</span>
+                        </div>
+                        
+                        {/* Customer Info */}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">
+                            {order.user ? order.user.name : t('Deleted User')}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {formatDateTime(order.createdAt).dateTime}
+                          </p>
+                        </div>
+                      </div>
 
-                      <TableCell>
-                        {formatDateTime(order.createdAt).dateOnly}
-                      </TableCell>
-                      <TableCell>
-                        <ProductPrice price={order.totalPrice} plain />
-                      </TableCell>
-
-                      <TableCell>
-                        <Link href={`/admin/orders/${order._id}`}>
-                          <span className="px-2">{t('Details')}</span>
-                        </Link>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                      {/* Amount */}
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <ProductPrice 
+                          price={order.totalPrice} 
+                          plain 
+                          className="text-sm font-semibold"
+                        />
+                        <ChevronLeft className="h-4 w-4 rotate-180 text-muted-foreground group-hover:text-primary transition-colors" />
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+                
+                {data.latestOrders.length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Clock className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">No recent orders</p>
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
         </div>
