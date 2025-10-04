@@ -130,7 +130,10 @@ export default function PromotionDetails({
           <CardContent>
             <div className='text-2xl font-bold'>{getPromotionValue()}</div>
             <p className='text-xs text-muted-foreground'>
-              Min. order: ${promotion.minOrderValue}
+              {promotion.minOrderValue > 0 && `Min. order: $${promotion.minOrderValue}`}
+              {promotion.minOrderValue > 0 && promotion.maxDiscountAmount > 0 && ' • '}
+              {promotion.maxDiscountAmount > 0 && `Max: $${promotion.maxDiscountAmount}`}
+              {promotion.minOrderValue === 0 && promotion.maxDiscountAmount === 0 && 'No restrictions'}
             </p>
           </CardContent>
         </Card>
@@ -202,7 +205,10 @@ export default function PromotionDetails({
                 <div className='space-y-1 text-sm'>
                   <div>Total: {promotion.usageLimit || 'Unlimited'}</div>
                   <div>Per User: {promotion.userUsageLimit || 'Unlimited'}</div>
-                  <div>Min Order: ${promotion.minOrderValue}</div>
+                  <div>Min Order: ${promotion.minOrderValue || 0}</div>
+                  {promotion.maxDiscountAmount > 0 && (
+                    <div>Max Discount: ${promotion.maxDiscountAmount}</div>
+                  )}
                 </div>
               </div>
             </div>
@@ -238,7 +244,17 @@ export default function PromotionDetails({
             <div className='grid grid-cols-2 gap-4 text-sm'>
               <div>
                 <span className='text-muted-foreground'>Created by:</span>
-                <div className='font-medium'>{promotion.createdBy?.name || 'Unknown'}</div>
+                <div className='font-medium'>
+                  {promotion.createdBy ? (
+                    typeof promotion.createdBy === 'object' && promotion.createdBy?.name 
+                      ? promotion.createdBy.name 
+                      : typeof promotion.createdBy === 'string' && promotion.createdBy.length > 0
+                      ? `User ID: ${promotion.createdBy.substring(0, 8)}...`
+                      : 'Unknown User'
+                  ) : (
+                    <span className='text-muted-foreground'>Not tracked (legacy promotion)</span>
+                  )}
+                </div>
               </div>
               <div>
                 <span className='text-muted-foreground'>Created:</span>
@@ -325,14 +341,57 @@ export default function PromotionDetails({
           </CardHeader>
           <CardContent>
             {promotion.appliesTo === 'products' && promotion.applicableProducts && (
-              <div className='text-sm text-muted-foreground'>
-                {promotion.applicableProducts.length} products selected
+              <div className='space-y-3'>
+                <div className='text-sm text-muted-foreground'>
+                  {promotion.applicableProducts.length} products selected
+                </div>
+                {promotion.applicableProducts.length > 0 && (
+                  <div className='grid grid-cols-1 md:grid-cols-2 gap-2'>
+                    {promotion.applicableProducts.map((product: any) => (
+                      <div 
+                        key={typeof product === 'string' ? product : product._id}
+                        className='flex items-center gap-2 p-2 border rounded-md bg-muted/30'
+                      >
+                        <Package className='h-4 w-4 text-muted-foreground' />
+                        <div className='flex-1 min-w-0'>
+                          <div className='text-sm font-medium truncate'>
+                            {typeof product === 'string' ? product : product.name}
+                          </div>
+                          {typeof product === 'object' && product.price && (
+                            <div className='text-xs text-muted-foreground'>
+                              ${product.price}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
             {promotion.appliesTo === 'categories' && promotion.applicableCategories && (
-              <div className='text-sm text-muted-foreground'>
-                {promotion.applicableCategories.length} categories selected
+              <div className='space-y-3'>
+                <div className='text-sm text-muted-foreground'>
+                  {promotion.applicableCategories.length} categories selected
+                </div>
+                {promotion.applicableCategories.length > 0 && (
+                  <div className='grid grid-cols-1 md:grid-cols-2 gap-2'>
+                    {promotion.applicableCategories.map((category: any) => (
+                      <div 
+                        key={typeof category === 'string' ? category : category._id}
+                        className='flex items-center gap-2 p-2 border rounded-md bg-muted/30'
+                      >
+                        <Layers className='h-4 w-4 text-muted-foreground' />
+                        <div className='flex-1 min-w-0'>
+                          <div className='text-sm font-medium truncate'>
+                            {typeof category === 'string' ? category : category.name}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </CardContent>

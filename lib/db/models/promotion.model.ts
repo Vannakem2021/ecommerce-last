@@ -8,7 +8,7 @@ export interface IPromotion extends Document {
   type: 'percentage' | 'fixed' | 'free_shipping'
   value: number
   minOrderValue: number
-  maxDiscount?: number
+  maxDiscountAmount: number
   startDate: Date
   endDate: Date
   usageLimit: number
@@ -18,6 +18,7 @@ export interface IPromotion extends Document {
   appliesTo: 'all' | 'products' | 'categories'
   applicableProducts: string[]
   applicableCategories: string[]
+  createdBy: string
   createdAt: Date
   updatedAt: Date
 }
@@ -89,6 +90,12 @@ const promotionSchema = new Schema<any>(
       default: 0,
       min: 0,
     },
+    maxDiscountAmount: {
+      type: Number,
+      required: true,
+      default: 0,
+      min: 0,
+    },
     usageLimit: {
       type: Number,
       required: true,
@@ -128,7 +135,7 @@ const promotionSchema = new Schema<any>(
     createdBy: {
       type: Schema.Types.ObjectId,
       ref: 'User',
-      required: true,
+      required: false, // Made optional for backwards compatibility with existing promotions
     },
   },
   {

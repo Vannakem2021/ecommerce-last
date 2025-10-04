@@ -93,7 +93,7 @@ export async function createPromotion(data: IPromotionInput) {
 
     const promotion = {
       ...validatedData,
-      createdBy: session.user.id
+      createdBy: new mongoose.Types.ObjectId(session.user.id)
     }
     
     // 5) Robust duplicate code check (case-insensitive)
@@ -280,7 +280,7 @@ export async function getAllPromotions({
     }
 
     const promotions = await Promotion.find(filter)
-      .populate('createdBy', 'name')
+      .populate('createdBy', 'name email')
       .populate('applicableProducts', 'name slug')
       .populate('applicableCategories', 'name')
       .sort(sortOption)
@@ -290,8 +290,17 @@ export async function getAllPromotions({
     const totalPromotions = await Promotion.countDocuments(filter)
     const totalPages = Math.ceil(totalPromotions / limit)
 
+    // Handle cases where users might be deleted
+    const processedPromotions = promotions.map(promo => {
+      const obj = promo.toObject()
+      if (obj.createdBy && typeof obj.createdBy === 'object' && !obj.createdBy.name) {
+        obj.createdBy = obj.createdBy._id || obj.createdBy
+      }
+      return obj
+    })
+
     return {
-      promotions: JSON.parse(JSON.stringify(promotions)),
+      promotions: JSON.parse(JSON.stringify(processedPromotions)),
       totalPromotions,
       totalPages,
       page,
@@ -309,7 +318,7 @@ export async function getPromotionById(id: string) {
     await connectToDatabase()
     
     const promotion = await Promotion.findById(id)
-      .populate('createdBy', 'name')
+      .populate('createdBy', 'name email')
       .populate('applicableProducts', 'name slug price listPrice')
       .populate('applicableCategories', 'name')
 
@@ -317,7 +326,14 @@ export async function getPromotionById(id: string) {
       throw new Error('Promotion not found')
     }
 
-    return JSON.parse(JSON.stringify(promotion))
+    // Check if createdBy populate failed (user was deleted)
+    const result = promotion.toObject()
+    if (result.createdBy && typeof result.createdBy === 'object' && !result.createdBy.name) {
+      // User was deleted or doesn't exist
+      result.createdBy = result.createdBy._id || result.createdBy
+    }
+
+    return JSON.parse(JSON.stringify(result))
   } catch (error) {
     throw new Error(formatError(error))
   }

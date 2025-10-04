@@ -157,10 +157,10 @@ export type IPromotionDetails = IPromotionInput & {
   usedCount: number
   createdAt: Date
   updatedAt: Date
-  createdBy: {
+  createdBy?: {
     _id: string
     name: string
-  }
+  } | string | null
 }
 
 // Promotion validation result

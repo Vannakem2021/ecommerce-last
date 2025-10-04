@@ -1,10 +1,10 @@
 'use client'
 
-import { useTransition, useEffect } from 'react'
+import { useTransition, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { CalendarIcon, Tag, Percent, Clock, Users, Target } from 'lucide-react'
+import { CalendarIcon, Tag, Percent, Clock, Users, Target, Sparkles, DollarSign, CheckCircle, XCircle, ChevronDown } from 'lucide-react'
 import { format } from 'date-fns'
 
 import { Button } from '@/components/ui/button'
@@ -34,6 +34,11 @@ import {
 } from '@/components/ui/popover'
 import { Calendar } from '@/components/ui/calendar'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible'
 import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
 import { 
@@ -57,6 +62,7 @@ const promotionDefaultValues: IPromotionInput = {
   endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
   active: true,
   minOrderValue: 0,
+  maxDiscountAmount: 0,
   usageLimit: 0,
   userUsageLimit: 0,
   appliesTo: 'all',
@@ -101,6 +107,77 @@ export default function PromotionForm({
   const watchedType = form.watch('type')
   const watchedAppliesTo = form.watch('appliesTo')
   const watchedValue = form.watch('value')
+  const watchedMinOrderValue = form.watch('minOrderValue')
+  const watchedMaxDiscountAmount = form.watch('maxDiscountAmount')
+  const watchedCode = form.watch('code')
+
+  // Code availability check
+  const [codeAvailable, setCodeAvailable] = useState<boolean | null>(null)
+  const [checkingCode, setCheckingCode] = useState(false)
+
+  // Generate random code
+  const generateCode = () => {
+    const patterns = [
+      () => `SAVE${Math.floor(Math.random() * 100)}`,
+      () => `${['SUMMER', 'WINTER', 'SPRING', 'FALL'][Math.floor(Math.random() * 4)]}${new Date().getFullYear() % 100}`,
+      () => `NEW${Math.random().toString(36).substr(2, 4).toUpperCase()}`,
+      () => `DEAL${Math.random().toString(36).substr(2, 4).toUpperCase()}`,
+      () => `OFF${Math.floor(Math.random() * 50) + 10}`,
+    ]
+    const pattern = patterns[Math.floor(Math.random() * patterns.length)]
+    const code = pattern()
+    form.setValue('code', code, { shouldValidate: true })
+  }
+
+  // Check code availability (debounced)
+  useEffect(() => {
+    if (!watchedCode || watchedCode.length < 3) {
+      setCodeAvailable(null)
+      return
+    }
+
+    const timer = setTimeout(async () => {
+      setCheckingCode(true)
+      try {
+        // TODO: Add actual API call to check code availability
+        // For now, just simulate check
+        await new Promise(resolve => setTimeout(resolve, 300))
+        setCodeAvailable(true)
+      } catch {
+        setCodeAvailable(false)
+      } finally {
+        setCheckingCode(false)
+      }
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [watchedCode])
+
+  // Calculate discount preview
+  const calculatePreview = () => {
+    const sampleAmount = 100 // Sample order amount
+    let discount = 0
+
+    if (watchedType === 'percentage') {
+      discount = (sampleAmount * watchedValue) / 100
+    } else if (watchedType === 'fixed') {
+      discount = watchedValue
+    } else if (watchedType === 'free_shipping') {
+      return { original: sampleAmount, discount: 0, final: sampleAmount, freeShipping: true }
+    }
+
+    // Apply max discount cap if set
+    if (watchedMaxDiscountAmount > 0 && discount > watchedMaxDiscountAmount) {
+      discount = watchedMaxDiscountAmount
+    }
+
+    return {
+      original: sampleAmount,
+      discount,
+      final: Math.max(0, sampleAmount - discount),
+      freeShipping: false
+    }
+  }
 
   // Keep value aligned with type-specific rules via effects to avoid render-set loops
   useEffect(() => {
@@ -177,29 +254,6 @@ export default function PromotionForm({
 
   return (
     <div className='space-y-6'>
-      {/* Professional Description */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <div className="p-1.5 rounded-md bg-purple-50 dark:bg-purple-950">
-              <Tag className="h-4 w-4 text-purple-600" />
-            </div>
-            Promotion Information
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className='p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg'>
-            <h3 className='text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2'>
-              Checkout-Level Promotions
-            </h3>
-            <p className='text-sm text-blue-800 dark:text-blue-200'>
-              Promotions are discount codes that customers enter at checkout to receive discounts on their entire order or specific products/categories.
-              These are different from product-level sales, which are time-limited price reductions managed in the product settings.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
           {/* Basic Information */}
@@ -220,16 +274,45 @@ export default function PromotionForm({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Promotion Code</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder='SAVE20'
-                          {...field}
-                          className='font-mono uppercase'
-                          onChange={(e) => field.onChange(e.target.value.toUpperCase())}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Unique code customers will use (automatically converted to uppercase)
+                      <div className="flex gap-2">
+                        <FormControl>
+                          <Input
+                            placeholder='SAVE20'
+                            {...field}
+                            className='font-mono uppercase'
+                            onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                          />
+                        </FormControl>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="default"
+                          onClick={generateCode}
+                          className="shrink-0"
+                        >
+                          <Sparkles className="h-4 w-4 mr-2" />
+                          Generate
+                        </Button>
+                      </div>
+                      <FormDescription className="flex items-center gap-2">
+                        {checkingCode && (
+                          <span className="text-xs text-muted-foreground">Checking...</span>
+                        )}
+                        {!checkingCode && codeAvailable === true && watchedCode && watchedCode.length >= 3 && (
+                          <span className="text-xs text-green-600 flex items-center gap-1">
+                            <CheckCircle className="h-3 w-3" />
+                            Code available
+                          </span>
+                        )}
+                        {!checkingCode && codeAvailable === false && (
+                          <span className="text-xs text-red-600 flex items-center gap-1">
+                            <XCircle className="h-3 w-3" />
+                            Code already exists
+                          </span>
+                        )}
+                        <span className={codeAvailable !== null ? "text-muted-foreground" : ""}>
+                          {codeAvailable === null ? "Unique code customers will use (automatically converted to uppercase)" : ""}
+                        </span>
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -336,22 +419,41 @@ export default function PromotionForm({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
-                          {watchedType === 'percentage' ? 'Percentage (1-100)' : 'Amount ($)'}
+                          {watchedType === 'percentage' ? 'Percentage (1-100)' : 'Amount'}
                         </FormLabel>
                         <FormControl>
-                          <Input
-                            type='number'
-                            min={watchedType === 'percentage' ? 1 : 0.01}
-                            max={watchedType === 'percentage' ? 100 : undefined}
-                            step={watchedType === 'percentage' ? 1 : 0.01}
-                            placeholder={watchedType === 'percentage' ? '20' : '10.00'}
-                            {...field}
-                            onChange={(e) => {
-                              const num = Number(e.target.value)
-                              if (Number.isNaN(num)) return field.onChange(0)
-                              field.onChange(num)
-                            }}
-                          />
+                          {watchedType === 'fixed' ? (
+                            <div className="relative">
+                              <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                              <Input
+                                type='number'
+                                min={0.01}
+                                step={0.01}
+                                placeholder='10.00'
+                                className="pl-9"
+                                value={field.value || ''}
+                                onChange={(e) => {
+                                  const num = Number(e.target.value)
+                                  if (Number.isNaN(num)) return field.onChange(0)
+                                  field.onChange(num)
+                                }}
+                              />
+                            </div>
+                          ) : (
+                            <Input
+                              type='number'
+                              min={1}
+                              max={100}
+                              step={1}
+                              placeholder='20'
+                              value={field.value || ''}
+                              onChange={(e) => {
+                                const num = Number(e.target.value)
+                                if (Number.isNaN(num)) return field.onChange(0)
+                                field.onChange(num)
+                              }}
+                            />
+                          )}
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -359,6 +461,79 @@ export default function PromotionForm({
                   />
                 )}
               </div>
+
+              {/* Max Discount Cap - Only for percentage and free shipping */}
+              {(watchedType === 'percentage' || watchedType === 'free_shipping') && (
+                <FormField
+                  control={form.control}
+                  name='maxDiscountAmount'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Maximum Discount Cap (Optional)</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            type='number'
+                            min={0}
+                            step={0.01}
+                            placeholder='0.00'
+                            className="pl-9"
+                            value={field.value || ''}
+                            onChange={(e) => field.onChange(Number(e.target.value) || 0)}
+                          />
+                        </div>
+                      </FormControl>
+                      <FormDescription>
+                        Cap the maximum discount at this amount (0 = no cap). Prevents excessive discounts on expensive orders.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              {/* Live Preview */}
+              {watchedValue > 0 && watchedType !== 'free_shipping' && (
+                <Card className="bg-muted/30 border-2">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-medium flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-primary" />
+                      Discount Preview (on $100 order)
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Original:</span>
+                      <span className="font-medium">${calculatePreview().original.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-green-600 font-medium">Discount:</span>
+                      <span className="text-green-600 font-bold">-${calculatePreview().discount.toFixed(2)}</span>
+                    </div>
+                    {watchedMaxDiscountAmount > 0 && calculatePreview().discount >= watchedMaxDiscountAmount && (
+                      <div className="text-xs text-amber-600 flex items-center gap-1 bg-amber-50 dark:bg-amber-950 p-2 rounded">
+                        ⚠️ Capped at ${watchedMaxDiscountAmount.toFixed(2)}
+                      </div>
+                    )}
+                    <div className="flex justify-between text-base pt-2 border-t">
+                      <span className="font-semibold">Final Price:</span>
+                      <span className="font-bold text-primary">${calculatePreview().final.toFixed(2)}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {watchedType === 'free_shipping' && (
+                <Card className="bg-muted/30 border-2">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-center gap-2 text-sm">
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                      <span className="font-medium">Free shipping will be applied at checkout</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </CardContent>
           </Card>
 
@@ -468,81 +643,91 @@ export default function PromotionForm({
                 <div className="p-1.5 rounded-md bg-rose-50 dark:bg-rose-950">
                   <Users className="h-4 w-4 text-rose-600" />
                 </div>
-                Usage Limits
+                Advanced Usage Limits (Optional)
               </CardTitle>
             </CardHeader>
             <CardContent className='space-y-4'>
-              <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-                <FormField
-                  control={form.control}
-                  name='minOrderValue'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Minimum Order Value ($)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type='number'
-                          min={0}
-                          step={0.01}
-                          placeholder='0.00'
-                          {...field}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        0 = No minimum required
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <Collapsible defaultOpen={false}>
+                <CollapsibleTrigger asChild>
+                  <Button variant="outline" className="w-full justify-between" type="button">
+                    <span className="text-sm font-medium">Configure Limits</span>
+                    <ChevronDown className="h-4 w-4 transition-transform duration-200" />
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pt-4">
+                  <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+                    <FormField
+                      control={form.control}
+                      name='minOrderValue'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Minimum Order Value ($)</FormLabel>
+                          <FormControl>
+                            <Input
+                              type='number'
+                              min={0}
+                              step={0.01}
+                              placeholder='0.00'
+                              {...field}
+                              onChange={(e) => field.onChange(Number(e.target.value))}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            0 = No minimum required
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                <FormField
-                  control={form.control}
-                  name='usageLimit'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Total Usage Limit</FormLabel>
-                      <FormControl>
-                        <Input
-                          type='number'
-                          min={0}
-                          placeholder='0'
-                          {...field}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        0 = Unlimited usage
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    <FormField
+                      control={form.control}
+                      name='usageLimit'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Total Usage Limit</FormLabel>
+                          <FormControl>
+                            <Input
+                              type='number'
+                              min={0}
+                              placeholder='0'
+                              {...field}
+                              onChange={(e) => field.onChange(Number(e.target.value))}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            0 = Unlimited usage
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                <FormField
-                  control={form.control}
-                  name='userUsageLimit'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Per-User Limit</FormLabel>
-                      <FormControl>
-                        <Input
-                          type='number'
-                          min={0}
-                          placeholder='0'
-                          {...field}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        0 = No per-user limit
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+                    <FormField
+                      control={form.control}
+                      name='userUsageLimit'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Per-User Limit</FormLabel>
+                          <FormControl>
+                            <Input
+                              type='number'
+                              min={0}
+                              placeholder='0'
+                              {...field}
+                              onChange={(e) => field.onChange(Number(e.target.value))}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            0 = No per-user limit
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
             </CardContent>
           </Card>
 

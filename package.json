@@ -5,6 +5,10 @@
   "scripts": {
     "email": "email dev",
     "seed": "npx tsx ./lib/db/seed.ts",
+    "check:promotions": "npx tsx ./scripts/check-promotions-status.ts",
+    "diagnose:promotions": "npx tsx ./scripts/diagnose-promotion-creator.ts",
+    "fix:promotions": "npx tsx ./scripts/fix-invalid-creators.ts",
+    "migrate:promotions": "npx tsx ./scripts/migrate-promotion-created-by.ts",
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
