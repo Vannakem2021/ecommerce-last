@@ -18,6 +18,7 @@ import { createSaleStockMovement } from './inventory.actions'
 import { recordPromotionUsage } from './promotion.actions'
 import StockMovement from '@/lib/db/models/stock-movement.model'
 import { requirePermission } from '../rbac'
+import { createNotificationForRoles } from './notification.actions'
 
 // CREATE
 export const createOrder = async (clientSideCart: Cart) => {
@@ -140,6 +141,22 @@ export const createOrderFromCart = async (
     }
 
     await session.commitTransaction()
+    
+    // Notify admins of new order
+    try {
+      const user = await User.findById(userId).select('name email')
+      await createNotificationForRoles({
+        roles: ['admin', 'manager'],
+        type: 'order',
+        title: 'New Order Received',
+        message: `Order from ${user?.name || 'Customer'} - $${finalTotal.toFixed(2)}`,
+        data: { orderId: createdOrder._id.toString(), totalPrice: finalTotal },
+        link: `/admin/orders/${createdOrder._id}`
+      })
+    } catch (error) {
+      console.error('Failed to create order notification:', error)
+    }
+    
     return createdOrder
   } catch {
     // Rollback and fallback for non-replica or other tx issues
@@ -163,6 +180,21 @@ export const createOrderFromCart = async (
         console.error('Failed to record promotion usage (non-tx):', error)
         // Preserve prior behavior: do not fail order creation if promotion recording fails
       }
+    }
+
+    // Notify admins of new order (fallback path)
+    try {
+      const user = await User.findById(userId).select('name email')
+      await createNotificationForRoles({
+        roles: ['admin', 'manager'],
+        type: 'order',
+        title: 'New Order Received',
+        message: `Order from ${user?.name || 'Customer'} - $${finalTotal.toFixed(2)}`,
+        data: { orderId: createdOrder._id.toString(), totalPrice: finalTotal },
+        link: `/admin/orders/${createdOrder._id}`
+      })
+    } catch (error) {
+      console.error('Failed to create order notification:', error)
     }
 
     return createdOrder

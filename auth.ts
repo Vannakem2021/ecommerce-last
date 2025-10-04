@@ -10,6 +10,7 @@ import NextAuth, { type DefaultSession } from "next-auth";
 import authConfig from "./auth.config";
 import { getPostLoginRedirectUrl } from "./lib/auth-redirect";
 import { i18n } from "./i18n-config";
+import { createNotificationForRoles } from "./lib/actions/notification.actions";
 
 declare module "next-auth" {
   interface Session {
@@ -150,6 +151,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           } else {
             // New OAuth user - set default role
             (user as { role: string }).role = "user";
+            
+            // Send notification to admins about new Google sign-up
+            try {
+              await createNotificationForRoles({
+                roles: ['admin'],
+                type: 'user',
+                title: 'New User Registration (Google)',
+                message: `${user.name || user.email} signed up with Google`,
+                data: { email: user.email, provider: 'google' },
+              });
+            } catch (error) {
+              console.error('Failed to create Google sign-up notification:', error);
+            }
           }
         } else {
           // For credentials provider, update last login

@@ -29,6 +29,7 @@ import {
 import { normalizeRole, canUserRoleManageTargetRole } from "../rbac-utils";
 import { sendPasswordResetEmail } from "../../emails";
 import { generateEmailOTP } from "./email-verification.actions";
+import { createNotificationForRoles } from "./notification.actions";
 
 // CREATE
 export async function registerUser(userSignUp: IUserSignUp) {
@@ -57,6 +58,20 @@ export async function registerUser(userSignUp: IUserSignUp) {
     if (!otpResult.success) {
       console.error('Failed to send verification OTP:', otpResult.error);
       // Don't fail registration if email sending fails
+    }
+
+    // Notify admins of new user registration
+    try {
+      await createNotificationForRoles({
+        roles: ['admin'],
+        type: 'user',
+        title: 'New User Registration',
+        message: `${newUser.name} (${newUser.email}) created an account`,
+        data: { userId: newUser._id.toString(), email: newUser.email },
+        link: `/admin/users/${newUser._id}`
+      })
+    } catch (error) {
+      console.error('Failed to create user registration notification:', error)
     }
 
     return {
