@@ -1,19 +1,17 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Plus, ChevronLeft, ChevronRight, Users, Shield } from 'lucide-react'
+import { Plus, Download, ChevronLeft, ChevronRight, Users, Shield } from 'lucide-react'
 import UserOverviewCards from '@/components/shared/user/user-overview-cards'
 import UserFilters from '@/components/shared/user/user-filters'
 import CustomerList from '@/components/shared/user/customer-list'
 import SystemUserList from '@/components/shared/user/system-user-list'
-import { ExportUsersButton } from '@/components/shared/user/export-users-button'
-import { getAllUsersWithPermissions, getCustomerStatistics } from '@/lib/actions/user.actions'
+import { getAllUsersWithPermissions } from '@/lib/actions/user.actions'
 import { normalizeRole } from '@/lib/rbac-utils'
 
-// Simulated data - in real implementation, this would come from server
 interface UsersData {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any[]
@@ -28,7 +26,6 @@ export default function AdminUsersPage() {
   const [page, setPage] = useState(1)
   const [usersData, setUsersData] = useState<UsersData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [topCustomer, setTopCustomer] = useState<{ name: string; email: string; orderCount: number; totalSpent: number } | null>(null)
 
   // Filter states
   const [searchQuery, setSearchQuery] = useState('')
@@ -40,15 +37,8 @@ export default function AdminUsersPage() {
     const fetchUsers = async () => {
       setLoading(true)
       try {
-        // Fetch all users and top customer statistics in parallel
-        const [usersResult, topCustomerResult] = await Promise.all([
-          getAllUsersWithPermissions({ page: 1, limit: 1000 }),
-          getCustomerStatistics()
-        ])
-        setUsersData(usersResult)
-        if (topCustomerResult.success && topCustomerResult.data) {
-          setTopCustomer(topCustomerResult.data)
-        }
+        const data = await getAllUsersWithPermissions({ page: 1, limit: 1000 })
+        setUsersData(data)
       } catch (error) {
         console.error('Failed to fetch users:', error)
       } finally {
@@ -86,64 +76,72 @@ export default function AdminUsersPage() {
   const systemUsers = usersData.data.filter(user => normalizeRole(user.role) !== 'user')
 
   // Apply filters to customers
-  let filteredCustomers = [...customers]
+  const filteredCustomers = useMemo(() => {
+    let result = [...customers]
 
-  // Search filter
-  if (searchQuery) {
-    const query = searchQuery.toLowerCase()
-    filteredCustomers = filteredCustomers.filter(customer =>
-      customer.name.toLowerCase().includes(query) ||
-      customer.email.toLowerCase().includes(query)
-    )
-  }
-
-  // Email verification filter
-  if (emailFilter === 'verified') {
-    filteredCustomers = filteredCustomers.filter(customer => customer.emailVerified === true)
-  } else if (emailFilter === 'unverified') {
-    filteredCustomers = filteredCustomers.filter(customer => customer.emailVerified === false || !customer.emailVerified)
-  }
-
-  // Sort customers
-  filteredCustomers.sort((a, b) => {
-    if (sortBy === 'latest') {
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    } else if (sortBy === 'oldest') {
-      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-    } else if (sortBy === 'name') {
-      return a.name.localeCompare(b.name)
+    // Search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase()
+      result = result.filter(customer =>
+        customer.name.toLowerCase().includes(query) ||
+        customer.email.toLowerCase().includes(query)
+      )
     }
-    return 0
-  })
+
+    // Email verification filter
+    if (emailFilter === 'verified') {
+      result = result.filter(customer => customer.emailVerified === true)
+    } else if (emailFilter === 'unverified') {
+      result = result.filter(customer => customer.emailVerified === false || !customer.emailVerified)
+    }
+
+    // Sort
+    result.sort((a, b) => {
+      if (sortBy === 'latest') {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      } else if (sortBy === 'oldest') {
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      } else if (sortBy === 'name') {
+        return a.name.localeCompare(b.name)
+      }
+      return 0
+    })
+
+    return result
+  }, [customers, searchQuery, emailFilter, sortBy])
 
   // Apply filters to system users
-  let filteredSystemUsers = [...systemUsers]
+  const filteredSystemUsers = useMemo(() => {
+    let result = [...systemUsers]
 
-  // Search filter
-  if (searchQuery) {
-    const query = searchQuery.toLowerCase()
-    filteredSystemUsers = filteredSystemUsers.filter(user =>
-      user.name.toLowerCase().includes(query) ||
-      user.email.toLowerCase().includes(query)
-    )
-  }
-
-  // Role filter
-  if (roleFilter !== 'all') {
-    filteredSystemUsers = filteredSystemUsers.filter(user => normalizeRole(user.role) === roleFilter)
-  }
-
-  // Sort system users
-  filteredSystemUsers.sort((a, b) => {
-    if (sortBy === 'latest') {
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    } else if (sortBy === 'oldest') {
-      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-    } else if (sortBy === 'name') {
-      return a.name.localeCompare(b.name)
+    // Search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase()
+      result = result.filter(user =>
+        user.name.toLowerCase().includes(query) ||
+        user.email.toLowerCase().includes(query)
+      )
     }
-    return 0
-  })
+
+    // Role filter
+    if (roleFilter !== 'all') {
+      result = result.filter(user => normalizeRole(user.role) === roleFilter)
+    }
+
+    // Sort
+    result.sort((a, b) => {
+      if (sortBy === 'latest') {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      } else if (sortBy === 'oldest') {
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      } else if (sortBy === 'name') {
+        return a.name.localeCompare(b.name)
+      }
+      return 0
+    })
+
+    return result
+  }, [systemUsers, searchQuery, roleFilter, sortBy])
 
   // Calculate metrics (REAL DATA ONLY - NO FAKE DATA)
   const customerMetrics = {
@@ -153,9 +151,7 @@ export default function AdminUsersPage() {
       const monthAgo = new Date()
       monthAgo.setMonth(monthAgo.getMonth() - 1)
       return new Date(c.createdAt) > monthAgo
-    }).length,
-    topCustomer: topCustomer?.name,
-    topCustomerOrders: topCustomer?.orderCount
+    }).length
   }
 
   const systemMetrics = {
@@ -191,10 +187,10 @@ export default function AdminUsersPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <ExportUsersButton 
-            userType={activeTab === 'customers' ? 'customer' : 'system'}
-            totalUsers={activeTab === 'customers' ? filteredCustomers.length : filteredSystemUsers.length}
-          />
+          <Button variant="outline" className="flex items-center gap-2">
+            <Download className="h-4 w-4" />
+            Export
+          </Button>
           {usersData.permissions.canCreate && (
             <Button asChild className="flex items-center gap-2">
               <Link href="/admin/users/create">
@@ -205,7 +201,6 @@ export default function AdminUsersPage() {
           )}
         </div>
       </div>
-
 
       {/* Tabbed Interface */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -221,7 +216,7 @@ export default function AdminUsersPage() {
         </TabsList>
 
         {/* Customers Tab */}
-        <TabsContent value="customers" className="space-y-6">
+        <TabsContent value="customers" className="space-y-4">
           {/* Customer Overview Cards */}
           <UserOverviewCards type="customers" customerMetrics={customerMetrics} />
 
@@ -285,7 +280,7 @@ export default function AdminUsersPage() {
         </TabsContent>
 
         {/* System Users Tab */}
-        <TabsContent value="system" className="space-y-6">
+        <TabsContent value="system" className="space-y-4">
           {/* System User Overview Cards */}
           <UserOverviewCards type="system" systemMetrics={systemMetrics} />
 

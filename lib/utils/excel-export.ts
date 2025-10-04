@@ -735,3 +735,186 @@ export async function generateInventoryExcel(products: any[]): Promise<Buffer> {
   const buffer = await workbook.xlsx.writeBuffer()
   return Buffer.from(buffer)
 }
+
+/**
+ * Generate Excel file from users data
+ * @param users - Array of users to export
+ * @param userType - Type of users (customer or system)
+ * @returns Excel file buffer
+ */
+export async function generateUsersExcel(
+  users: any[],
+  userType: 'customer' | 'system'
+): Promise<Buffer> {
+  const workbook = new ExcelJS.Workbook()
+  
+  // Set workbook properties
+  workbook.creator = 'BCS Admin'
+  workbook.created = new Date()
+  workbook.modified = new Date()
+
+  // Create main worksheet
+  const worksheet = workbook.addWorksheet(
+    userType === 'customer' ? 'Customers' : 'System Users'
+  )
+
+  // Define columns based on user type
+  if (userType === 'customer') {
+    worksheet.columns = [
+      { header: 'Name', key: 'name', width: 25 },
+      { header: 'Email', key: 'email', width: 30 },
+      { header: 'Phone', key: 'phone', width: 20 },
+      { header: 'Email Verified', key: 'emailVerified', width: 15 },
+      { header: 'Total Orders', key: 'totalOrders', width: 15 },
+      { header: 'Total Spent ($)', key: 'totalSpent', width: 18 },
+      { header: 'Last Order', key: 'lastOrderDate', width: 20 },
+      { header: 'Status', key: 'isActive', width: 12 },
+      { header: 'Joined Date', key: 'createdAt', width: 20 },
+    ]
+  } else {
+    worksheet.columns = [
+      { header: 'Name', key: 'name', width: 25 },
+      { header: 'Email', key: 'email', width: 30 },
+      { header: 'Phone', key: 'phone', width: 20 },
+      { header: 'Role', key: 'role', width: 15 },
+      { header: 'Status', key: 'isActive', width: 12 },
+      { header: 'Last Login', key: 'lastLoginAt', width: 20 },
+      { header: 'Created Date', key: 'createdAt', width: 20 },
+    ]
+  }
+
+  // Style header row
+  worksheet.getRow(1).font = { bold: true, size: 12 }
+  worksheet.getRow(1).fill = {
+    type: 'pattern',
+    pattern: 'solid',
+    fgColor: { argb: 'FF4F46E5' },
+  }
+  worksheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } }
+  worksheet.getRow(1).alignment = { vertical: 'middle', horizontal: 'center' }
+  worksheet.getRow(1).height = 30
+
+  // Add data rows
+  users.forEach((user) => {
+    const row: any = {
+      name: user.name || 'N/A',
+      email: user.email || 'N/A',
+      phone: user.phone || 'N/A',
+      isActive: user.isActive ? 'Active' : 'Inactive',
+      createdAt: user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A',
+    }
+
+    if (userType === 'customer') {
+      row.emailVerified = user.emailVerified ? 'Yes' : 'No'
+      row.totalOrders = user.totalOrders || 0
+      row.totalSpent = user.totalSpent ? (user.totalSpent / 100).toFixed(2) : '0.00'
+      row.lastOrderDate = user.lastOrderDate 
+        ? new Date(user.lastOrderDate).toLocaleDateString() 
+        : 'Never'
+    } else {
+      row.role = user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'N/A'
+      row.lastLoginAt = user.lastLoginAt 
+        ? new Date(user.lastLoginAt).toLocaleDateString() 
+        : 'Never'
+    }
+
+    worksheet.addRow(row)
+  })
+
+  // Apply borders to all cells
+  worksheet.eachRow((row, rowNumber) => {
+    row.eachCell((cell) => {
+      cell.border = {
+        top: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+        left: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+        bottom: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+        right: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+      }
+      
+      // Align data rows
+      if (rowNumber > 1) {
+        cell.alignment = { vertical: 'middle', horizontal: 'left' }
+      }
+    })
+  })
+
+  // Add summary sheet
+  const summarySheet = workbook.addWorksheet('Summary')
+  
+  summarySheet.columns = [
+    { header: 'Metric', key: 'metric', width: 30 },
+    { header: 'Value', key: 'value', width: 20 },
+  ]
+
+  // Style summary header
+  summarySheet.getRow(1).font = { bold: true, size: 12 }
+  summarySheet.getRow(1).fill = {
+    type: 'pattern',
+    pattern: 'solid',
+    fgColor: { argb: 'FF4F46E5' },
+  }
+  summarySheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } }
+  summarySheet.getRow(1).alignment = { vertical: 'middle', horizontal: 'center' }
+  summarySheet.getRow(1).height = 30
+
+  // Calculate summary statistics
+  const totalUsers = users.length
+  const activeUsers = users.filter(u => u.isActive).length
+  const inactiveUsers = totalUsers - activeUsers
+
+  if (userType === 'customer') {
+    const verifiedUsers = users.filter(u => u.emailVerified).length
+    const totalOrders = users.reduce((sum, u) => sum + (u.totalOrders || 0), 0)
+    const totalRevenue = users.reduce((sum, u) => sum + (u.totalSpent || 0), 0)
+    const avgOrdersPerCustomer = totalUsers > 0 ? (totalOrders / totalUsers).toFixed(2) : '0.00'
+    const avgRevenuePerCustomer = totalUsers > 0 ? ((totalRevenue / 100) / totalUsers).toFixed(2) : '0.00'
+
+    summarySheet.addRows([
+      { metric: 'Total Customers', value: totalUsers },
+      { metric: 'Active Customers', value: activeUsers },
+      { metric: 'Inactive Customers', value: inactiveUsers },
+      { metric: 'Email Verified', value: verifiedUsers },
+      { metric: 'Total Orders Placed', value: totalOrders },
+      { metric: 'Total Revenue ($)', value: (totalRevenue / 100).toFixed(2) },
+      { metric: 'Avg Orders per Customer', value: avgOrdersPerCustomer },
+      { metric: 'Avg Revenue per Customer ($)', value: avgRevenuePerCustomer },
+      { metric: 'Export Date', value: new Date().toLocaleString() },
+    ])
+  } else {
+    const roleBreakdown = users.reduce((acc: any, u) => {
+      const role = u.role || 'unknown'
+      acc[role] = (acc[role] || 0) + 1
+      return acc
+    }, {})
+
+    summarySheet.addRows([
+      { metric: 'Total System Users', value: totalUsers },
+      { metric: 'Active Users', value: activeUsers },
+      { metric: 'Inactive Users', value: inactiveUsers },
+      { metric: 'Admins', value: roleBreakdown.admin || 0 },
+      { metric: 'Managers', value: roleBreakdown.manager || 0 },
+      { metric: 'Sellers', value: roleBreakdown.seller || 0 },
+      { metric: 'Export Date', value: new Date().toLocaleString() },
+    ])
+  }
+
+  // Apply borders to summary sheet
+  summarySheet.eachRow((row, rowNumber) => {
+    row.eachCell((cell) => {
+      cell.border = {
+        top: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+        left: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+        bottom: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+        right: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+      }
+      
+      if (rowNumber > 1) {
+        cell.alignment = { vertical: 'middle', horizontal: 'left' }
+      }
+    })
+  })
+
+  // Generate buffer
+  const buffer = await workbook.xlsx.writeBuffer()
+  return Buffer.from(buffer)
+}

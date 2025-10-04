@@ -10,15 +10,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { deleteUser } from '@/lib/actions/user.actions'
 import { IUser } from '@/lib/db/models/user.model'
 import { formatDateTime } from '@/lib/utils'
-import { Edit, UserIcon, ShoppingCartIcon, MailIcon, CalendarIcon } from 'lucide-react'
+import { Eye, UserIcon, ShoppingCartIcon, MailIcon, CalendarIcon } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import Link from 'next/link'
-import { useTransition } from 'react'
-import { useToast } from '@/hooks/use-toast'
-import DeleteDialog from '@/components/shared/delete-dialog'
 
 interface CustomerWithStats extends IUser {
   canEdit?: boolean
@@ -36,27 +32,6 @@ export default function CustomerList({
   page: number
   totalPages: number
 }) {
-  const { toast } = useToast()
-  const [, startTransition] = useTransition()
-
-  const handleDelete = async (id: string): Promise<{ success: boolean; message: string }> => {
-    return new Promise((resolve) => {
-      startTransition(async () => {
-        const res = await deleteUser(id)
-        if (res.success) {
-          toast({
-            description: res.message,
-          })
-        } else {
-          toast({
-            variant: 'destructive',
-            description: res.message,
-          })
-        }
-        resolve(res)
-      })
-    })
-  }
 
   return (
     <div className='overflow-x-auto'>
@@ -99,10 +74,10 @@ export default function CustomerList({
                   <div className='flex items-center gap-2'>
                     <MailIcon className='h-3.5 w-3.5 text-muted-foreground' />
                     <Badge
-                      variant={customer.isEmailVerified !== false ? 'default' : 'secondary'}
-                      className={customer.isEmailVerified !== false ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : ''}
+                      variant={customer.emailVerified ? 'default' : 'secondary'}
+                      className={customer.emailVerified ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : ''}
                     >
-                      {customer.isEmailVerified !== false ? 'Verified' : 'Unverified'}
+                      {customer.emailVerified ? 'Verified' : 'Unverified'}
                     </Badge>
                   </div>
                 </TableCell>
@@ -134,19 +109,16 @@ export default function CustomerList({
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Button asChild variant='ghost' size='sm' className='h-8 w-8 p-0 hover:bg-muted'>
-                              <Link href={`/admin/users/customers/${customer._id}/edit`}>
-                                <Edit className='h-3.5 w-3.5' />
+                              <Link href={`/admin/users/customers/${customer._id}/view`}>
+                                <Eye className='h-3.5 w-3.5' />
                               </Link>
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>Edit customer</p>
+                            <p>View customer details</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
-                    )}
-                    {customer.canDelete && (
-                      <DeleteDialog id={customer._id} action={handleDelete} />
                     )}
                   </div>
                 </TableCell>

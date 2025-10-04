@@ -1,5 +1,6 @@
 'use client'
 
+import React from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
@@ -29,7 +30,10 @@ import { useToast } from '@/hooks/use-toast'
 import { createUserByAdmin } from '@/lib/actions/user.actions'
 import { AdminUserCreateSchema } from '@/lib/validator'
 import { getAssignableRoles } from '@/lib/rbac-utils'
-import { UserIcon, ShieldIcon, MailIcon, KeyIcon, CrownIcon, UserCogIcon, UsersIcon } from 'lucide-react'
+import { UserIcon, ShieldIcon, MailIcon, KeyIcon, CrownIcon, UserCogIcon, UsersIcon, Eye, EyeOff, Sparkles, CheckCircle, XCircle } from 'lucide-react'
+import { PasswordStrength, getPasswordRequirements } from '@/components/ui/password-strength'
+import { RolePermissionsDetail } from '@/components/shared/user/role-permissions-detail'
+import { UserCreatedSuccessDialog } from '@/components/shared/user/user-created-success-dialog'
 
 interface UserCreateFormProps {
   currentUserRole: string
@@ -38,6 +42,16 @@ interface UserCreateFormProps {
 const UserCreateForm = ({ currentUserRole }: UserCreateFormProps) => {
   const router = useRouter()
   const { toast } = useToast()
+  const [showPassword, setShowPassword] = React.useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false)
+  const [successDialogOpen, setSuccessDialogOpen] = React.useState(false)
+  const [createdUser, setCreatedUser] = React.useState<{
+    name: string
+    email: string
+    password: string
+    id: string
+    welcomeEmailSent: boolean
+  } | null>(null)
 
   // Get roles that current user can assign (excluding 'user' role for admin creation)
   const allAssignableRoles = getAssignableRoles(currentUserRole)
@@ -50,15 +64,51 @@ const UserCreateForm = ({ currentUserRole }: UserCreateFormProps) => {
       email: '',
       role: assignableRoles[0] || 'seller', // Default to first available role or seller
       password: '',
+      confirmPassword: '',
       sendWelcomeEmail: true, // Default to true for system users
     },
   })
 
-  // Watch the selected role to show/hide relevant fields
+  // Watch the selected role and password to show/hide relevant fields
   const selectedRole = form.watch('role')
+  const password = form.watch('password')
+  const confirmPassword = form.watch('confirmPassword')
   const isAdminRole = selectedRole === 'admin'
   const isManagerRole = selectedRole === 'manager'
   const isSellerRole = selectedRole === 'seller'
+  
+  // Password requirements
+  const requirements = React.useMemo(() => getPasswordRequirements(password), [password])
+  
+  // Generate random password
+  const generatePassword = () => {
+    const length = 12
+    const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*'
+    let newPassword = ''
+    
+    // Ensure at least one of each type
+    newPassword += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.floor(Math.random() * 26)]
+    newPassword += 'abcdefghijklmnopqrstuvwxyz'[Math.floor(Math.random() * 26)]
+    newPassword += '0123456789'[Math.floor(Math.random() * 10)]
+    newPassword += '!@#$%^&*'[Math.floor(Math.random() * 8)]
+    
+    // Fill the rest
+    for (let i = newPassword.length; i < length; i++) {
+      newPassword += charset[Math.floor(Math.random() * charset.length)]
+    }
+    
+    // Shuffle
+    newPassword = newPassword.split('').sort(() => Math.random() - 0.5).join('')
+    
+    form.setValue('password', newPassword)
+    form.setValue('confirmPassword', newPassword)
+    setShowPassword(true)
+    setShowConfirmPassword(true)
+    
+    toast({
+      description: '✓ Secure password generated',
+    })
+  }
 
   const getRoleIcon = (role: string) => {
     switch (role) {
@@ -84,12 +134,15 @@ const UserCreateForm = ({ currentUserRole }: UserCreateFormProps) => {
         })
       }
 
-      toast({
-        description: res.message,
+      // Show success modal with credentials
+      setCreatedUser({
+        name: values.name,
+        email: values.email,
+        password: values.password,
+        id: res.data._id,
+        welcomeEmailSent: values.sendWelcomeEmail,
       })
-      
-      form.reset()
-      router.push('/admin/users')
+      setSuccessDialogOpen(true)
       
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
@@ -176,25 +229,132 @@ const UserCreateForm = ({ currentUserRole }: UserCreateFormProps) => {
               </CardTitle>
             </CardHeader>
             <CardContent className='space-y-6'>
-              <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-                <FormField
-                  control={form.control}
-                  name='password'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-medium">Password *</FormLabel>
-                      <FormControl>
-                        <Input
-                          type='password'
-                          placeholder=''
-                          className="h-10"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              {/* Password Fields */}
+              <div className='space-y-6'>
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                  <FormField
+                    control={form.control}
+                    name='password'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium">Password *</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Input
+                              type={showPassword ? 'text' : 'password'}
+                              placeholder='Enter secure password'
+                              className="h-10 pr-10"
+                              {...field}
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="absolute right-0 top-0 h-10 w-10 px-0"
+                              onClick={() => setShowPassword(!showPassword)}
+                            >
+                              {showPassword ? (
+                                <EyeOff className="h-4 w-4" />
+                              ) : (
+                                <Eye className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </div>
+                        </FormControl>
+                        {password && (
+                          <>
+                            <PasswordStrength password={password} />
+                            <div className="space-y-1 text-xs mt-2">
+                              <div className={`flex items-center gap-1 ${requirements.minLength ? 'text-green-600' : 'text-muted-foreground'}`}>
+                                {requirements.minLength ? <CheckCircle className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
+                                At least 8 characters
+                              </div>
+                              <div className={`flex items-center gap-1 ${requirements.hasUppercase ? 'text-green-600' : 'text-muted-foreground'}`}>
+                                {requirements.hasUppercase ? <CheckCircle className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
+                                One uppercase letter
+                              </div>
+                              <div className={`flex items-center gap-1 ${requirements.hasLowercase ? 'text-green-600' : 'text-muted-foreground'}`}>
+                                {requirements.hasLowercase ? <CheckCircle className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
+                                One lowercase letter
+                              </div>
+                              <div className={`flex items-center gap-1 ${requirements.hasNumber ? 'text-green-600' : 'text-muted-foreground'}`}>
+                                {requirements.hasNumber ? <CheckCircle className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
+                                One number
+                              </div>
+                            </div>
+                          </>
+                        )}
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name='confirmPassword'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium">Confirm Password *</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Input
+                              type={showConfirmPassword ? 'text' : 'password'}
+                              placeholder='Re-enter password'
+                              className="h-10 pr-10"
+                              {...field}
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="absolute right-0 top-0 h-10 w-10 px-0"
+                              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            >
+                              {showConfirmPassword ? (
+                                <EyeOff className="h-4 w-4" />
+                              ) : (
+                                <Eye className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </div>
+                        </FormControl>
+                        {confirmPassword && password && (
+                          <FormDescription className={confirmPassword === password ? 'text-green-600' : 'text-red-600'}>
+                            {confirmPassword === password ? (
+                              <span className="flex items-center gap-1">
+                                <CheckCircle className="h-3 w-3" />
+                                Passwords match
+                              </span>
+                            ) : (
+                              <span className="flex items-center gap-1">
+                                <XCircle className="h-3 w-3" />
+                                Passwords don't match
+                              </span>
+                            )}
+                          </FormDescription>
+                        )}
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {/* Generate Password Button */}
+                <div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={generatePassword}
+                  >
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Generate Secure Password
+                  </Button>
+                </div>
+              </div>
+
+              {/* Role Selection */}
+              <div className='grid grid-cols-1 gap-6'>
                 <FormField
                   control={form.control}
                   name='role'
@@ -227,6 +387,9 @@ const UserCreateForm = ({ currentUserRole }: UserCreateFormProps) => {
                         {selectedRole === 'admin' && 'Full system access with all administrative privileges'}
                         {!['seller', 'manager', 'admin'].includes(selectedRole) && 'Select a role to see permissions'}
                       </FormDescription>
+                      <div className="mt-2">
+                        <RolePermissionsDetail role={selectedRole} />
+                      </div>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -266,23 +429,6 @@ const UserCreateForm = ({ currentUserRole }: UserCreateFormProps) => {
                   </FormItem>
                 )}
               />
-
-              {/* Role-specific security notices */}
-              <div className="rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30 p-4">
-                <div className="flex items-start gap-3">
-                  <ShieldIcon className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                      System User Access
-                    </p>
-                    <p className="text-sm text-blue-700 dark:text-blue-200">
-                      {isAdminRole && 'This user will have full administrative access. Ensure proper security protocols are followed.'}
-                      {isManagerRole && 'This user will have management-level access to products, orders, and analytics.'}
-                      {isSellerRole && 'This user will have access to product and inventory management features.'}
-                    </p>
-                  </div>
-                </div>
-              </div>
             </CardContent>
           </Card>
 
@@ -322,6 +468,19 @@ const UserCreateForm = ({ currentUserRole }: UserCreateFormProps) => {
           </Card>
         </form>
       </Form>
+
+      {/* Success Dialog */}
+      {createdUser && (
+        <UserCreatedSuccessDialog
+          open={successDialogOpen}
+          onOpenChange={setSuccessDialogOpen}
+          userName={createdUser.name}
+          userEmail={createdUser.email}
+          temporaryPassword={createdUser.password}
+          userId={createdUser.id}
+          welcomeEmailSent={createdUser.welcomeEmailSent}
+        />
+      )}
     </div>
   )
 }
