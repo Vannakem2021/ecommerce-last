@@ -82,6 +82,7 @@
     "react-medium-image-zoom": "^5.2.12",
     "recharts": "^2.15.0",
     "resend": "^4.0.1",
+    "swr": "^2.3.6",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
     "uploadthing": "^7.4.1",

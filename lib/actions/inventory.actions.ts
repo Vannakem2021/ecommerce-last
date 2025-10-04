@@ -11,6 +11,7 @@ import { formatError } from '../utils'
 import { SetStockSchema, AdjustStockSchema, InventoryFiltersSchema } from '../validator'
 import { ISetStock, IAdjustStock, IInventoryFilters, IInventoryProduct } from '@/types'
 import { requirePermission, getCurrentUserWithRole } from '../rbac'
+import { createNotificationForRoles } from './notification.actions'
 
 // GET ALL PRODUCTS FOR INVENTORY MANAGEMENT
 export async function getAllProductsForInventory(filters: IInventoryFilters) {
@@ -291,9 +292,11 @@ export async function setProductStock(data: ISetStock) {
     const newStock = validatedData.newQuantity
 
     // Update product stock
-    await Product.findByIdAndUpdate(validatedData.productId, {
-      countInStock: newStock
-    })
+    const updatedProduct = await Product.findByIdAndUpdate(
+      validatedData.productId,
+      { countInStock: newStock },
+      { new: true }
+    ).select('name sku countInStock')
 
     // Create stock movement record
     await StockMovement.create({
@@ -307,6 +310,38 @@ export async function setProductStock(data: ISetStock) {
       notes: validatedData.notes,
       createdBy: currentUser.id,
     })
+
+    // Send low stock notification if stock is low
+    if (newStock > 0 && newStock <= 10 && previousStock > 10) {
+      try {
+        await createNotificationForRoles({
+          roles: ['admin', 'manager'],
+          type: 'stock',
+          title: 'Low Stock Alert',
+          message: `${updatedProduct?.name || product.sku} - Only ${newStock} items left`,
+          data: { productId: validatedData.productId, stock: newStock },
+          link: `/admin/products/${validatedData.productId}`
+        })
+      } catch (error) {
+        console.error('Failed to create low stock notification:', error)
+      }
+    }
+
+    // Send out of stock notification
+    if (newStock === 0 && previousStock > 0) {
+      try {
+        await createNotificationForRoles({
+          roles: ['admin', 'manager'],
+          type: 'stock',
+          title: 'Out of Stock',
+          message: `${updatedProduct?.name || product.sku} is now out of stock`,
+          data: { productId: validatedData.productId, stock: 0 },
+          link: `/admin/products/${validatedData.productId}`
+        })
+      } catch (error) {
+        console.error('Failed to create out of stock notification:', error)
+      }
+    }
 
     revalidatePath('/admin/inventory')
     revalidatePath('/admin/products')
@@ -340,9 +375,11 @@ export async function adjustProductStock(data: IAdjustStock) {
     const newStock = Math.max(0, previousStock + validatedData.adjustment)
 
     // Update product stock
-    await Product.findByIdAndUpdate(validatedData.productId, {
-      countInStock: newStock
-    })
+    const updatedProduct = await Product.findByIdAndUpdate(
+      validatedData.productId,
+      { countInStock: newStock },
+      { new: true }
+    ).select('name sku countInStock')
 
     // Create stock movement record
     await StockMovement.create({
@@ -356,6 +393,38 @@ export async function adjustProductStock(data: IAdjustStock) {
       notes: validatedData.notes,
       createdBy: currentUser.id,
     })
+
+    // Send low stock notification if stock is low
+    if (newStock > 0 && newStock <= 10 && previousStock > 10) {
+      try {
+        await createNotificationForRoles({
+          roles: ['admin', 'manager'],
+          type: 'stock',
+          title: 'Low Stock Alert',
+          message: `${updatedProduct?.name || product.sku} - Only ${newStock} items left`,
+          data: { productId: validatedData.productId, stock: newStock },
+          link: `/admin/products/${validatedData.productId}`
+        })
+      } catch (error) {
+        console.error('Failed to create low stock notification:', error)
+      }
+    }
+
+    // Send out of stock notification
+    if (newStock === 0 && previousStock > 0) {
+      try {
+        await createNotificationForRoles({
+          roles: ['admin', 'manager'],
+          type: 'stock',
+          title: 'Out of Stock',
+          message: `${updatedProduct?.name || product.sku} is now out of stock`,
+          data: { productId: validatedData.productId, stock: 0 },
+          link: `/admin/products/${validatedData.productId}`
+        })
+      } catch (error) {
+        console.error('Failed to create out of stock notification:', error)
+      }
+    }
 
     revalidatePath('/admin/inventory')
     revalidatePath('/admin/products')
