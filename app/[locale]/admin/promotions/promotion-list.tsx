@@ -1,19 +1,19 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
   Edit,
   Eye,
   EyeOff,
-  Search,
-  Filter,
+  SearchIcon,
   Calendar,
   Percent,
   DollarSign,
   Truck,
-  Tag
+  Tag,
+  XIcon
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -34,7 +34,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import DeleteDialog from '@/components/shared/delete-dialog'
 import Pagination from '@/components/shared/pagination'
 import { formatDateTime } from '@/lib/utils'
@@ -60,46 +60,72 @@ export default function PromotionList({
 }: PromotionListProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [isPending, startTransition] = useTransition()
-  const [query, setQuery] = useState(searchParams.get('query') || '')
+  const [isPending, setIsPending] = useState(false)
+  const [searchValue, setSearchValue] = useState(searchParams.get('query') || '')
   const [sort, setSort] = useState(searchParams.get('sort') || 'latest')
   const [status, setStatus] = useState(searchParams.get('status') || 'all')
+  const debounceRef = useRef<NodeJS.Timeout | undefined>(undefined)
 
   const canUpdate = hasPermission(userRole, 'promotions.update')
   const canDelete = hasPermission(userRole, 'promotions.delete')
 
-  const handleSearch = () => {
-    startTransition(() => {
-      const params = new URLSearchParams(searchParams)
-      if (query) {
-        params.set('query', query)
+  const updateURL = (updates: { query?: string; sort?: string; status?: string }) => {
+    const params = new URLSearchParams(searchParams.toString())
+    
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value && value !== 'all' && value !== '') {
+        params.set(key, value)
       } else {
-        params.delete('query')
+        params.delete(key)
       }
-      params.set('page', '1')
-      router.push(`/admin/promotions?${params.toString()}`)
     })
+    
+    params.set('page', '1')
+    
+    setIsPending(true)
+    router.push(`/admin/promotions?${params.toString()}`)
+  }
+
+  const handleSearchChange = (value: string) => {
+    setSearchValue(value)
+    
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current)
+    }
+    
+    debounceRef.current = setTimeout(() => {
+      updateURL({ query: value })
+    }, 500)
   }
 
   const handleSortChange = (newSort: string) => {
     setSort(newSort)
-    startTransition(() => {
-      const params = new URLSearchParams(searchParams)
-      params.set('sort', newSort)
-      params.set('page', '1')
-      router.push(`/admin/promotions?${params.toString()}`)
-    })
+    updateURL({ sort: newSort })
   }
 
   const handleStatusChange = (newStatus: string) => {
     setStatus(newStatus)
-    startTransition(() => {
-      const params = new URLSearchParams(searchParams)
-      params.set('status', newStatus)
-      params.set('page', '1')
-      router.push(`/admin/promotions?${params.toString()}`)
-    })
+    updateURL({ status: newStatus })
   }
+
+  const clearAllFilters = () => {
+    setSearchValue('')
+    setSort('latest')
+    setStatus('all')
+    router.push('/admin/promotions')
+  }
+
+  useEffect(() => {
+    setIsPending(false)
+  }, [searchParams])
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current)
+      }
+    }
+  }, [])
 
   const getPromotionIcon = (type: string) => {
     switch (type) {
@@ -134,62 +160,89 @@ export default function PromotionList({
     )
   }
 
+  const activeFiltersCount = 
+    (searchValue ? 1 : 0) +
+    (status !== 'all' ? 1 : 0) +
+    (sort !== 'latest' ? 1 : 0)
+
   return (
     <div className='space-y-6'>
       {/* Filters and Search */}
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Filter className="h-5 w-5" />
-                Promotions Overview
-              </CardTitle>
-              <p className="text-sm text-muted-foreground mt-1">
-                Showing {totalPromotions} promotion{totalPromotions !== 1 ? 's' : ''}
-              </p>
+        <CardContent className="pt-4">
+          <div className='flex flex-wrap items-center gap-4 mb-4'>
+            <div className="flex-1 min-w-[300px] relative">
+              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Search by code or name..."
+                value={searchValue}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="pl-10"
+              />
             </div>
-            <div className="flex items-center gap-2">
-              <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search promotions..."
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  className="pl-8 w-[250px]"
-                />
-              </div>
-              <Button onClick={handleSearch} disabled={isPending} size="sm">
-                Search
+
+            {activeFiltersCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearAllFilters}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <XIcon className="h-4 w-4 mr-1" />
+                Clear All
+                <Badge variant="secondary" className="ml-2">
+                  {activeFiltersCount}
+                </Badge>
               </Button>
+            )}
+          </div>
+
+          <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
+            <div>
+              {isPending ? (
+                <span>Loading...</span>
+              ) : (
+                <span>
+                  {totalPromotions === 0 ? 'No' : `${totalPromotions}`}
+                  {totalPromotions === 1 ? ' promotion' : ' promotions'}
+                </span>
+              )}
             </div>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className='flex flex-col sm:flex-row gap-4'>
-            <Select value={sort} onValueChange={handleSortChange}>
-              <SelectTrigger className='w-[180px]'>
-                <SelectValue placeholder='Sort by' />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value='latest'>Latest</SelectItem>
-                <SelectItem value='oldest'>Oldest</SelectItem>
-                <SelectItem value='name'>Name</SelectItem>
-                <SelectItem value='code'>Code</SelectItem>
-              </SelectContent>
-            </Select>
 
-            <Select value={status} onValueChange={handleStatusChange}>
-              <SelectTrigger className='w-[180px]'>
-                <SelectValue placeholder='Status' />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value='all'>All Status</SelectItem>
-                <SelectItem value='active'>Active</SelectItem>
-                <SelectItem value='inactive'>Inactive</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Status
+              </label>
+              <Select value={status} onValueChange={handleStatusChange}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='all'>All Status</SelectItem>
+                  <SelectItem value='active'>Active</SelectItem>
+                  <SelectItem value='inactive'>Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Sort By
+              </label>
+              <Select value={sort} onValueChange={handleSortChange}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='latest'>Latest First</SelectItem>
+                  <SelectItem value='oldest'>Oldest First</SelectItem>
+                  <SelectItem value='name'>Name A-Z</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>

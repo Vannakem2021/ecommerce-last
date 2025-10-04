@@ -868,6 +868,10 @@ const PromotionBaseSchema = z.object({
     .number()
     .min(0, "Minimum order value must be non-negative")
     .default(0),
+  maxDiscountAmount: z.coerce
+    .number()
+    .min(0, "Maximum discount amount must be non-negative")
+    .default(0),
   usageLimit: z.coerce
     .number()
     .int()
