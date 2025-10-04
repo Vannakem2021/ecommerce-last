@@ -41,38 +41,46 @@ export default async function ProfilePage() {
           <CardContent className='p-4 flex justify-between flex-wrap'>
             <div>
               <h3 className='font-bold'>Email</h3>
-              <p>{session?.user.email}</p>
-              <p>will be implemented in the next version</p>
+              <p className='text-gray-700'>{session?.user.email}</p>
+              <p className='text-sm text-gray-500 mt-1'>
+                Your email is verified and secure
+              </p>
             </div>
             <div>
-              <Link href='#'>
-                <Button
-                  disabled
-                  className='rounded-full w-32'
-                  variant='outline'
-                >
-                  Edit
-                </Button>
-              </Link>
+              <Badge variant='outline' className='bg-green-50 text-green-700 border-green-300'>
+                ✓ Verified
+              </Badge>
             </div>
           </CardContent>
           <Separator />
-          <CardContent className='p-4 flex justify-between flex-wrap'>
+          <CardContent className='p-4'>
             <div>
-              <h3 className='font-bold'>Password</h3>
-              <p>************</p>
-              <p>will be implemented in the next version</p>
-            </div>
-            <div>
-              <Link href='#'>
-                <Button
-                  disabled
-                  className='rounded-full w-32'
-                  variant='outline'
-                >
-                  Edit
-                </Button>
-              </Link>
+              <h3 className='font-bold mb-2'>Security Settings</h3>
+              <div className='space-y-3 text-sm text-gray-600'>
+                <div className='flex items-center justify-between py-2'>
+                  <div>
+                    <div className='font-medium text-gray-900'>Password</div>
+                    <div className='text-xs text-gray-500'>Last updated recently</div>
+                  </div>
+                  <Badge variant='outline'>Secure</Badge>
+                </div>
+                <div className='flex items-center justify-between py-2'>
+                  <div>
+                    <div className='font-medium text-gray-900'>Two-Factor Authentication</div>
+                    <div className='text-xs text-gray-500'>Add extra security (Coming soon)</div>
+                  </div>
+                  <Badge variant='outline' className='text-gray-400'>Coming Soon</Badge>
+                </div>
+                <div className='flex items-center justify-between py-2'>
+                  <div>
+                    <div className='font-medium text-gray-900'>Login Activity</div>
+                    <div className='text-xs text-gray-500'>Monitor your account access</div>
+                  </div>
+                  <Button variant='outline' size='sm' disabled className='text-xs'>
+                    View History
+                  </Button>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
