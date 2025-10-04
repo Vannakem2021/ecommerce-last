@@ -52,7 +52,7 @@ export const ROLE_HIERARCHY = {
 export const ROLE_PERMISSIONS = {
   admin: [
     // User management
-    'users.create', 'users.read', 'users.update', 'users.delete',
+    'users.create', 'users.read', 'users.update', 'users.delete', 'users.export',
     // Product management
     'products.create', 'products.read', 'products.update', 'products.delete', 'products.export',
     // Order management

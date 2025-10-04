@@ -13,6 +13,7 @@ import {
 } from "../validator";
 import { connectToDatabase } from "../db";
 import User, { IUser } from "../db/models/user.model";
+import Order from "../db/models/order.model";
 import PasswordResetToken from "../db/models/password-reset-token.model";
 import { formatError } from "../utils";
 import { redirect } from "next/navigation";
@@ -434,10 +435,29 @@ export async function getAllUsersWithPermissions({
     .limit(limit);
   const usersCount = await User.countDocuments();
 
+  // Enrich users with order statistics
+  const userIds = users.map(user => user._id);
+  const orderStats = await Order.aggregate([
+    { $match: { user: { $in: userIds } } },
+    {
+      $group: {
+        _id: '$user',
+        totalOrders: { $sum: 1 },
+        lastOrderDate: { $max: '$createdAt' }
+      }
+    }
+  ]);
+
+  // Create a map for quick lookup
+  const orderStatsMap = new Map(
+    orderStats.map(stat => [stat._id.toString(), stat])
+  );
+
   // Add permission flags to each user based on current user's permissions
   // Use the more efficient version that doesn't call auth() per user
   const usersWithPermissions = users.map((user) => {
     const userObj = JSON.parse(JSON.stringify(user)) as IUser;
+    const stats = orderStatsMap.get(user._id.toString());
 
     // Check if current user can manage this user using role comparison
     const canManageThisUser = canUserRoleManageTargetRole(currentUser.role, user.role);
@@ -446,6 +466,8 @@ export async function getAllUsersWithPermissions({
       ...userObj,
       canEdit: canManageThisUser,
       canDelete: canManageThisUser && currentUser.id !== user._id.toString(),
+      totalOrders: stats?.totalOrders || 0,
+      lastOrderDate: stats?.lastOrderDate || null,
     };
   });
 
@@ -554,5 +576,128 @@ export async function updateUserAddress(userId: string, address: unknown) {
     }
 
     return { success: false, error: formatError(error) };
+  }
+}
+
+// Get customer statistics including top customer
+export async function getCustomerStatistics() {
+  try {
+    await requirePermission('users.read');
+    await connectToDatabase();
+
+    // Aggregate orders by customer to find top customer
+    // Only include customers (role='user'), exclude system users
+    const topCustomerData = await Order.aggregate([
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'user',
+          foreignField: '_id',
+          as: 'userInfo'
+        }
+      },
+      {
+        $unwind: '$userInfo'
+      },
+      {
+        $match: {
+          'userInfo.role': 'user' // Only count orders from actual customers
+        }
+      },
+      {
+        $group: {
+          _id: '$user',
+          orderCount: { $sum: 1 },
+          totalSpent: { $sum: '$totalPrice' },
+          userName: { $first: '$userInfo.name' },
+          userEmail: { $first: '$userInfo.email' }
+        }
+      },
+      {
+        $sort: { orderCount: -1 }
+      },
+      {
+        $limit: 1
+      }
+    ]);
+
+    if (topCustomerData.length > 0) {
+      const topCustomer = topCustomerData[0];
+      return {
+        success: true,
+        data: {
+          name: topCustomer.userName || 'Unknown',
+          email: topCustomer.userEmail || '',
+          orderCount: topCustomer.orderCount || 0,
+          totalSpent: topCustomer.totalSpent || 0
+        }
+      };
+    }
+
+    return {
+      success: true,
+      data: null
+    };
+  } catch (error) {
+    return { 
+      success: false, 
+      message: formatError(error),
+      data: null
+    };
+  }
+}
+
+// Get users for export
+export async function getUsersForExport(userType: 'customer' | 'system') {
+  try {
+    await connectToDatabase()
+
+    const roleFilter = userType === 'customer' 
+      ? { role: 'user' } 
+      : { role: { $in: ['admin', 'manager', 'seller'] } }
+
+    const users = await User.find(roleFilter)
+      .select('name email phone role isActive emailVerified createdAt lastLoginAt')
+      .sort({ createdAt: -1 })
+      .lean()
+
+    // Get order statistics for all users
+    const orderStats = await Order.aggregate([
+      {
+        $group: {
+          _id: '$user',
+          totalOrders: { $sum: 1 },
+          totalSpent: { $sum: '$totalPrice' },
+          lastOrderDate: { $max: '$createdAt' }
+        }
+      }
+    ])
+
+    // Create lookup map for O(1) access
+    const statsMap = new Map(
+      orderStats.map(stat => [stat._id.toString(), stat])
+    )
+
+    // Enrich user data with order statistics
+    const enrichedUsers = users.map(user => {
+      const stats = statsMap.get(user._id.toString())
+      return {
+        ...user,
+        totalOrders: stats?.totalOrders || 0,
+        totalSpent: stats?.totalSpent || 0,
+        lastOrderDate: stats?.lastOrderDate || null
+      }
+    })
+
+    return {
+      success: true,
+      data: enrichedUsers
+    }
+  } catch (error) {
+    return {
+      success: false,
+      message: formatError(error),
+      data: []
+    }
   }
 }

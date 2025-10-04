@@ -5,15 +5,15 @@ import Link from 'next/link'
 import { getUserById } from '@/lib/actions/user.actions'
 import { auth } from '@/auth'
 import { hasPermission } from '@/lib/rbac-utils'
-import CustomerEditForm from './customer-edit-form'
+import CustomerDetailsView from './customer-details-view'
 import { Button } from '@/components/ui/button'
 import { ChevronLeft, User } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Edit Customer',
+  title: 'Customer Details',
 }
 
-export default async function CustomerEditPage(props: {
+export default async function CustomerDetailsPage(props: {
   params: Promise<{
     id: string
   }>
@@ -23,9 +23,9 @@ export default async function CustomerEditPage(props: {
 
   const session = await auth()
 
-  // Check if user has permission to update users
-  if (!session?.user?.role || !hasPermission(session.user.role, 'users.update')) {
-    throw new Error('Insufficient permissions to edit customers')
+  // Check if user has permission to read users
+  if (!session?.user?.role || !hasPermission(session.user.role, 'users.read')) {
+    throw new Error('Insufficient permissions to view customers')
   }
 
   const user = await getUserById(id)
@@ -51,20 +51,20 @@ export default async function CustomerEditPage(props: {
           <span>/</span>
           <span className="text-muted-foreground">Customers</span>
           <span>/</span>
-          <span className="text-foreground">Edit Customer</span>
+          <span className="text-foreground">Customer Details</span>
         </div>
 
         {/* Page Header */}
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-green-50 dark:bg-green-950">
-                <User className="h-6 w-6 text-green-600" />
+              <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-950">
+                <User className="h-6 w-6 text-blue-600" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-foreground">Edit Customer</h1>
+                <h1 className="text-3xl font-bold text-foreground">Customer Details</h1>
                 <p className="text-muted-foreground mt-1">
-                  Update customer account information and preferences
+                  View customer account information and order history
                 </p>
               </div>
             </div>
@@ -75,8 +75,8 @@ export default async function CustomerEditPage(props: {
         </div>
       </div>
 
-      {/* Form Content */}
-      <CustomerEditForm user={user} currentUserRole={session.user.role} />
+      {/* View Content */}
+      <CustomerDetailsView user={user} />
     </div>
   )
 }

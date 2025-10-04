@@ -646,6 +646,7 @@ export const AdminUserCreateSchema = z
     email: RegistrationEmail,
     role: UserRole,
     password: Password,
+    confirmPassword: Password,
     sendWelcomeEmail: z.boolean().default(false),
     // Optional fields for customer users
     paymentMethod: z.string().optional(),
@@ -660,6 +661,10 @@ export const AdminUserCreateSchema = z
         phone: z.string().optional(),
       })
       .optional(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
   })
   .refine(
     (data) => {

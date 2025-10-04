@@ -10,15 +10,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { deleteUser } from '@/lib/actions/user.actions'
 import { IUser } from '@/lib/db/models/user.model'
 import { formatDateTime } from '@/lib/utils'
-import { Edit, ShieldIcon, CrownIcon, UserCogIcon, UsersIcon, ClockIcon } from 'lucide-react'
+import { Eye, ShieldIcon, CrownIcon, UserCogIcon, UsersIcon, ClockIcon } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import Link from 'next/link'
-import { useTransition } from 'react'
-import { useToast } from '@/hooks/use-toast'
-import DeleteDialog from '@/components/shared/delete-dialog'
 
 interface SystemUserWithStats extends IUser {
   canEdit?: boolean
@@ -35,27 +31,6 @@ export default function SystemUserList({
   page: number
   totalPages: number
 }) {
-  const { toast } = useToast()
-  const [, startTransition] = useTransition()
-
-  const handleDelete = async (id: string): Promise<{ success: boolean; message: string }> => {
-    return new Promise((resolve) => {
-      startTransition(async () => {
-        const res = await deleteUser(id)
-        if (res.success) {
-          toast({
-            description: res.message,
-          })
-        } else {
-          toast({
-            variant: 'destructive',
-            description: res.message,
-          })
-        }
-        resolve(res)
-      })
-    })
-  }
 
   const getRoleIcon = (role: string) => {
     switch (role) {
@@ -83,11 +58,12 @@ export default function SystemUserList({
     }
   }
 
-  const getLoginStatus = (lastLoginAt?: Date) => {
+  const getLoginStatus = (lastLoginAt?: Date | string) => {
     if (!lastLoginAt) return { text: 'Never', color: 'text-red-600' }
 
     const now = new Date()
-    const diffInDays = Math.floor((now.getTime() - lastLoginAt.getTime()) / (1000 * 60 * 60 * 24))
+    const loginDate = typeof lastLoginAt === 'string' ? new Date(lastLoginAt) : lastLoginAt
+    const diffInDays = Math.floor((now.getTime() - loginDate.getTime()) / (1000 * 60 * 60 * 24))
 
     if (diffInDays === 0) return { text: 'Today', color: 'text-green-600' }
     if (diffInDays === 1) return { text: '1 day ago', color: 'text-green-600' }
@@ -171,18 +147,15 @@ export default function SystemUserList({
                             <TooltipTrigger asChild>
                               <Button asChild variant='ghost' size='sm' className='h-8 w-8 p-0 hover:bg-muted'>
                                 <Link href={`/admin/users/system/${user._id}/edit`}>
-                                  <Edit className='h-3.5 w-3.5' />
+                                  <Eye className='h-3.5 w-3.5' />
                                 </Link>
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>Edit system user</p>
+                              <p>View system user</p>
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
-                      )}
-                      {user.canDelete && (
-                        <DeleteDialog id={user._id} action={handleDelete} />
                       )}
                     </div>
                   </TableCell>
