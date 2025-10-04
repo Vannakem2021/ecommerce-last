@@ -60,43 +60,26 @@ export default function InvoiceActions({
     }
   }
 
-  const handleDownload = async () => {
-    try {
-      setIsLoading(true)
+  const handleDownload = () => {
+    // Use browser's print-to-PDF functionality
+    // This works better because it supports Khmer fonts and images properly
+    const printWindow = window.open(
+      `/api/invoice/${orderId}/print?download=true`,
+      '_blank',
+      'width=800,height=600,scrollbars=yes,resizable=yes'
+    )
 
-      // Use the print API with download parameter
-      const downloadWindow = window.open(
-        `/api/invoice/${orderId}/print?download=true`,
-        '_blank',
-        'width=900,height=1000,scrollbars=yes,resizable=yes'
-      )
-
-      if (downloadWindow) {
-        toast({
-          title: 'Download Window Opened',
-          description: 'Follow the instructions in the new window to save as PDF.',
-        })
-
-        // Focus the new window
-        downloadWindow.focus()
-
-      } else {
-        toast({
-          title: 'Download Failed',
-          description: 'Please allow popups and try again.',
-          variant: 'destructive',
-        })
-      }
-
-    } catch (error) {
-      console.error('Download error:', error)
+    if (printWindow) {
       toast({
-        title: 'Download Error',
-        description: 'Failed to open download window. Please try again.',
+        title: 'Opening Invoice',
+        description: 'Use Ctrl+P or Cmd+P to save as PDF with full Khmer support',
+      })
+    } else {
+      toast({
+        title: 'Please Allow Popups',
+        description: 'Enable popups for this site to download the invoice.',
         variant: 'destructive',
       })
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -111,41 +94,41 @@ export default function InvoiceActions({
   }
 
   return (
-    <div className={`flex gap-2 ${className}`}>
-      {/* View Invoice Button */}
-      <Button
-        variant={variant}
-        size={size}
-        onClick={handleView}
-        disabled={isLoading}
-        className="flex items-center gap-2"
-      >
-        <EyeIcon className="h-4 w-4" />
-        {showLabels && <span>View</span>}
-      </Button>
-
-      {/* Print Button */}
+    <div className={`flex flex-col sm:flex-row gap-2 w-full sm:w-auto ${className}`}>
+      {/* Print Button - Primary Action */}
       <Button
         variant={variant}
         size={size}
         onClick={handlePrint}
         disabled={isLoading}
-        className="flex items-center gap-2"
+        className="flex items-center justify-center gap-2 flex-1 sm:flex-initial"
       >
         <PrinterIcon className="h-4 w-4" />
         {showLabels && <span>Print</span>}
       </Button>
 
-      {/* Download Button */}
+      {/* Download Button - Primary Action */}
       <Button
         variant={variant}
         size={size}
         onClick={handleDownload}
         disabled={isLoading}
-        className="flex items-center gap-2"
+        className="flex items-center justify-center gap-2 flex-1 sm:flex-initial"
       >
         <DownloadIcon className="h-4 w-4" />
-        {showLabels && <span>Download</span>}
+        {showLabels && <span>Download PDF</span>}
+      </Button>
+
+      {/* View Invoice Button - Secondary */}
+      <Button
+        variant="outline"
+        size={size}
+        onClick={handleView}
+        disabled={isLoading}
+        className="flex items-center justify-center gap-2 flex-1 sm:flex-initial"
+      >
+        <EyeIcon className="h-4 w-4" />
+        {showLabels && <span>Preview</span>}
       </Button>
     </div>
   )

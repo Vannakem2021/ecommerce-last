@@ -109,6 +109,25 @@ export async function getInvoiceData(orderId: string) {
       paidAt: order.paidAt,
       isDelivered: order.isDelivered,
       deliveredAt: order.deliveredAt,
+
+      // Payment information
+      paymentResult: order.paymentResult ? {
+        id: order.paymentResult.id,
+        status: order.paymentResult.status,
+        email: order.paymentResult.email_address,
+      } : null,
+      
+      // ABA PayWay payment details
+      abaTransactionId: order.abaTransactionId || null,
+      abaPaymentStatus: order.abaPaymentStatus || null,
+
+      // Promotion/Discount information
+      appliedPromotion: order.appliedPromotion ? {
+        code: order.appliedPromotion.code,
+        discountAmount: order.appliedPromotion.discountAmount,
+        originalTotal: order.appliedPromotion.originalTotal,
+        freeShipping: order.appliedPromotion.freeShipping,
+      } : null,
     }
 
     return {

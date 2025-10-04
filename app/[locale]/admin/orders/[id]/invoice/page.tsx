@@ -62,15 +62,20 @@ export default async function AdminInvoicePage(props: AdminInvoicePageProps) {
 
             {/* Professional Header Section */}
             <div className="bg-card border rounded-lg p-6 mb-6">
-              <div className="flex justify-between items-start">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
+              <div className="flex flex-col lg:flex-row justify-between items-start gap-6">
+                <div className="space-y-3 flex-1">
+                  <div className="flex flex-wrap items-center gap-3">
                     <h1 className="text-2xl font-bold text-foreground">
                       Invoice {invoiceData.invoiceNumber}
                     </h1>
                     {invoiceData.isPaid && (
                       <div className="px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full text-sm font-medium">
                         ✅ PAID
+                      </div>
+                    )}
+                    {invoiceData.isDelivered && (
+                      <div className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm font-medium">
+                        📦 DELIVERED
                       </div>
                     )}
                   </div>
@@ -85,11 +90,11 @@ export default async function AdminInvoicePage(props: AdminInvoicePageProps) {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
                   <InvoiceActions
                     orderId={id}
                     showLabels={true}
-                    variant="outline"
+                    variant="default"
                     size="default"
                     isAdmin={true}
                   />

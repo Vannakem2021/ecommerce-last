@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { getInvoiceData } from '@/lib/actions/invoice.actions'
+import { renderToStaticMarkup } from 'react-dom/server'
+import { createElement } from 'react'
 
 export async function GET(
   request: NextRequest,
@@ -138,6 +140,46 @@ function generateInvoiceHTML(invoiceData: any): string {
                         </div>
                     </div>
                 </div>
+
+                <!-- Status Timeline -->
+                ${isPaid || isDelivered ? `
+                <div class="mt-6 pt-4 border-t border-gray-200">
+                    <div class="flex items-center justify-between max-w-3xl mx-auto">
+                        <!-- Order Placed -->
+                        <div class="flex flex-col items-center flex-1">
+                            <div class="w-8 h-8 rounded-full bg-teal-600 flex items-center justify-center mb-2">
+                                <span class="text-white text-sm">💳</span>
+                            </div>
+                            <p class="text-xs font-semibold text-gray-800">Order Placed</p>
+                            <p class="text-xs text-gray-600">${formatDate(orderDate)}</p>
+                        </div>
+
+                        <!-- Connection Line -->
+                        <div class="flex-1 h-1 ${isPaid ? 'bg-teal-600' : 'bg-gray-300'} mx-2"></div>
+
+                        <!-- Payment -->
+                        <div class="flex flex-col items-center flex-1">
+                            <div class="w-8 h-8 rounded-full ${isPaid ? 'bg-teal-600' : 'bg-gray-300'} flex items-center justify-center mb-2">
+                                <span class="text-white text-sm">✓</span>
+                            </div>
+                            <p class="text-xs font-semibold ${isPaid ? 'text-gray-800' : 'text-gray-400'}">Payment</p>
+                            <p class="text-xs text-gray-600">${isPaid && paidAt ? formatDate(paidAt) : '-'}</p>
+                        </div>
+
+                        <!-- Connection Line -->
+                        <div class="flex-1 h-1 ${isDelivered ? 'bg-teal-600' : 'bg-gray-300'} mx-2"></div>
+
+                        <!-- Delivered -->
+                        <div class="flex flex-col items-center flex-1">
+                            <div class="w-8 h-8 rounded-full ${isDelivered ? 'bg-teal-600' : 'bg-gray-300'} flex items-center justify-center mb-2">
+                                <span class="text-white text-sm">🚚</span>
+                            </div>
+                            <p class="text-xs font-semibold ${isDelivered ? 'text-gray-800' : 'text-gray-400'}">Delivered</p>
+                            <p class="text-xs text-gray-600">${isDelivered && deliveredAt ? formatDate(deliveredAt) : '-'}</p>
+                        </div>
+                    </div>
+                </div>
+                ` : ''}
             </div>
 
             <!-- Three-Column Header -->

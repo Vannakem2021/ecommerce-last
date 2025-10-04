@@ -14,6 +14,14 @@ export function InvoicePrintWrapper({ children, isPrintMode }: InvoicePrintWrapp
       const style = document.createElement('style')
       style.textContent = `
         @media print {
+          @page {
+            size: A4;
+            margin: 0.5cm;
+          }
+          body {
+            margin: 0;
+            padding: 0;
+          }
           body * {
             visibility: hidden;
           }
@@ -29,6 +37,21 @@ export function InvoicePrintWrapper({ children, isPrintMode }: InvoicePrintWrapp
           }
           .no-print {
             display: none !important;
+          }
+          /* Reduce spacing for one-page fit */
+          h1, h2, h3, h4, h5, h6 {
+            margin-top: 0.3rem !important;
+            margin-bottom: 0.3rem !important;
+          }
+          p, div {
+            margin-top: 0.1rem !important;
+            margin-bottom: 0.1rem !important;
+          }
+          table {
+            font-size: 0.85rem !important;
+          }
+          th, td {
+            padding: 0.3rem !important;
           }
         }
       `
