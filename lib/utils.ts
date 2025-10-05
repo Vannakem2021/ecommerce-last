@@ -171,32 +171,47 @@ export const getFilterUrl = ({
   tag,
   sort,
   price,
-  rating,
   page,
+  secondHand,
+  discount,
+  q,
 }: {
   params: {
     q?: string
     category?: string
     tag?: string
     price?: string
-    rating?: string
     sort?: string
     page?: string
+    secondHand?: string
+    discount?: string
   }
   tag?: string
   category?: string
   sort?: string
   price?: string
-  rating?: string
   page?: string
+  secondHand?: string
+  discount?: string
+  q?: string
 }) => {
   const newParams = { ...params }
-  if (category) newParams.category = category
-  if (tag) newParams.tag = toSlug(tag)
-  if (price) newParams.price = price
-  if (rating) newParams.rating = rating
-  if (page) newParams.page = page
-  if (sort) newParams.sort = sort
+  if (q !== undefined) newParams.q = q
+  if (category !== undefined) newParams.category = category
+  if (tag !== undefined) newParams.tag = toSlug(tag)
+  if (price !== undefined) newParams.price = price
+  if (page !== undefined) newParams.page = page
+  if (sort !== undefined) newParams.sort = sort
+  if (secondHand !== undefined) newParams.secondHand = secondHand
+  if (discount !== undefined) newParams.discount = discount
+  
+  // Remove 'all' values from params
+  Object.keys(newParams).forEach((key) => {
+    if (newParams[key as keyof typeof newParams] === 'all' || newParams[key as keyof typeof newParams] === '') {
+      delete newParams[key as keyof typeof newParams]
+    }
+  })
+  
   return `/search?${new URLSearchParams(newParams).toString()}`
 }
 
