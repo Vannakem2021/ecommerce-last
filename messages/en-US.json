@@ -31,7 +31,6 @@
     "Dark": "Dark",
     "Light": "Light",
     "Color": "Color",
-    "Today's Deal": "Today's Deal",
     "New Arrivals": "New Arrivals",
     "Featured Products": "Featured Products",
     "Best Sellers": "Best Sellers",
@@ -54,7 +53,6 @@
     "Featured Products": "Featured Products",
     "View All": "View All",
     "Shop Now": "Shop Now",
-    "Today's Deals": "Today's Deals",
     "Flash Deals": "Flash Deals",
     "Limited Time": "Limited Time",
     "Ends in": "Ends in",
@@ -65,6 +63,9 @@
     "Explore Collection": "Explore Collection",
     "NEW": "NEW",
     "Just added": "Just added",
+    "1 day ago": "1 day ago",
+    "1 week ago": "1 week ago",
+    "1 month ago": "1 month ago",
     "Smartphones": "Smartphones",
     "Laptops": "Laptops",
     "Tablets": "Tablets",
@@ -189,6 +190,7 @@
     "Tag": "Tag",
     "Category": "Category",
     "Rating": "Rating",
+    "Condition": "Condition",
     "Search Products": "Search Products",
     "No": "No",
     "of": "of",
@@ -210,7 +212,10 @@
     "No product found": "No product found",
     "Next": "Next",
     "Previous": "Previous",
-    "Page": "Page"
+    "Page": "Page",
+    "Like New": "Like New",
+    "Good": "Good",
+    "Fair": "Fair"
   },
   "Footer": {
     "Back to top": "Back to top",
@@ -317,5 +322,37 @@
     "question": "question",
     "questions": "questions",
     "footer": "Need more help? Contact support"
+  },
+  "Account": {
+    "Overview": "Overview",
+    "Account Information": "Account Information",
+    "Your account details and settings": "Your account details and settings",
+    "Click avatar to change profile picture": "Click avatar to change profile picture",
+    "Edit account settings": "Edit account settings",
+    "Name": "Name",
+    "Email": "Email",
+    "Phone": "Phone",
+    "Not provided": "Not provided",
+    "Member Since": "Member Since",
+    "Account Status": "Account Status",
+    "Active": "Active",
+    "Your Orders": "Your Orders",
+    "View and manage all your orders": "View and manage all your orders",
+    "No orders yet": "No orders yet",
+    "Start shopping to see your orders here": "Start shopping to see your orders here",
+    "Browse products": "Browse products",
+    "Order #": "Order #",
+    "Date": "Date",
+    "Total": "Total",
+    "Status": "Status",
+    "Actions": "Actions",
+    "Processing": "Processing",
+    "Delivered": "Delivered",
+    "Shipped": "Shipped",
+    "Pending": "Pending",
+    "View Details": "View Details"
+  },
+  "Auth": {
+    "Login / Sign Up": "Login / Sign Up"
   }
 }

@@ -14,6 +14,7 @@ import ImageHover from './image-hover'
 import AddToCart from './add-to-cart'
 import FavoriteButton from './favorite-button'
 import { Trophy } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 const ProductCardEnhanced = ({
   product,
@@ -40,6 +41,8 @@ const ProductCardEnhanced = ({
   showNewBadge?: boolean
   ranking?: number
 }) => {
+  const t = useTranslations('Home')
+  
   const ProductImage = () => (
     <Link href={`/product/${product.slug}`}>
       <div className='relative h-52'>
@@ -90,7 +93,7 @@ const ProductCardEnhanced = ({
           {/* NEW Badge for New Arrivals */}
           {showNewBadge && product.createdAt && isNew(product.createdAt) && (
             <Badge variant='secondary' className='bg-green-500 hover:bg-green-600 text-white font-bold'>
-              NEW
+              {t('NEW')}
             </Badge>
           )}
         </div>
@@ -135,14 +138,14 @@ const ProductCardEnhanced = ({
         {/* Relative date for new products */}
         {showNewBadge && product.createdAt && isNew(product.createdAt) && (
           <p className='text-xs text-green-600 dark:text-green-400 font-medium'>
-            {getRelativeTimeString(new Date(product.createdAt))}
+            {getRelativeTimeString(new Date(product.createdAt), t)}
           </p>
         )}
         
         {/* Sales count for best sellers */}
         {ranking && product.numSales > 0 && (
           <p className='text-xs text-muted-foreground'>
-            {formatSalesCount(product.numSales)} sold
+            {formatSalesCount(product.numSales)} {t('sold')}
           </p>
         )}
       </div>

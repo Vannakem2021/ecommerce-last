@@ -12,6 +12,7 @@ import ProductPrice from './product-price'
 import ImageHover from './image-hover'
 import AddToCart from './add-to-cart'
 import FavoriteButton from './favorite-button'
+import { useTranslations } from 'next-intl'
 
 const ProductCard = ({
   product,
@@ -34,6 +35,8 @@ const ProductCard = ({
   favoriteButtonSubmit?: boolean
   favoriteButtonControlled?: boolean
 }) => {
+  const t = useTranslations('Home')
+  
   const ProductImage = () => (
     <Link href={`/product/${product.slug}`}>
       <div className='relative h-52'>
@@ -67,7 +70,7 @@ const ProductCard = ({
         {product.secondHand && (
           <div className='absolute top-2 left-2 z-10'>
             <Badge className='bg-orange-500 hover:bg-orange-600 text-white font-medium text-xs px-2 py-0.5'>
-              Second Hand
+              {t('Second Hand')}
             </Badge>
           </div>
         )}

@@ -950,10 +950,6 @@ We look forward to assisting you! Your satisfaction is our priority.`,
   ],
   headerMenus: [
     {
-      name: "Today's Deal",
-      href: "/search?tag=todays-deal",
-    },
-    {
       name: "New Arrivals",
       href: "/search?tag=new-arrival",
     },

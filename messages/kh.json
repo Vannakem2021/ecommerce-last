@@ -5,7 +5,7 @@
     "Fair": "មធ្យម",
     "Poor": "ខូច",
     "New": "ថ្មី",
-    "Second Hand": "ប្រើប្រាស់មកហើយ"
+    "Second Hand": "ទំនិញមួយទឹក"
   },
   "Header": {
     "Hello": "សួស្តី",
@@ -30,7 +30,6 @@
     "Dark": "ងងឹត",
     "Light": "ភ្លឺ",
     "Color": "ពណ៌",
-    "Today's Deal": "ការបញ្ចុះតម្លៃថ្ងៃនេះ",
     "New Arrivals": "ទំនិញទើបមកដល់",
     "Featured Products": "ផលិតផលពិសេស",
     "Best Sellers": "ផលិតផលលក់ដាច់បំផុត",
@@ -50,7 +49,6 @@
     "Featured Products": "ផលិតផលពិសេស",
     "View All": "មើលទាំងអស់",
     "Shop Now": "ទិញឥឡូវនេះ",
-    "Today's Deals": "ការបញ្ចុះតម្លៃថ្ងៃនេះ",
     "Best Selling Products": "ផលិតផលលក់ដាច់បំផុត",
     "Related to items that you've viewed": "ពាក់ព័ន្ធនឹងទំនិញដែលអ្នកបានមើល",
     "Your browsing history": "ប្រវត្តិការចូលមើលរបស់អ្នក",
@@ -66,7 +64,33 @@
     "Smartphones": "ស្មាតហ្វូន",
     "Laptops": "កុំព្យូទ័រយួរដៃ",
     "Tablets": "តាប់ឡេត",
-    "Second Hand": "ប្រើប្រាស់មកហើយ",
+    "Second Hand": "ទំនិញមួយទឹក",
+    "Hot Deals": "ការផ្តល់ជូនពិសេស",
+    "Discover Hot Deals": "ស្វែងរកការផ្តល់ជូនពិសេស",
+    "Flash Deals": "ការបញ្ចុះតម្លៃរយៈពេលខ្លី",
+    "Limited Time": "មានកំណត់ពេល",
+    "Ends in": "បញ្ចប់ក្នុងរយៈពេល",
+    "Shop by Brand": "ទិញតាមម៉ាក",
+    "View All Brands": "មើលម៉ាកទាំងអស់",
+    "more": "ច្រើនទៀត",
+    "Featured Collections": "បណ្តុំផលិតផលពិសេស",
+    "Explore Collection": "ស្វែងរកបណ្តុំផលិតផល",
+    "NEW": "ថ្មី",
+    "Just added": "ទើបបន្ថែម",
+    "1 day ago": "១ថ្ងៃមុន",
+    "1 week ago": "១សប្តាហ៍មុន",
+    "1 month ago": "១ខែមុន",
+    "day ago": "ថ្ងៃមុន",
+    "days ago": "ថ្ងៃមុន",
+    "week ago": "សប្តាហ៍មុន",
+    "weeks ago": "សប្តាហ៍មុន",
+    "month ago": "ខែមុន",
+    "months ago": "ខែមុន",
+    "Best Seller": "#១ លក់ដាច់បំផុត",
+    "sold": "បានលក់",
+    "Best Selling Products": "ផលិតផលលក់ដាច់បំផុត",
+    "Related to items that you've viewed": "ពាក់ព័ន្ធនឹងទំនិញដែលអ្នកបានមើល",
+    "Your browsing history": "ប្រវត្តិការចូលមើលរបស់អ្នក",
     "MacBook Pro with M3 Chip": "MacBook Pro ជាមួយឈីប M3",
     "iPad Pro - Unleash Your Creativity": "iPad Pro - បញ្ចេញភាពច្នៃប្រឌិតរបស់អ្នក"
   },
@@ -163,6 +187,7 @@
     "Tag": "ស្លាក",
     "Category": "ប្រភេទ",
     "Rating": "ការវាយតម្លៃ",
+    "Condition": "លក្ខខណ្ឌ",
     "Search Products": "ស្វែងរកផលិតផល",
     "No": "គ្មាន",
     "of": "នៃ",
@@ -174,7 +199,7 @@
     "Condition": "លក្ខខណ្ឌ",
     "All Products": "ផលិតផលទាំងអស់",
     "New Products": "ផលិតផលថ្មី",
-    "Second Hand": "ប្រើប្រាស់មកហើយ",
+    "Second Hand": "ទំនិញមួយទឹក",
     "Department": "ផ្នែក",
     "Any": "ណាមួយ",
     "All": "ទាំងអស់",
@@ -184,7 +209,10 @@
     "No product found": "រកមិនឃើញផលិតផល",
     "Next": "បន្ទាប់",
     "Previous": "មុន",
-    "Page": "ទំព័រ"
+    "Page": "ទំព័រ",
+    "Like New": "ដូចថ្មី",
+    "Good": "ល្អ",
+    "Fair": "មធ្យម"
   },
   "Footer": {
     "Back to top": "ត្រឡប់ទៅខាងលើ",
@@ -274,8 +302,8 @@
     "View History": "មើលប្រវត្តិ"
   },
   "Favorites": {
-    "Your Favorites": "?????????????????????",
-    "No favorites yet": "?????????????????????????"
+    "Your Favorites": "ទំនិញចូលចិត្តរបស់អ្នក",
+    "No favorites yet": "មិនទាន់មានទំនិញចូលចិត្ត"
   },
   "chatbot": {
     "title": "មជ្ឈមណ្ឌលជំនួយ",
@@ -290,5 +318,37 @@
     "question": "សំណួរ",
     "questions": "សំណួរ",
     "footer": "ត្រូវការជំនួយបន្ថែម? ទាក់ទងផ្នែកគាំទ្រ"
+  },
+  "Account": {
+    "Overview": "ទិដ្ឋភាពទូទៅ",
+    "Account Information": "ព័ត៌មានគណនី",
+    "Your account details and settings": "ព័ត៌មានលម្អិត និងការកំណត់គណនីរបស់អ្នក",
+    "Click avatar to change profile picture": "ចុចលើរូបភាពដើម្បីផ្លាស់ប្តូររូបភាពប្រវត្តិរូប",
+    "Edit account settings": "កែសម្រួលការកំណត់គណនី",
+    "Name": "ឈ្មោះ",
+    "Email": "អ៊ីមែល",
+    "Phone": "ទូរស័ព្ទ",
+    "Not provided": "មិនបានផ្តល់",
+    "Member Since": "សមាជិកតាំងពី",
+    "Account Status": "ស្ថានភាពគណនី",
+    "Active": "សកម្ម",
+    "Your Orders": "ការបញ្ជាទិញរបស់អ្នក",
+    "View and manage all your orders": "មើល និងគ្រប់គ្រងការបញ្ជាទិញទាំងអស់របស់អ្នក",
+    "No orders yet": "មិនទាន់មានការបញ្ជាទិញ",
+    "Start shopping to see your orders here": "ចាប់ផ្តើមទិញទំនិញដើម្បីមើលការបញ្ជាទិញរបស់អ្នកនៅទីនេះ",
+    "Browse products": "រកមើលផលិតផល",
+    "Order #": "លេខបញ្ជាទិញ #",
+    "Date": "កាលបរិច្ឆេទ",
+    "Total": "សរុប",
+    "Status": "ស្ថានភាព",
+    "Actions": "សកម្មភាព",
+    "Processing": "កំពុងដំណើរការ",
+    "Delivered": "បានដឹកជញ្ជូន",
+    "Shipped": "បានបញ្ជូន",
+    "Pending": "កំពុងរង់ចាំ",
+    "View Details": "មើលព័ត៌មានលម្អិត"
+  },
+  "Auth": {
+    "Login / Sign Up": "ចូលគណនី / ចុះឈ្មោះ"
   }
 }
