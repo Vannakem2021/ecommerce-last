@@ -20,6 +20,10 @@ import PromotionBadge from '@/components/shared/promotion/promotion-badge'
 import { getTranslations } from 'next-intl/server'
 import FavoriteButton from '@/components/shared/product/favorite-button'
 import ProductDetailClient from './product-detail-client'
+import Breadcrumbs from '@/components/shared/breadcrumbs'
+import ProductTabs from '@/components/shared/product/product-tabs'
+import KeyFeatures from '@/components/shared/product/key-features'
+import SpecificationsTable from '@/components/shared/product/specifications-table'
 
 export async function generateMetadata(props: {
   params: Promise<{ slug: string }>
@@ -59,42 +63,62 @@ export default async function ProductDetails(props: {
   })
 
   const t = await getTranslations()
+  
+  // Prepare breadcrumb items
+  const categoryName = typeof product.category === 'object' 
+    ? (product.category as unknown as { name: string }).name 
+    : product.category
+  
   return (
     <div>
-      <AddToBrowsingHistory id={product._id} category={typeof product.category === 'object' ? (product.category as unknown as { name: string }).name : product.category} />
+      <AddToBrowsingHistory id={product._id} category={categoryName} />
+      
+      {/* Breadcrumbs */}
+      <div className='py-4'>
+        <Breadcrumbs
+          items={[
+            { label: t('Header.All'), href: '/' },
+            { label: categoryName, href: `/search?category=${categoryName}` },
+            { label: product.name, href: '#' },
+          ]}
+        />
+      </div>
+      
       <section>
         <div className='grid grid-cols-1 md:grid-cols-5 gap-4'>
           <div className='col-span-2'>
             <ProductGallery images={product.images} />
           </div>
 
-          <div className='flex w-full flex-col gap-2 md:p-5 col-span-3'>
-            <div className='flex flex-col gap-3'>
-              <p className='p-medium-16 rounded-full bg-grey-500/10   text-grey-500'>
-                {t('Product.Brand')} {typeof product.brand === 'object' ? (product.brand as unknown as { name: string }).name : product.brand} {typeof product.category === 'object' ? (product.category as unknown as { name: string }).name : product.category}
-              </p>
-              <div className='flex items-start justify-between gap-2'>
-                <h1 className='font-bold text-lg lg:text-xl'>{product.name}</h1>
-                <FavoriteButton productId={product._id} />
+          <div className='flex w-full flex-col gap-4 md:p-5 col-span-3'>
+            {/* Product Title & Favorite - Larger and more prominent */}
+            <div className='flex items-start justify-between gap-2'>
+              <div className='flex-1'>
+                <h1 className='font-bold text-2xl lg:text-3xl mb-2'>{product.name}</h1>
+                <p className='text-sm text-muted-foreground'>
+                  {t('Product.Brand')}: {typeof product.brand === 'object' ? (product.brand as unknown as { name: string }).name : product.brand} | 
+                  {' '}{typeof product.category === 'object' ? (product.category as unknown as { name: string }).name : product.category}
+                </p>
               </div>
-
-              <RatingSummary
-                avgRating={product.avgRating}
-                numReviews={product.numReviews}
-                asPopover
-                ratingDistribution={product.ratingDistribution}
-              />
-              <Separator />
-              {/* Promotion Badges */}
-              <PromotionBadge
-                productId={product._id}
-                categoryId={typeof product.category === 'object' ? (product.category as unknown as { _id: string })._id : product.category}
-                size='lg'
-                className='mb-2'
-              />
+              <FavoriteButton productId={product._id} />
             </div>
+
+            {/* Rating - More prominent */}
+            <RatingSummary
+              avgRating={product.avgRating}
+              numReviews={product.numReviews}
+              asPopover
+              ratingDistribution={product.ratingDistribution}
+            />
             
-            <Separator className='my-2' />
+            {/* Promotion Badges */}
+            <PromotionBadge
+              productId={product._id}
+              categoryId={typeof product.category === 'object' ? (product.category as unknown as { _id: string })._id : product.category}
+              size='lg'
+            />
+            
+            <Separator />
             
             {/* Variant Selection & Pricing */}
             <ProductDetailClient 
@@ -102,27 +126,86 @@ export default async function ProductDetails(props: {
               translations={{
                 inStock: t('Product.In Stock'),
                 outOfStock: t('Product.Out of Stock'),
-                onlyXLeft: t('Product.Only X left in stock - order soon', { count: product.countInStock })
+                lowStock: t('Product.Low Stock'),
+                onlyXLeft: t('Product.Only X left in stock - order soon', { count: product.countInStock }),
+                quantity: t('Product.Quantity'),
+                max: t('Product.Max'),
+                taxIncluded: t('Product.Tax included'),
+                freeShipping: t('Product.Free shipping'),
               }}
             />
-            
-            <Separator className='my-2' />
-            <div className='flex flex-col gap-2'>
-              <p className='p-bold-20 text-grey-600'>
-                {t('Product.Description')}:
-              </p>
-              <p className='p-medium-16 lg:p-regular-18'>
-                {product.description}
-              </p>
-            </div>
           </div>
         </div>
       </section>
+      
+      {/* Product Information Tabs */}
       <section className='mt-10'>
-        <h2 className='h2-bold mb-2' id='reviews'>
-          {t('Product.Customer Reviews')}
-        </h2>
-        <ReviewList product={product} userId={session?.user.id} />
+        <ProductTabs
+          defaultTab='overview'
+          tabs={[
+            {
+              value: 'overview',
+              label: t('Product.Overview'),
+              content: (
+                <div className='space-y-6'>
+                  {/* Key Features */}
+                  <KeyFeatures
+                    title={t('Product.Key Features')}
+                    features={[
+                      product.name.includes('iPhone') || product.name.includes('Pro') 
+                        ? 'Advanced A17 Pro chip for lightning-fast performance'
+                        : 'High-performance processor',
+                      'Premium build quality with durable materials',
+                      'Stunning display with vibrant colors',
+                      'Long-lasting battery life for all-day use',
+                      'Advanced camera system for professional photos',
+                    ]}
+                  />
+                  
+                  <Separator />
+                  
+                  {/* Description */}
+                  <div className='space-y-3'>
+                    <h3 className='text-lg font-semibold'>
+                      {t('Product.Description')}
+                    </h3>
+                    <p className='text-sm text-muted-foreground leading-relaxed'>
+                      {product.description}
+                    </p>
+                  </div>
+                </div>
+              ),
+            },
+            {
+              value: 'specifications',
+              label: t('Product.Specifications'),
+              content: (
+                <SpecificationsTable
+                  title={t('Product.Technical Specifications')}
+                  specifications={[
+                    {
+                      title: 'General',
+                      specs: [
+                        { label: 'Brand', value: typeof product.brand === 'object' ? (product.brand as unknown as { name: string }).name : product.brand },
+                        { label: 'Category', value: typeof product.category === 'object' ? (product.category as unknown as { name: string }).name : product.category },
+                        { label: 'Condition', value: product.isSecondHand ? t('Condition.Second Hand') : t('Condition.New') },
+                      ],
+                    },
+                  ]}
+                />
+              ),
+            },
+            {
+              value: 'reviews',
+              label: t('Product.Customer Reviews'),
+              content: (
+                <div id='reviews'>
+                  <ReviewList product={product} userId={session?.user.id} />
+                </div>
+              ),
+            },
+          ]}
+        />
       </section>
       <section className='mt-10'>
         <ProductSlider

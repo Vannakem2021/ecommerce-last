@@ -5,6 +5,44 @@ import { IProduct } from '@/lib/db/models/product.model'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { round2 } from '@/lib/utils'
+import { Check } from 'lucide-react'
+
+// Helper function to normalize color values
+const normalizeColor = (color: string): string => {
+  // If it's a hex color (starts with #), return as-is
+  if (color.startsWith('#')) {
+    return color
+  }
+  // Otherwise, convert to lowercase for CSS color names
+  return color.toLowerCase()
+}
+
+// Helper function to determine if a color is light or dark
+const isLightColor = (color: string): boolean => {
+  // Common light colors that need dark checkmark
+  const lightColors = ['white', 'yellow', 'lime', 'cyan', 'lightblue', 'lightgreen', 
+                       'lightyellow', 'lightcyan', 'lightgray', 'lightgrey', 'silver',
+                       'beige', 'ivory', 'lavender', 'pink', 'lightpink', 'peachpuff']
+  
+  const normalizedColor = color.toLowerCase()
+  
+  // Check if it's a known light color
+  if (lightColors.includes(normalizedColor)) {
+    return true
+  }
+  
+  // For hex colors, calculate luminance
+  if (color.startsWith('#')) {
+    const hex = color.replace('#', '')
+    const r = parseInt(hex.substr(0, 2), 16)
+    const g = parseInt(hex.substr(2, 2), 16)
+    const b = parseInt(hex.substr(4, 2), 16)
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+    return luminance > 0.5
+  }
+  
+  return false
+}
 
 export default function SelectVariantWithPricing({
   product,
@@ -157,25 +195,33 @@ export default function SelectVariantWithPricing({
         <div className="space-y-2">
           <div className="font-semibold text-sm">Color:</div>
           <div className="flex flex-wrap gap-2">
-            {product.variants.colors.map((color) => (
-              <Button
+            {product.variants.colors.map((color) => {
+              const normalizedColor = normalizeColor(color)
+              const isLight = isLightColor(color)
+              return (
+              <button
                 key={color}
-                variant="outline"
-                size="sm"
-                className={
-                  selectedColor === color
-                    ? 'border-2 border-primary'
-                    : 'border-2'
-                }
+                type="button"
+                className="relative rounded-full transition-all hover:scale-110"
                 onClick={() => handleColorChange(color)}
+                title={color}
+                aria-label={`Select color ${color}`}
               >
-                <div
-                  style={{ backgroundColor: color.toLowerCase() }}
-                  className="h-3 w-3 rounded-full border border-muted-foreground mr-1"
-                />
-                {color}
-              </Button>
-            ))}
+                <span
+                  style={{ 
+                    backgroundColor: normalizedColor,
+                  }}
+                  className="inline-flex h-10 w-10 rounded-full border-2 border-gray-300 dark:border-gray-600 items-center justify-center"
+                >
+                  {selectedColor === color && (
+                    <Check 
+                      className={`h-5 w-5 drop-shadow-lg ${isLight ? 'text-gray-900' : 'text-white'}`}
+                      strokeWidth={3} 
+                    />
+                  )}
+                </span>
+              </button>
+            )})}
           </div>
         </div>
       )}
