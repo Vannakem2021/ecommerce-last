@@ -43,27 +43,33 @@ const ProductCardEnhanced = ({
 }) => {
   const t = useTranslations('Home')
   
-  const ProductImage = () => (
-    <Link href={`/product/${product.slug}`}>
-      <div className='relative h-52'>
-        {product.images.length > 1 ? (
-          <ImageHover
-            src={product.images[0]}
-            hoverSrc={product.images[1]}
-            alt={product.name}
-          />
-        ) : (
-          <div className='relative h-52'>
-            <Image
-              src={product.images[0]}
+  const ProductImage = () => {
+    // Filter valid images
+    const validImages = product.images.filter(img => img && img.trim() !== '')
+    const hasImage = validImages.length > 0
+    const imageUrl = hasImage ? validImages[0] : '/placeholder.png'
+    
+    return (
+      <Link href={`/product/${product.slug}`}>
+        <div className='relative h-52'>
+          {validImages.length > 1 ? (
+            <ImageHover
+              src={validImages[0]}
+              hoverSrc={validImages[1]}
               alt={product.name}
-              fill
-              sizes='80vw'
-              className='object-contain'
             />
-          </div>
-        )}
-        <div className='absolute top-2 right-2 z-10'>
+          ) : (
+            <div className='relative h-52'>
+              <Image
+                src={imageUrl}
+                alt={product.name}
+                fill
+                sizes='80vw'
+                className='object-contain'
+              />
+            </div>
+          )}
+          <div className='absolute top-2 right-2 z-10'>
           <FavoriteButton 
             productId={product._id}
             onToggleStart={onFavoriteToggleStart}
@@ -99,10 +105,11 @@ const ProductCardEnhanced = ({
         </div>
       </div>
     </Link>
-  )
+    )
+  }
   
   const ProductDetails = () => (
-    <div className='flex-1 space-y-2'>
+    <div className='flex-1 space-y-3'>
       {/* Brand - smaller, muted */}
       <p className='text-xs text-muted-foreground uppercase tracking-wide'>
         {typeof product.brand === 'object' ? (product.brand as unknown as { name: string }).name : product.brand}
@@ -127,12 +134,6 @@ const ProductCardEnhanced = ({
         <span className='text-muted-foreground'>({formatNumber(product.numReviews)})</span>
       </div>
 
-      <ProductPrice
-        price={product.price}
-        listPrice={product.listPrice}
-        forListing
-      />
-      
       {/* Additional Info */}
       <div className='flex flex-col gap-1 mt-2'>
         {/* Relative date for new products */}
@@ -153,9 +154,18 @@ const ProductCardEnhanced = ({
   )
   
   const AddButton = () => (
-    <div className='w-full text-center'>
+    <div className='w-full flex items-center justify-between gap-3'>
+      {/* Price */}
+      <ProductPrice
+        price={product.price}
+        listPrice={product.listPrice}
+        forListing
+      />
+      
+      {/* Cart Icon Button */}
       <AddToCart
         minimal
+        iconOnly
         item={{
           clientId: generateId(),
           product: product._id,
@@ -167,7 +177,7 @@ const ProductCardEnhanced = ({
           category: typeof product.category === 'object' ? (product.category as unknown as { name: string }).name : product.category,
           price: round2(product.price),
           quantity: 1,
-          image: product.images[0],
+          image: product.images && product.images[0] && product.images[0].trim() !== '' ? product.images[0] : '/placeholder.png',
         }}
       />
     </div>
@@ -178,24 +188,24 @@ const ProductCardEnhanced = ({
       <ProductImage />
       {!hideDetails && (
         <>
-          <div className='p-4 flex-1 text-center'>
+          <div className='p-5 flex-1 text-center'>
             <ProductDetails />
           </div>
-          {!hideAddToCart && <div className='px-4 pb-4'><AddButton /></div>}
+          {!hideAddToCart && <div className='px-5 pb-5'><AddButton /></div>}
         </>
       )}
     </div>
   ) : (
-    <Card className='flex flex-col bg-card border-border hover:shadow-lg transition-shadow'>
-      <CardHeader className='p-4'>
+    <Card className='flex flex-col bg-card border border-border hover:shadow-lg hover:scale-[1.02] hover:-translate-y-1 transition-all duration-300 rounded-md'>
+      <CardHeader className='p-5'>
         <ProductImage />
       </CardHeader>
       {!hideDetails && (
         <>
-          <CardContent className='px-4 py-3 flex-1 text-center'>
+          <CardContent className='px-5 py-4 flex-1 text-center'>
             <ProductDetails />
           </CardContent>
-          <CardFooter className='px-4 pb-4 pt-2'>
+          <CardFooter className='px-5 pb-5 pt-2'>
             {!hideAddToCart && <AddButton />}
           </CardFooter>
         </>

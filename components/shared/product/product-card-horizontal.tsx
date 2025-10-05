@@ -30,9 +30,9 @@ const ProductCardHorizontal = ({
       <div
         className={`
           flex gap-4 md:gap-5 
-          ${compact ? 'p-3 md:p-4' : 'p-4 md:p-5'}
+          ${compact ? 'p-3 md:p-4' : 'p-5 md:p-6'}
           border border-border rounded-md 
-          hover:shadow-md hover:border-primary/50 
+          hover:shadow-lg hover:border-primary/50 hover:scale-[1.01]
           transition-all duration-300
           bg-card
           group
@@ -42,7 +42,7 @@ const ProductCardHorizontal = ({
         {/* Left: Image Section */}
         <div className='relative w-24 h-24 md:w-32 md:h-32 lg:w-36 lg:h-36 flex-shrink-0'>
           <Image
-            src={product.images[0]}
+            src={product.images && product.images[0] && product.images[0].trim() !== '' ? product.images[0] : '/placeholder.png'}
             alt={product.name}
             fill
             sizes='(max-width: 768px) 96px, (max-width: 1024px) 128px, 144px'

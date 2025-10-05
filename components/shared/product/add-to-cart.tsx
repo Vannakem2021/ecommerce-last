@@ -28,9 +28,11 @@ import { ShoppingCart } from 'lucide-react'
 export default function AddToCart({
   item,
   minimal = false,
+  iconOnly = false,
 }: {
   item: OrderItem
   minimal?: boolean
+  iconOnly?: boolean
 }) {
   const router = useRouter()
   const { toast } = useToast()
@@ -49,7 +51,10 @@ export default function AddToCart({
   return minimal ? (
     <Button
       variant='outline'
-      className='rounded-lg w-full border-2 hover:bg-primary hover:text-primary-foreground hover:border-primary transition-colors gap-2'
+      className={iconOnly 
+        ? 'rounded-lg h-10 w-10 p-0 border-2 hover:bg-primary hover:text-primary-foreground hover:border-primary transition-colors flex-shrink-0'
+        : 'rounded-lg w-full border-2 hover:bg-primary hover:text-primary-foreground hover:border-primary transition-colors gap-2'
+      }
       disabled={!isInStock}
       onClick={async () => {
         if (!isInStock) {
@@ -82,8 +87,8 @@ export default function AddToCart({
         }
       }}
     >
-      <ShoppingCart className='h-4 w-4' />
-      {isInStock ? t('Product.Add to Cart') : t('Product.Out of Stock')}
+      <ShoppingCart className={iconOnly ? 'h-5 w-5' : 'h-4 w-4'} />
+      {!iconOnly && (isInStock ? t('Product.Add to Cart') : t('Product.Out of Stock'))}
     </Button>
   ) : (
     <div className='w-full space-y-2'>
