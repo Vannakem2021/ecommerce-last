@@ -625,6 +625,10 @@ export const UserNameSchema = z.object({
   name: UserName,
 });
 
+export const UserImageUpdateSchema = z.object({
+  image: z.string().url("Must be a valid image URL").min(1, "Image is required"),
+});
+
 // Password reset schemas
 export const ForgotPasswordSchema = z.object({
   email: Email,

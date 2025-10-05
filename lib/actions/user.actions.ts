@@ -716,3 +716,202 @@ export async function getUsersForExport(userType: 'customer' | 'system') {
     }
   }
 }
+
+// UPDATE USER PROFILE IMAGE
+export async function updateUserImage(image: string) {
+  try {
+    // 1. Validate input
+    const { UserImageUpdateSchema } = await import('../validator');
+    const validatedData = UserImageUpdateSchema.parse({ image });
+    
+    // 2. Get authenticated user
+    const session = await auth();
+    if (!session?.user?.id) {
+      throw new Error("Authentication required");
+    }
+
+    // 3. Connect to database
+    await connectToDatabase();
+
+    // 4. Find and update user
+    const user = await User.findById(session.user.id);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // 5. Update image field
+    user.image = validatedData.image;
+    await user.save();
+
+    // 6. Revalidate cache
+    revalidatePath("/account");
+    revalidatePath("/account/manage");
+
+    return {
+      success: true,
+      message: "Profile picture updated successfully",
+      data: user.image,
+    };
+  } catch (error) {
+    return { 
+      success: false, 
+      message: formatError(error) 
+    };
+  }
+}
+
+// REMOVE USER PROFILE IMAGE
+export async function removeUserImage() {
+  try {
+    // 1. Get authenticated user
+    const session = await auth();
+    if (!session?.user?.id) {
+      throw new Error("Authentication required");
+    }
+
+    // 2. Connect to database
+    await connectToDatabase();
+
+    // 3. Find and update user
+    const user = await User.findById(session.user.id);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // 4. Remove image field
+    user.image = undefined;
+    await user.save();
+
+    // 5. Revalidate cache
+    revalidatePath("/account");
+    revalidatePath("/account/manage");
+
+    return {
+      success: true,
+      message: "Profile picture removed successfully",
+    };
+  } catch (error) {
+    return { 
+      success: false, 
+      message: formatError(error) 
+    };
+  }
+}
+
+// GET USER AUTH METHOD (Check if user has password)
+export async function getUserAuthMethod(userId: string) {
+  try {
+    await connectToDatabase()
+    const user = await User.findById(userId).select('password email')
+    
+    if (!user) {
+      throw new Error('User not found')
+    }
+
+    return {
+      success: true,
+      data: {
+        hasPassword: !!user.password,
+        email: user.email,
+      }
+    }
+  } catch (error) {
+    return {
+      success: false,
+      message: formatError(error)
+    }
+  }
+}
+
+// CHANGE PASSWORD (for users who already have a password)
+export async function changePassword(data: {
+  currentPassword: string
+  newPassword: string
+}) {
+  try {
+    const session = await auth()
+    if (!session?.user?.id) {
+      throw new Error('Authentication required')
+    }
+
+    await connectToDatabase()
+
+    const user = await User.findById(session.user.id)
+    if (!user) {
+      throw new Error('User not found')
+    }
+
+    // Verify user has a password
+    if (!user.password) {
+      throw new Error('No password set. Please use "Set Password" instead.')
+    }
+
+    // Verify current password
+    const isMatch = await bcrypt.compare(data.currentPassword, user.password)
+    if (!isMatch) {
+      throw new Error('Current password is incorrect')
+    }
+
+    // Hash and update new password
+    user.password = await bcrypt.hash(data.newPassword, 12)
+    await user.save()
+
+    revalidatePath('/account/manage')
+
+    // TODO: Send email notification
+    // await sendPasswordChangeEmail(user.email, user.name)
+
+    return {
+      success: true,
+      message: 'Password changed successfully',
+    }
+  } catch (error) {
+    return {
+      success: false,
+      message: formatError(error),
+    }
+  }
+}
+
+// SET PASSWORD (for OAuth users who don't have a password)
+export async function setPassword(data: {
+  password: string
+}) {
+  try {
+    const session = await auth()
+    if (!session?.user?.id) {
+      throw new Error('Authentication required')
+    }
+
+    await connectToDatabase()
+
+    const user = await User.findById(session.user.id)
+    if (!user) {
+      throw new Error('User not found')
+    }
+
+    // Check if user already has a password
+    if (user.password) {
+      throw new Error('Password already set. Use "Change Password" instead.')
+    }
+
+    // Hash and set password
+    user.password = await bcrypt.hash(data.password, 12)
+    await user.save()
+
+    revalidatePath('/account/manage')
+
+    // TODO: Send email notification
+    // await sendPasswordSetEmail(user.email, user.name)
+
+    return {
+      success: true,
+      message: 'Password set successfully! You can now sign in with email/password.',
+    }
+  } catch (error) {
+    return {
+      success: false,
+      message: formatError(error),
+    }
+  }
+}

@@ -1,10 +1,11 @@
 import React from 'react'
 import { auth } from '@/auth'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { LogOut } from 'lucide-react'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import AccountSidebarNav from '@/components/shared/account/account-sidebar-nav'
+import ProfilePictureModal from '@/components/shared/account/profile-picture-modal'
 
 export default async function AccountLayout({
   children,
@@ -40,16 +41,6 @@ export default async function AccountLayout({
     },
   ]
 
-  // Get user initials
-  const initials = session.user.name
-    ? session.user.name
-        .split(' ')
-        .map(n => n[0])
-        .join('')
-        .toUpperCase()
-        .slice(0, 2)
-    : 'U'
-
   return (
     <div className='flex-1'>
       <div className='container mx-auto px-4 py-6'>
@@ -59,11 +50,10 @@ export default async function AccountLayout({
             <div className='space-y-4'>
               {/* Profile Section */}
               <div className='flex items-center gap-3 mb-6'>
-                <Avatar className='w-12 h-12'>
-                  <AvatarFallback className='bg-primary text-primary-foreground font-semibold'>
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
+                <ProfilePictureModal
+                  currentImage={session.user.image || undefined}
+                  userName={session.user.name || 'User'}
+                />
                 <div className='flex-1 min-w-0'>
                   <h2 className='font-semibold text-sm truncate'>{session.user.name}</h2>
                   <p className='text-xs text-muted-foreground truncate'>
@@ -84,10 +74,10 @@ export default async function AccountLayout({
                   className='w-full justify-start text-muted-foreground hover:text-foreground'
                   asChild
                 >
-                  <a href='/help'>
+                  <Link href='/help'>
                     <LogOut className='w-4 h-4 mr-3' />
                     <span className='text-sm'>Help</span>
-                  </a>
+                  </Link>
                 </Button>
               </div>
             </div>
