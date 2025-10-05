@@ -7,8 +7,11 @@ import { getAllCategories } from '@/lib/actions/product.actions'
 import data from '@/lib/data'
 import { getPublishedWebPagesForNavigation } from '@/lib/actions/web-page.actions'
 import Sidebar from './sidebar'
+import { getTranslations } from 'next-intl/server'
+import CategoryNavLinks from './category-nav-links'
 
 export default async function CategoryNav() {
+  const t = await getTranslations()
   const session = await auth()
   const allCategories = await getAllCategories()
   const publishedPages = await getPublishedWebPagesForNavigation()
@@ -25,10 +28,10 @@ export default async function CategoryNav() {
 
   // Get dynamic sections from settings for navbar
   const categories = [
-    { name: 'Hot Deals', icon: Flame, href: '/search?discount=true' },
-    { name: 'New Arrivals', icon: Sparkles, href: '/search?sort=latest' },
-    { name: 'Best Sellers', icon: TrendingUp, href: '/search?sort=best-selling' },
-    { name: 'Second Hand', icon: RefreshCcw, href: '/search?secondHand=true' },
+    { name: t('Home.Hot Deals'), icon: 'Flame', href: '/search?discount=true' },
+    { name: t('Header.New Arrivals'), icon: 'Sparkles', href: '/search?sort=latest' },
+    { name: t('Header.Best Sellers'), icon: 'TrendingUp', href: '/search?sort=best-selling' },
+    { name: t('Home.Second Hand'), icon: 'RefreshCcw', href: '/search?secondHand=true' },
   ]
 
   return (
@@ -41,20 +44,8 @@ export default async function CategoryNav() {
           </div>
 
           {/* Category Links */}
-          <nav className='hidden lg:flex items-center gap-6 flex-1 ml-6'>
-            {categories.map((category) => {
-              const Icon = category.icon
-              return (
-                <Link
-                  key={category.name}
-                  href={category.href}
-                  className='flex items-center gap-2 text-white hover:text-white/80 transition-colors text-base font-medium'
-                >
-                  <Icon className='h-5 w-5' />
-                  <span>{category.name}</span>
-                </Link>
-              )
-            })}
+          <nav className='hidden lg:flex items-center gap-4 flex-1 ml-6'>
+            <CategoryNavLinks categories={categories} />
           </nav>
 
           {/* Login/Sign Up Button */}
@@ -66,7 +57,7 @@ export default async function CategoryNav() {
                 size='default'
                 className='font-semibold bg-white text-primary hover:bg-white/90 h-10'
               >
-                <Link href='/sign-in'>Login / Sign Up</Link>
+                <Link href='/sign-in'>{t('Auth.Login / Sign Up')}</Link>
               </Button>
             ) : null}
           </div>

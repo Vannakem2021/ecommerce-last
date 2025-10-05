@@ -8,6 +8,7 @@ import { formatNumber } from '@/lib/utils'
 import { getRelativeTimeString, isNew, formatSalesCount } from '@/lib/utils/date'
 import ProductPrice from './product-price'
 import { Trophy } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 interface ProductCardHorizontalProps {
   product: IProduct
@@ -22,11 +23,8 @@ const ProductCardHorizontal = ({
   ranking,
   compact = false,
 }: ProductCardHorizontalProps) => {
-  const discountPercentage =
-    product.listPrice > product.price
-      ? Math.round(((product.listPrice - product.price) / product.listPrice) * 100)
-      : 0
-
+  const t = useTranslations('Home')
+  
   return (
     <Link href={`/product/${product.slug}`} className='block'>
       <div
@@ -56,7 +54,7 @@ const ProductCardHorizontal = ({
             {/* Second Hand Badge */}
             {product.secondHand && (
               <Badge className='bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs px-1.5 py-0.5'>
-                Second Hand
+                {t('Second Hand')}
               </Badge>
             )}
             
@@ -109,44 +107,25 @@ const ProductCardHorizontal = ({
           </div>
 
           {/* Price Section */}
-          <div className='flex items-center gap-2 flex-wrap mt-1'>
-            {/* Discount Badge (like in sample image) */}
-            {discountPercentage > 0 && (
-              <div className='flex items-baseline gap-2'>
-                <span className='text-sm md:text-base text-muted-foreground line-through'>
-                  ${product.listPrice.toFixed(2)}
-                </span>
-                <Badge
-                  variant='default'
-                  className='bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-base md:text-lg px-3 py-1'
-                >
-                  ${product.price.toFixed(2)}
-                </Badge>
-              </div>
-            )}
-
-            {/* Regular Price (no discount) */}
-            {discountPercentage === 0 && (
-              <Badge
-                variant='default'
-                className='bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-base md:text-lg px-3 py-1'
-              >
-                ${product.price.toFixed(2)}
-              </Badge>
-            )}
+          <div className='mt-1'>
+            <ProductPrice
+              price={product.price}
+              listPrice={product.listPrice}
+              forListing
+            />
           </div>
 
           {/* Additional Info */}
           <div className='flex items-center gap-2 text-sm text-muted-foreground mt-1'>
             {/* Sales count for Best Sellers */}
             {ranking && product.numSales > 0 && (
-              <span>{formatSalesCount(product.numSales)} sold</span>
+              <span>{formatSalesCount(product.numSales)} {t('sold')}</span>
             )}
 
             {/* Relative date for New Arrivals */}
             {showNewBadge && product.createdAt && isNew(product.createdAt) && (
               <span className='text-green-600 dark:text-green-400 font-medium'>
-                {getRelativeTimeString(new Date(product.createdAt))}
+                {getRelativeTimeString(new Date(product.createdAt), t)}
               </span>
             )}
           </div>

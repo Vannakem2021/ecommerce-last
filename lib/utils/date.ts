@@ -1,24 +1,46 @@
 // Date utility functions
 
-export function getRelativeTimeString(date: Date): string {
+type TranslationFunction = (key: string, values?: Record<string, any>) => string
+
+export function getRelativeTimeString(date: Date, t?: TranslationFunction): string {
   const now = new Date()
   const diffInMs = now.getTime() - new Date(date).getTime()
   const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24))
 
+  if (!t) {
+    // Fallback to English if no translation function provided
+    if (diffInDays === 0) {
+      return 'Just added'
+    } else if (diffInDays === 1) {
+      return '1 day ago'
+    } else if (diffInDays <= 7) {
+      return `${diffInDays} days ago`
+    } else if (diffInDays <= 30) {
+      const weeks = Math.floor(diffInDays / 7)
+      return weeks === 1 ? '1 week ago' : `${weeks} weeks ago`
+    } else if (diffInDays <= 60) {
+      return '1 month ago'
+    } else {
+      const months = Math.floor(diffInDays / 30)
+      return `${months} months ago`
+    }
+  }
+
+  // Use translations
   if (diffInDays === 0) {
-    return 'Just added'
+    return t('Just added')
   } else if (diffInDays === 1) {
-    return '1 day ago'
+    return t('1 day ago')
   } else if (diffInDays <= 7) {
-    return `${diffInDays} days ago`
+    return `${diffInDays} ${t('days ago')}`
   } else if (diffInDays <= 30) {
     const weeks = Math.floor(diffInDays / 7)
-    return weeks === 1 ? '1 week ago' : `${weeks} weeks ago`
+    return weeks === 1 ? t('1 week ago') : `${weeks} ${t('weeks ago')}`
   } else if (diffInDays <= 60) {
-    return '1 month ago'
+    return t('1 month ago')
   } else {
     const months = Math.floor(diffInDays / 30)
-    return `${months} months ago`
+    return `${months} ${t('months ago')}`
   }
 }
 

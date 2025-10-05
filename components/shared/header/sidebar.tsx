@@ -33,7 +33,6 @@ export default async function Sidebar({
     <Drawer direction={getDirection(locale) === 'rtl' ? 'right' : 'left'}>
       <DrawerTrigger className='flex items-center gap-2 text-white hover:text-white/80 transition-colors bg-black/20 hover:bg-black/30 px-4 py-2 rounded'>
         <MenuIcon className='h-6 w-6' />
-        <span className='font-medium text-base'>{t('Header.All')} Categories</span>
       </DrawerTrigger>
       <DrawerContent className='w-[300px] mt-0 top-0 rounded-none'>
         <div className='flex flex-col h-full'>
@@ -66,34 +65,49 @@ export default async function Sidebar({
           <div className='flex-1 overflow-y-auto'>
             <nav>
               {/* Shop Section */}
-              {menuItems.filter(item => 
-                ['Today\'s Deal', 'New Arrivals', 'Featured Products', 'Best Sellers'].includes(item.name) ||
-                item.section === 'shop'
-              ).length > 0 && (
-                <>
-                  <div className='px-5 py-2 bg-muted/30'>
-                    <span className='text-xs font-bold text-primary uppercase tracking-wider'>
-                      Shop
-                    </span>
-                  </div>
-                  {menuItems
-                    .filter(item => 
-                      ['Today\'s Deal', 'New Arrivals', 'Featured Products', 'Best Sellers'].includes(item.name) ||
-                      item.section === 'shop'
-                    )
-                    .map((item) => (
-                      <DrawerClose asChild key={item.href}>
-                        <Link
-                          href={item.href}
-                          className='flex items-center justify-between px-5 py-3 hover:bg-muted/50 transition-colors'
-                        >
-                          <span className='font-medium text-sm'>{item.name}</span>
-                          <ChevronRight className='h-4 w-4 text-muted-foreground' />
-                        </Link>
-                      </DrawerClose>
-                    ))}
-                </>
-              )}
+              <>
+                <div className='px-5 py-2 bg-muted/30'>
+                  <span className='text-xs font-bold text-primary uppercase tracking-wider'>
+                    Shop
+                  </span>
+                </div>
+                {/* Hot Deals Link */}
+                <DrawerClose asChild>
+                  <Link
+                    href='/search?discount=true'
+                    className='flex items-center justify-between px-5 py-3 hover:bg-muted/50 transition-colors'
+                  >
+                    <span className='font-medium text-sm'>{t('Home.Hot Deals')}</span>
+                    <ChevronRight className='h-4 w-4 text-muted-foreground' />
+                  </Link>
+                </DrawerClose>
+                {menuItems
+                  .filter(item => 
+                    ['New Arrivals', 'Featured Products', 'Best Sellers'].includes(item.name) ||
+                    item.section === 'shop'
+                  )
+                  .map((item) => (
+                    <DrawerClose asChild key={item.href}>
+                      <Link
+                        href={item.href}
+                        className='flex items-center justify-between px-5 py-3 hover:bg-muted/50 transition-colors'
+                      >
+                        <span className='font-medium text-sm'>{item.name}</span>
+                        <ChevronRight className='h-4 w-4 text-muted-foreground' />
+                      </Link>
+                    </DrawerClose>
+                  ))}
+                {/* Second Hand Link */}
+                <DrawerClose asChild>
+                  <Link
+                    href='/search?secondHand=true'
+                    className='flex items-center justify-between px-5 py-3 hover:bg-muted/50 transition-colors'
+                  >
+                    <span className='font-medium text-sm'>{t('Home.Second Hand')}</span>
+                    <ChevronRight className='h-4 w-4 text-muted-foreground' />
+                  </Link>
+                </DrawerClose>
+              </>
 
               {/* Categories Section */}
               {categories.length > 0 && (
