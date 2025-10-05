@@ -30,24 +30,41 @@ export default function CategoryNavLinks({ categories }: { categories: CategoryL
     // Check if we're on the search page
     if (!pathname.endsWith('/search')) return false
 
+    // Get all current search params
+    const hasCategory = searchParams.has('category') && searchParams.get('category') !== 'all'
+    const hasPrice = searchParams.has('price') && searchParams.get('price') !== 'all'
+    const hasTag = searchParams.has('tag') && searchParams.get('tag') !== 'all'
+    const hasQuery = searchParams.has('q') && searchParams.get('q') !== 'all' && searchParams.get('q') !== ''
+
+    // Only show active if ONLY the nav param is set (no other filters)
+    const hasOtherFilters = hasCategory || hasPrice || hasTag || hasQuery
+
     // For discount (Hot Deals)
     if (params.get('discount')) {
-      return searchParams.get('discount') === 'true'
+      return searchParams.get('discount') === 'true' && !hasOtherFilters && 
+             searchParams.get('secondHand') !== 'true' && searchParams.get('secondHand') !== 'false'
     }
 
     // For sort=latest (New Arrivals)
     if (params.get('sort') === 'latest') {
-      return searchParams.get('sort') === 'latest'
+      return searchParams.get('sort') === 'latest' && !hasOtherFilters &&
+             searchParams.get('discount') !== 'true' &&
+             searchParams.get('secondHand') !== 'true' && searchParams.get('secondHand') !== 'false'
     }
 
     // For sort=best-selling (Best Sellers)
     if (params.get('sort') === 'best-selling') {
-      return searchParams.get('sort') === 'best-selling'
+      // Best selling is the default, only active if no other params
+      return !hasOtherFilters && 
+             searchParams.get('discount') !== 'true' &&
+             searchParams.get('secondHand') !== 'true' && searchParams.get('secondHand') !== 'false' &&
+             (!searchParams.has('sort') || searchParams.get('sort') === 'best-selling')
     }
 
     // For secondHand (Second Hand)
     if (params.get('secondHand')) {
-      return searchParams.get('secondHand') === 'true'
+      return searchParams.get('secondHand') === 'true' && !hasOtherFilters &&
+             searchParams.get('discount') !== 'true'
     }
 
     return false
