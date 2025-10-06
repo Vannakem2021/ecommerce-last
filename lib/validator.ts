@@ -549,6 +549,12 @@ export const UserInputSchema = z.object({
   role: UserRole,
   password: Password,
   paymentMethod: z.string().optional(),
+  
+  // Profile preferences (Phase 1 settings)
+  phone: z.string().optional(),
+  preferredLanguage: z.enum(['en-US', 'kh']).optional(),
+  preferredCurrency: z.enum(['USD', 'KHR']).optional(),
+  
   address: z.union([
     // Cambodia address format
     z.object({

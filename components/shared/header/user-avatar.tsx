@@ -1,22 +1,64 @@
 'use client'
 
+import { useState } from 'react'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { cn } from '@/lib/utils'
+
 interface UserAvatarProps {
-  src: string | null | undefined
-  alt: string
+  user: {
+    name?: string | null
+    image?: string | null
+  }
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
   className?: string
 }
 
-export default function UserAvatar({ src, alt, className }: UserAvatarProps) {
-  const handleError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    e.currentTarget.src = '/images/missing-image.png'
+export default function UserAvatar({ user, size = 'md', className }: UserAvatarProps) {
+  const [imageLoaded, setImageLoaded] = useState(false)
+  const [imageError, setImageError] = useState(false)
+
+  const getInitials = () => {
+    if (!user.name) return 'U'
+    return user.name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2)
   }
 
+  const sizeClasses = {
+    xs: 'w-8 h-8 text-xs',
+    sm: 'w-10 h-10 text-sm',
+    md: 'w-12 h-12 text-base',
+    lg: 'w-16 h-16 text-xl',
+    xl: 'w-32 h-32 text-3xl'
+  }
+
+  const hasImage = !!user.image
+
   return (
-    <img
-      src={src || '/images/missing-image.png'}
-      alt={alt}
-      className={className}
-      onError={handleError}
-    />
+    <Avatar className={cn(sizeClasses[size], className)}>
+      {hasImage && (
+        <AvatarImage 
+          src={user.image || undefined} 
+          alt={user.name || 'User'}
+          className={cn(
+            'transition-opacity duration-200',
+            imageLoaded ? 'opacity-100' : 'opacity-0'
+          )}
+          onLoad={() => setImageLoaded(true)}
+          onError={() => setImageError(true)}
+        />
+      )}
+      <AvatarFallback 
+        className={cn(
+          "bg-primary text-primary-foreground font-semibold transition-opacity duration-200",
+          hasImage && !imageError && !imageLoaded ? 'opacity-0' : 'opacity-100'
+        )}
+      >
+        {getInitials()}
+      </AvatarFallback>
+    </Avatar>
   )
 }

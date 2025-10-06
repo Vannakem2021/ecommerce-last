@@ -1,11 +1,9 @@
 import React from 'react'
 import { auth } from '@/auth'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import { LogOut } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import AccountSidebarNav from '@/components/shared/account/account-sidebar-nav'
-import ProfilePictureModal from '@/components/shared/account/profile-picture-modal'
+import { MobileAccountHeader } from '@/components/shared/account/mobile-account-header'
+import { AccountSidebarContent } from '@/components/shared/account/account-sidebar-content'
+import { getUserById } from '@/lib/actions/user.actions'
 
 export default async function AccountLayout({
   children,
@@ -17,6 +15,9 @@ export default async function AccountLayout({
   if (!session?.user) {
     redirect('/sign-in')
   }
+
+  // Fetch fresh user data from database (same as Settings page)
+  const userData = await getUserById(session.user.id)
 
   const navItems = [
     {
@@ -41,46 +42,26 @@ export default async function AccountLayout({
     },
   ]
 
+  // Create enhanced session with fresh database image
+  const enhancedSession = {
+    ...session,
+    user: {
+      ...session.user,
+      image: userData?.image || session.user.image, // Use database image (same as Settings)
+      createdAt: userData?.createdAt || session.user.createdAt,
+    }
+  }
+
   return (
     <div className='flex-1'>
       <div className='container mx-auto px-4 py-6'>
+        {/* Mobile: Header with Drawer */}
+        <MobileAccountHeader session={enhancedSession} navItems={navItems} />
+
         <div className='flex flex-col lg:flex-row gap-6'>
-          {/* Sidebar */}
-          <aside className='lg:w-64 flex-shrink-0'>
-            <div className='space-y-4'>
-              {/* Profile Section */}
-              <div className='flex items-center gap-3 mb-6'>
-                <ProfilePictureModal
-                  currentImage={session.user.image || undefined}
-                  userName={session.user.name || 'User'}
-                />
-                <div className='flex-1 min-w-0'>
-                  <h2 className='font-semibold text-sm truncate'>{session.user.name}</h2>
-                  <p className='text-xs text-muted-foreground truncate'>
-                    Member since {new Date(session.user.createdAt || Date.now()).getFullYear()}
-                  </p>
-                </div>
-              </div>
-
-              {/* Navigation */}
-              <nav className='space-y-1'>
-                <AccountSidebarNav items={navItems} />
-              </nav>
-
-              {/* Help Link */}
-              <div className='pt-4 border-t'>
-                <Button
-                  variant='ghost'
-                  className='w-full justify-start text-muted-foreground hover:text-foreground'
-                  asChild
-                >
-                  <Link href='/help'>
-                    <LogOut className='w-4 h-4 mr-3' />
-                    <span className='text-sm'>Help</span>
-                  </Link>
-                </Button>
-              </div>
-            </div>
+          {/* Desktop: Sticky Sidebar */}
+          <aside className='hidden lg:block lg:w-64 flex-shrink-0 lg:sticky lg:top-6 lg:self-start lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto'>
+            <AccountSidebarContent session={enhancedSession} navItems={navItems} />
           </aside>
 
           {/* Main Content */}

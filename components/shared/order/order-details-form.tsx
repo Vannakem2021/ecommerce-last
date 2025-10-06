@@ -251,7 +251,9 @@ export default function OrderDetailsForm({
           <Card>
             <CardContent className="pt-6">
               <h2 className="text-lg font-semibold mb-4">Order Items</h2>
-              <div className="overflow-x-auto">
+              
+              {/* Desktop Table View */}
+              <div className="hidden md:block overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -269,7 +271,7 @@ export default function OrderDetailsForm({
                             href={`/product/${item.slug}`}
                             className="flex items-center gap-3 hover:text-primary"
                           >
-                            <div className="relative w-12 h-12 rounded-md overflow-hidden bg-muted">
+                            <div className="relative w-12 h-12 rounded-md overflow-hidden bg-muted flex-shrink-0">
                               <Image
                                 src={item.image}
                                 alt={item.name}
@@ -309,6 +311,80 @@ export default function OrderDetailsForm({
                     ))}
                   </TableBody>
                 </Table>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="md:hidden space-y-4">
+                {items.map((item: any, index: number) => (
+                  <div
+                    key={`${item.slug}-${index}`}
+                    className="rounded-lg border bg-card overflow-hidden"
+                  >
+                    {/* Product Info - Clickable */}
+                    <Link href={`/product/${item.slug}`} className="block p-3 hover:bg-accent/50 transition-colors">
+                      <div className="flex gap-3">
+                        {/* Product Image */}
+                        <div className="relative w-20 h-20 rounded-md overflow-hidden bg-muted flex-shrink-0">
+                          <Image
+                            src={item.image}
+                            alt={item.name}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+
+                        {/* Product Details */}
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-sm mb-1 line-clamp-2">{item.name}</div>
+                          
+                          {/* Attributes */}
+                          <div className="text-xs text-muted-foreground space-y-0.5">
+                            {item.color && (
+                              <div>Color: {item.color}</div>
+                            )}
+                            {item.size && (
+                              <div>Size: {item.size}</div>
+                            )}
+                            {item.sku ? (
+                              <div>SKU: {item.sku}</div>
+                            ) : (
+                              <div>SKU: {item.slug}</div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+
+                    {/* Pricing Info - Non-clickable */}
+                    <div className="px-3 pb-3 pt-2 border-t bg-muted/20">
+                      <div className="grid grid-cols-3 gap-3 text-sm">
+                        {/* Quantity */}
+                        <div>
+                          <div className="text-xs text-muted-foreground mb-1">Quantity</div>
+                          <Badge variant="outline" className="font-semibold">
+                            {item.quantity}
+                          </Badge>
+                        </div>
+
+                        {/* Unit Price */}
+                        <div>
+                          <div className="text-xs text-muted-foreground mb-1">Unit Price</div>
+                          <div className="font-medium">
+                            <ProductPrice price={item.price} plain />
+                          </div>
+                        </div>
+
+                        {/* Total */}
+                        <div className="text-right">
+                          <div className="text-xs text-muted-foreground mb-1">Total</div>
+                          <div className="font-bold text-base">
+                            <ProductPrice price={item.price * item.quantity} plain />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>

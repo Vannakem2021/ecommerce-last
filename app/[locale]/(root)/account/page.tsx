@@ -20,8 +20,8 @@ export default async function AccountPage() {
 
   return (
     <div className='space-y-6'>
-      {/* Profile Header */}
-      <Card>
+      {/* Profile Header - Hidden on mobile (shown in drawer) */}
+      <Card className='hidden lg:block'>
         <CardContent className='p-6'>
           <div className='flex items-center gap-4'>
             <ProfilePictureModal
@@ -59,25 +59,25 @@ export default async function AccountPage() {
       <Card>
         <CardContent className='p-0'>
           <div className='divide-y'>
-            <div className='grid grid-cols-[200px_1fr] gap-4 px-6 py-5 hover:bg-accent/20 transition-colors'>
-              <div className='text-muted-foreground font-medium'>Name</div>
+            <div className='grid grid-cols-1 sm:grid-cols-[200px_1fr] gap-2 sm:gap-4 px-4 sm:px-6 py-4 sm:py-5 hover:bg-accent/20 transition-colors'>
+              <div className='text-sm sm:text-base text-muted-foreground font-medium'>Name</div>
               <div className='font-semibold'>{session.user.name || 'Not provided'}</div>
             </div>
 
-            <div className='grid grid-cols-[200px_1fr] gap-4 px-6 py-5 hover:bg-accent/20 transition-colors'>
-              <div className='text-muted-foreground font-medium'>Email</div>
-              <div className='font-semibold'>{session.user.email}</div>
+            <div className='grid grid-cols-1 sm:grid-cols-[200px_1fr] gap-2 sm:gap-4 px-4 sm:px-6 py-4 sm:py-5 hover:bg-accent/20 transition-colors'>
+              <div className='text-sm sm:text-base text-muted-foreground font-medium'>Email</div>
+              <div className='font-semibold break-all'>{session.user.email}</div>
             </div>
 
             {session.user.phone && (
-              <div className='grid grid-cols-[200px_1fr] gap-4 px-6 py-5 hover:bg-accent/20 transition-colors'>
-                <div className='text-muted-foreground font-medium'>Phone</div>
+              <div className='grid grid-cols-1 sm:grid-cols-[200px_1fr] gap-2 sm:gap-4 px-4 sm:px-6 py-4 sm:py-5 hover:bg-accent/20 transition-colors'>
+                <div className='text-sm sm:text-base text-muted-foreground font-medium'>Phone</div>
                 <div className='font-semibold'>{session.user.phone}</div>
               </div>
             )}
 
-            <div className='grid grid-cols-[200px_1fr] gap-4 px-6 py-5 hover:bg-accent/20 transition-colors'>
-              <div className='text-muted-foreground font-medium'>Member Since</div>
+            <div className='grid grid-cols-1 sm:grid-cols-[200px_1fr] gap-2 sm:gap-4 px-4 sm:px-6 py-4 sm:py-5 hover:bg-accent/20 transition-colors'>
+              <div className='text-sm sm:text-base text-muted-foreground font-medium'>Member Since</div>
               <div className='font-semibold'>
                 {new Date(session.user.createdAt || Date.now()).toLocaleDateString('en-US', {
                   year: 'numeric',
@@ -87,8 +87,8 @@ export default async function AccountPage() {
               </div>
             </div>
 
-            <div className='grid grid-cols-[200px_1fr] gap-4 px-6 py-5 hover:bg-accent/20 transition-colors'>
-              <div className='text-muted-foreground font-medium'>Account Status</div>
+            <div className='grid grid-cols-1 sm:grid-cols-[200px_1fr] gap-2 sm:gap-4 px-4 sm:px-6 py-4 sm:py-5 hover:bg-accent/20 transition-colors'>
+              <div className='text-sm sm:text-base text-muted-foreground font-medium'>Account Status</div>
               <div>
                 <span className='px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700'>
                   Active

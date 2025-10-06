@@ -1,4 +1,5 @@
 import { auth } from '@/auth'
+import { getUserById } from '@/lib/actions/user.actions'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -23,6 +24,19 @@ export default async function UserButton() {
   const t = await getTranslations()
   const session = await auth()
 
+  // Fetch fresh user data from database (same pattern as Settings page)
+  let userData = null
+  if (session?.user?.id) {
+    try {
+      userData = await getUserById(session.user.id)
+    } catch (error) {
+      console.error('[UserButton] getUserById error:', error)
+    }
+  }
+
+  // Use database image if available (same as Settings page)
+  const userImage = userData?.image || session?.user?.image
+
   // Check if user is staff (admin, manager, seller) or customer
   const isStaff = session && (session.user.role === 'admin' || session.user.role === 'manager' || session.user.role === 'seller')
   const isCustomer = session && session.user.role === 'user'
@@ -34,9 +48,12 @@ export default async function UserButton() {
           <Button variant='ghost' size='icon' className='relative rounded-full p-0 h-12 w-12 overflow-hidden'>
             {session ? (
               <UserAvatar
-                src={session.user.image}
-                alt={session.user.name || 'User'}
-                className='w-full h-full rounded-full object-cover border-2 border-border'
+                user={{
+                  name: session.user.name,
+                  image: userImage, // Use database image
+                }}
+                size="md"
+                className='border-2 border-border'
               />
             ) : (
               <UserRound className='h-5 w-5' />
@@ -49,9 +66,12 @@ export default async function UserButton() {
             <DropdownMenuLabel className='p-4'>
               <div className='flex items-center gap-3'>
                 <UserAvatar
-                  src={session.user.image}
-                  alt={session.user.name || 'User'}
-                  className='w-12 h-12 rounded-full object-cover border-2 border-border flex-shrink-0'
+                  user={{
+                    name: session.user.name,
+                    image: userImage, // Use database image
+                  }}
+                  size="md"
+                  className='border-2 border-border flex-shrink-0'
                 />
                 <div className='flex flex-col min-w-0'>
                   <p className='text-base font-semibold text-foreground truncate'>

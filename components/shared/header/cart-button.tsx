@@ -1,6 +1,6 @@
 'use client'
 
-import { ShoppingCartIcon } from 'lucide-react'
+import { CgShoppingCart } from 'react-icons/cg'
 import Link from 'next/link'
 import useIsMounted from '@/hooks/use-is-mounted'
 import useShowSidebar from '@/hooks/use-cart-sidebar'
@@ -22,7 +22,7 @@ export default function CartButton() {
   return (
     <Link href='/cart' className='flex items-center gap-2 header-button relative'>
       <div className='relative'>
-        <ShoppingCartIcon className='h-6 w-6' />
+        <CgShoppingCart className='h-6 w-6' />
 
         {isMounted && cartItemsCount > 0 && (
           <span className='absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs font-semibold rounded-full h-5 w-5 flex items-center justify-center'>

@@ -1444,3 +1444,104 @@ export async function getOrderWithNotes(orderId: string) {
     return null
   }
 }
+
+// Helper function to generate address key
+function generateAddressKey(addr: ShippingAddress): string {
+  // Handle both Cambodia and legacy address formats
+  const parts = [
+    addr.fullName?.trim().toLowerCase(),
+    addr.phone?.trim(),
+  ]
+  
+  // Cambodia address
+  if ('houseNumber' in addr && addr.houseNumber) {
+    parts.push(addr.houseNumber.trim().toLowerCase())
+  }
+  if ('street' in addr && addr.street) {
+    parts.push(addr.street.trim().toLowerCase())
+  }
+  if ('communeCode' in addr && addr.communeCode) {
+    parts.push(addr.communeCode.trim())
+  }
+  
+  // Legacy address (fallback)
+  if ('city' in addr && addr.city) {
+    parts.push(addr.city.trim().toLowerCase())
+  }
+  if ('province' in addr && addr.province) {
+    parts.push(addr.province.trim().toLowerCase())
+  }
+  
+  return parts.filter(Boolean).join('-')
+}
+
+// Get unique addresses from user's orders
+export async function getUserAddressesFromOrders(userId: string) {
+  try {
+    await connectToDatabase()
+    
+    // Get user's default address
+    const user = await User.findById(userId).select('address').lean()
+    if (!user) {
+      return { success: false, message: 'User not found', data: [], defaultAddress: null }
+    }
+    
+    const defaultAddress = user.address || null
+    
+    const orders = await Order.find({ user: userId })
+      .select('shippingAddress createdAt')
+      .sort({ createdAt: -1 })
+      .lean()
+    
+    if (!orders || orders.length === 0) {
+      return { success: true, data: [], defaultAddress }
+    }
+    
+    // Group addresses by unique key
+    const addressMap = new Map<string, {
+      address: ShippingAddress
+      orderCount: number
+      lastUsed: Date
+      firstUsed: Date
+      key: string
+      isDefault: boolean
+    }>()
+    
+    orders.forEach((order) => {
+      if (!order.shippingAddress) return
+      
+      const addr = order.shippingAddress
+      // Create unique key based on address details
+      const key = generateAddressKey(addr)
+      
+      if (addressMap.has(key)) {
+        const existing = addressMap.get(key)!
+        existing.orderCount++
+        // Keep track of last used (most recent)
+        if (new Date(order.createdAt!) > new Date(existing.lastUsed)) {
+          existing.lastUsed = order.createdAt!
+        }
+      } else {
+        // Check if this address is the default
+        const isDefault = defaultAddress ? generateAddressKey(defaultAddress as ShippingAddress) === key : false
+        
+        addressMap.set(key, {
+          address: addr,
+          orderCount: 1,
+          lastUsed: order.createdAt!,
+          firstUsed: order.createdAt!,
+          key,
+          isDefault
+        })
+      }
+    })
+    
+    // Convert to array and sort by last used (most recent first)
+    const addresses = Array.from(addressMap.values())
+      .sort((a, b) => new Date(b.lastUsed).getTime() - new Date(a.lastUsed).getTime())
+    
+    return { success: true, data: addresses, defaultAddress }
+  } catch (error) {
+    return { success: false, message: formatError(error), data: [], defaultAddress: null }
+  }
+}

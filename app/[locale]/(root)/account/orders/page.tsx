@@ -13,6 +13,7 @@ interface OrderWithABAPayWay extends Omit<IOrder, 'abaLastStatusCheck' | 'abaPay
   abaLastStatusCheck?: string;
 }
 import { formatId, cn } from "@/lib/utils";
+import { generateOrderNumber } from "@/lib/utils/order-utils";
 import ProductPrice from "@/components/shared/product/product-price";
 import { Package, ArrowRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -63,7 +64,8 @@ export default async function OrdersPage(props: {
         </Card>
       ) : (
         <>
-          <div className="bg-card rounded-lg border">
+          {/* Desktop Table View */}
+          <div className="hidden lg:block bg-card rounded-lg border">
             <div className="grid grid-cols-[1.2fr_1.5fr_1fr_1fr_1fr] gap-4 px-6 py-4 border-b bg-muted/30">
               <div className="font-semibold text-sm">Order #</div>
               <div className="font-semibold text-sm">Date</div>
@@ -94,8 +96,8 @@ export default async function OrdersPage(props: {
                     className="grid grid-cols-[1.2fr_1.5fr_1fr_1fr_1fr] gap-4 px-6 py-4 hover:bg-accent/30 transition-colors"
                   >
                     <div className="flex items-center">
-                      <span className="font-semibold text-green-600">
-                        #{order.orderNumber || formatId(order._id)}
+                      <span className="font-semibold text-green-600 font-mono text-sm">
+                        {generateOrderNumber(order._id.toString(), order.createdAt!)}
                       </span>
                     </div>
 
@@ -129,6 +131,71 @@ export default async function OrdersPage(props: {
                 )
               })}
             </div>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="lg:hidden space-y-4">
+            {orders.data.map((order: OrderWithABAPayWay) => {
+              let status = 'Processing'
+              let statusColor = 'bg-blue-100 text-blue-700'
+              
+              if (order.isDelivered) {
+                status = 'Delivered'
+                statusColor = 'bg-green-100 text-green-700'
+              } else if (order.isPaid) {
+                status = 'Shipped'
+                statusColor = 'bg-blue-100 text-blue-700'
+              } else {
+                status = 'Pending'
+                statusColor = 'bg-amber-100 text-amber-700'
+              }
+
+              return (
+                <Card key={order._id}>
+                  <CardContent className="p-4">
+                    <div className="space-y-3">
+                      {/* Order Number & Status */}
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-green-600 font-mono text-sm">
+                          {generateOrderNumber(order._id.toString(), order.createdAt!)}
+                        </span>
+                        <span className={cn('px-3 py-1 rounded-full text-xs font-medium', statusColor)}>
+                          {status}
+                        </span>
+                      </div>
+
+                      {/* Date */}
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Date</span>
+                        <span className="font-medium">
+                          {new Date(order.createdAt!).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                          })}
+                        </span>
+                      </div>
+
+                      {/* Total */}
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Total</span>
+                        <span className="font-semibold text-base">
+                          <ProductPrice price={order.totalPrice} plain />
+                        </span>
+                      </div>
+
+                      {/* View Details Button */}
+                      <Link 
+                        href={`/account/orders/${order._id}`}
+                        className="flex items-center justify-center gap-2 w-full py-2 px-4 bg-green-50 hover:bg-green-100 text-green-600 hover:text-green-700 rounded-lg font-medium text-sm transition-colors"
+                      >
+                        View Details <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            })}
           </div>
 
           {orders.totalPages > 1 && (

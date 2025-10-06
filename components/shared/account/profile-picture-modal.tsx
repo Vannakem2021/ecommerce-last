@@ -1,9 +1,8 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import {
   Dialog,
   DialogContent,
@@ -12,10 +11,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { UploadButton } from '@/lib/uploadthing'
-import { useToast } from '@/hooks/use-toast'
-import { updateUserImage, removeUserImage } from '@/lib/actions/user.actions'
-import { Upload, X, Camera } from 'lucide-react'
 
 interface ProfilePictureModalProps {
   currentImage?: string
@@ -32,37 +27,15 @@ export default function ProfilePictureModal({
 }: ProfilePictureModalProps) {
   const [image, setImage] = useState(currentImage || '')
   const [isOpen, setIsOpen] = useState(false)
-  const [isUploading, setIsUploading] = useState(false)
-  const [isRemoving, setIsRemoving] = useState(false)
-  const router = useRouter()
-  const { toast } = useToast()
+  const [imageLoaded, setImageLoaded] = useState(false)
+  const [imageError, setImageError] = useState(false)
 
-  const handleRemoveImage = async () => {
-    setIsRemoving(true)
-    try {
-      const result = await removeUserImage()
-      if (result.success) {
-        setImage('')
-        toast({
-          description: result.message,
-        })
-        router.refresh()
-        setIsOpen(false) // Close modal on success
-      } else {
-        toast({
-          variant: 'destructive',
-          description: result.message,
-        })
-      }
-    } catch {
-      toast({
-        variant: 'destructive',
-        description: 'Failed to remove profile picture',
-      })
-    } finally {
-      setIsRemoving(false)
-    }
-  }
+  // Sync local state with prop changes (when session updates)
+  useEffect(() => {
+    setImage(currentImage || '')
+    setImageLoaded(false) // Reset loaded state when image changes
+    setImageError(false)
+  }, [currentImage])
 
   const getInitials = () => {
     return userName
@@ -97,167 +70,69 @@ export default function ProfilePictureModal({
     }
   }
 
+  const hasImage = !!image
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <button className={className} title="Click to update profile picture">
+        <button className={className} title="View profile picture">
           <Avatar className={`${getAvatarSizeClass()} cursor-pointer hover:opacity-80 transition-opacity`}>
-            {image && (
-              <AvatarImage src={image} alt={userName} />
+            {hasImage && (
+              <AvatarImage 
+                src={image || undefined} 
+                alt={userName}
+                className={cn(
+                  'transition-opacity duration-200',
+                  imageLoaded ? 'opacity-100' : 'opacity-0'
+                )}
+                onLoad={() => setImageLoaded(true)}
+                onError={() => setImageError(true)}
+              />
             )}
-            <AvatarFallback className={`bg-primary text-primary-foreground font-semibold ${getAvatarTextSize()}`}>
+            <AvatarFallback 
+              className={cn(
+                `bg-primary text-primary-foreground font-semibold ${getAvatarTextSize()} transition-opacity duration-200`,
+                hasImage && !imageError && !imageLoaded ? 'opacity-0' : 'opacity-100'
+              )}
+            >
               {getInitials()}
             </AvatarFallback>
           </Avatar>
         </button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-[380px]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Camera className="h-5 w-5 text-primary" />
-            Profile Picture
-          </DialogTitle>
+          <DialogTitle>Profile Picture</DialogTitle>
           <DialogDescription>
-            Update your profile picture. Recommended: Square image, at least 200x200px, max 4MB.
+            To change your profile picture, go to Settings.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Current Picture Preview */}
-          <div className="flex flex-col items-center gap-4">
+        <div className="space-y-6 py-2">
+          {/* Avatar Preview */}
+          <div className="flex justify-center">
             <Avatar className="w-32 h-32">
-              {image ? (
-                <AvatarImage src={image} alt={userName} />
-              ) : null}
-              <AvatarFallback className="bg-primary text-primary-foreground font-semibold text-4xl">
+              {hasImage && (
+                <AvatarImage 
+                  src={image || undefined} 
+                  alt={userName}
+                  className={cn(
+                    'transition-opacity duration-200',
+                    imageLoaded ? 'opacity-100' : 'opacity-0'
+                  )}
+                  onLoad={() => setImageLoaded(true)}
+                  onError={() => setImageError(true)}
+                />
+              )}
+              <AvatarFallback 
+                className={cn(
+                  "bg-primary text-primary-foreground font-semibold text-4xl transition-opacity duration-200",
+                  hasImage && !imageError && !imageLoaded ? 'opacity-0' : 'opacity-100'
+                )}
+              >
                 {getInitials()}
               </AvatarFallback>
             </Avatar>
-            <div className="text-center">
-              <div className="text-sm font-medium">
-                {image ? 'Update your profile picture' : 'Add a profile picture'}
-              </div>
-              <div className="text-xs text-muted-foreground mt-1">
-                {userName}
-              </div>
-            </div>
-          </div>
-
-          {/* Upload/Remove Actions */}
-          <div className="space-y-3">
-            {image ? (
-              <div className="flex flex-col gap-2">
-                <UploadButton
-                  endpoint="imageUploader"
-                  onClientUploadComplete={async (res) => {
-                    setIsUploading(true)
-                    try {
-                      const result = await updateUserImage(res[0].url)
-                      if (result.success) {
-                        setImage(res[0].url)
-                        toast({
-                          description: result.message,
-                        })
-                        router.refresh()
-                        setIsOpen(false) // Close modal on success
-                      } else {
-                        toast({
-                          variant: 'destructive',
-                          description: result.message,
-                        })
-                      }
-                    } catch {
-                      toast({
-                        variant: 'destructive',
-                        description: 'Failed to update profile picture',
-                      })
-                    } finally {
-                      setIsUploading(false)
-                    }
-                  }}
-                  onUploadError={(error) => {
-                    toast({
-                      variant: 'destructive',
-                      description: `Upload failed: ${error.message}`,
-                    })
-                  }}
-                  appearance={{
-                    button: "ut-ready:bg-primary ut-uploading:bg-primary/50 text-sm w-full",
-                    allowedContent: "hidden"
-                  }}
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="default"
-                  onClick={handleRemoveImage}
-                  disabled={isRemoving || isUploading}
-                  className="w-full"
-                >
-                  <X className="h-4 w-4 mr-2" />
-                  {isRemoving ? 'Removing...' : 'Remove Picture'}
-                </Button>
-              </div>
-            ) : (
-              <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6">
-                <div className="text-center space-y-4">
-                  <div className="mx-auto w-12 h-12 bg-muted rounded-full flex items-center justify-center">
-                    <Upload className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium mb-1">Upload profile picture</div>
-                    <div className="text-xs text-muted-foreground mb-4">
-                      PNG or JPG format, max 4MB
-                    </div>
-                    <UploadButton
-                      endpoint="imageUploader"
-                      onClientUploadComplete={async (res) => {
-                        setIsUploading(true)
-                        try {
-                          const result = await updateUserImage(res[0].url)
-                          if (result.success) {
-                            setImage(res[0].url)
-                            toast({
-                              description: result.message,
-                            })
-                            router.refresh()
-                            setIsOpen(false) // Close modal on success
-                          } else {
-                            toast({
-                              variant: 'destructive',
-                              description: result.message,
-                            })
-                          }
-                        } catch {
-                          toast({
-                            variant: 'destructive',
-                            description: 'Failed to update profile picture',
-                          })
-                        } finally {
-                          setIsUploading(false)
-                        }
-                      }}
-                      onUploadError={(error) => {
-                        toast({
-                          variant: 'destructive',
-                          description: `Upload failed: ${error.message}`,
-                        })
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Guidelines */}
-          <div className="text-xs text-muted-foreground space-y-1 bg-muted/50 p-3 rounded-lg">
-            <div className="font-medium">Tips:</div>
-            <ul className="list-disc list-inside space-y-1 ml-2">
-              <li>Use a clear photo of your face</li>
-              <li>Square aspect ratio works best</li>
-              <li>Professional photos recommended</li>
-            </ul>
           </div>
         </div>
       </DialogContent>
