@@ -188,7 +188,7 @@ export function CambodiaAddressForm<T extends FieldValues>({
             <FormLabel>Province/City *</FormLabel>
             <Select
               onValueChange={(value) => handleProvinceChange(value, field.onChange)}
-              value={field.value?.toString()}
+              value={field.value?.toString() || ""}
               disabled={disabled}
             >
               <FormControl>
@@ -218,7 +218,7 @@ export function CambodiaAddressForm<T extends FieldValues>({
             <FormLabel>District/Srok/Khan *</FormLabel>
             <Select
               onValueChange={(value) => handleDistrictChange(value, field.onChange)}
-              value={field.value?.toString()}
+              value={field.value?.toString() || ""}
               disabled={disabled || !selectedProvinceId}
             >
               <FormControl>
@@ -382,7 +382,7 @@ function CommuneField<T extends FieldValues>({
                   setValue(getFieldName('communeName'), addressNames.communeName || '')
                 }
               }}
-              value={field.value}
+              value={field.value || ""}
               disabled={disabled}
             >
               <FormControl>

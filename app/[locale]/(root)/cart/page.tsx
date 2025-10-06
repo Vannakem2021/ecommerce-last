@@ -1,8 +1,7 @@
 'use client'
 import BrowsingHistoryList from '@/components/shared/browsing-history-list'
 import ProductPrice from '@/components/shared/product/product-price'
-import CouponInput from '@/components/shared/promotion/coupon-input'
-import DiscountSummary from '@/components/shared/promotion/discount-summary'
+import OrderSummary from '@/components/shared/cart/order-summary'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import {
@@ -86,9 +85,9 @@ export default function CartPage() {
   }, [totalPrice, safeItemsPrice])
   return (
     <div>
-      <div className='grid grid-cols-1 md:grid-cols-4  md:gap-4'>
+      <div className='grid grid-cols-1 md:grid-cols-4 gap-4'>
         {items.length === 0 ? (
-          <Card className='col-span-4 rounded-none'>
+          <Card className='col-span-4 rounded-lg border border-border'>
             <CardHeader className='text-3xl  '>
               {t('Cart.Your Shopping Cart is empty')}
             </CardHeader>
@@ -101,112 +100,111 @@ export default function CartPage() {
           </Card>
         ) : (
           <>
-            <div className='col-span-3'>
-              <Card className='rounded-none'>
-                <CardHeader className='text-3xl pb-0'>
+            <div className='col-span-1 md:col-span-3'>
+              <Card className='rounded-lg border border-border'>
+                <CardHeader className='text-xl md:text-3xl pb-3 md:pb-4 px-4 md:px-6'>
                   {t('Cart.Shopping Cart')}
                   {updateError && (
-                    <div className='text-sm text-red-600 bg-red-50 p-2 rounded mt-2'>
+                    <div className='text-xs md:text-sm text-red-600 bg-red-50 p-2 rounded mt-2'>
                       {updateError}
                     </div>
                   )}
                 </CardHeader>
-                <CardContent className='p-4'>
-                  <div className='flex justify-end border-b mb-4'>
+                <CardContent className='p-4 md:p-6'>
+                  <div className='hidden md:flex justify-end border-b mb-4 pb-2 text-sm text-muted-foreground'>
                     {t('Cart.Price')}
                   </div>
 
                   {items.map((item) => (
                     <div
                       key={item.clientId}
-                      className='flex flex-col md:flex-row justify-between py-4 border-b gap-4'
+                      className='py-4 border-b last:border-b-0'
                     >
-                      <Link href={`/product/${item.slug}`}>
-                        <div className='relative w-40 h-40'>
-                          <Image
-                            src={item.image}
-                            alt={item.name}
-                            fill
-                            sizes='20vw'
-                            style={{
-                              objectFit: 'contain',
-                            }}
-                          />
-                        </div>
-                      </Link>
-
-                      <div className='flex-1 space-y-4'>
-                        <Link
-                          href={`/product/${item.slug}`}
-                          className='text-lg hover:no-underline  '
-                        >
-                          {item.name}
+                      {/* Mobile & Desktop Layout */}
+                      <div className='flex gap-3 md:gap-4'>
+                        {/* Product Image */}
+                        <Link href={`/product/${item.slug}`} className='flex-shrink-0'>
+                          <div className='relative w-20 h-20 md:w-28 md:h-28 bg-muted rounded-md overflow-hidden group'>
+                            <Image
+                              src={item.image}
+                              alt={item.name}
+                              fill
+                              sizes='(max-width: 768px) 80px, 112px'
+                              className='object-contain p-1.5 group-hover:scale-110 transition-transform duration-300'
+                            />
+                          </div>
                         </Link>
-                        <div>
-                          <p className='text-sm'>
-                            <span className='font-bold'>
-                              {' '}
-                              {t('Cart.Color')}:{' '}
-                            </span>{' '}
-                            {item.color}
-                          </p>
-                          <p className='text-sm'>
-                            <span className='font-bold'>
-                              {' '}
-                              {t('Cart.Size')}:{' '}
-                            </span>{' '}
-                            {item.size}
-                          </p>
-                        </div>
-                        <div className='flex gap-2 items-center'>
-                          <Select
-                            value={item.quantity.toString()}
-                            onValueChange={(value) =>
-                              handleUpdateItem(item, Number(value))
-                            }
-                            disabled={isUpdating}
-                          >
-                            <SelectTrigger className='w-auto'>
-                              <SelectValue>
-                                {t('Cart.Quantity')}: {item.quantity}
-                              </SelectValue>
-                            </SelectTrigger>
-                            <SelectContent position='popper'>
-                              {Array.from({
-                                length: item.countInStock,
-                              }).map((_, i) => (
-                                <SelectItem key={i + 1} value={`${i + 1}`}>
-                                  {i + 1}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <Button
-                            variant={'outline'}
-                            onClick={() => handleRemoveItem(item)}
-                            disabled={isUpdating}
-                          >
-                            {t('Cart.Delete')}
-                          </Button>
-                        </div>
-                      </div>
-                      <div>
-                        <p className='text-right'>
-                          {item.quantity > 1 && (
-                            <>
-                              {item.quantity} x
-                              <ProductPrice price={item.price} plain />
-                              <br />
-                            </>
+
+                        {/* Product Details */}
+                        <div className='flex-1 min-w-0 flex flex-col'>
+                          {/* Name and Price Row */}
+                          <div className='flex justify-between gap-3 mb-2'>
+                            <Link
+                              href={`/product/${item.slug}`}
+                              className='text-sm md:text-base font-medium hover:text-primary transition-colors line-clamp-2 flex-1'
+                            >
+                              {item.name}
+                            </Link>
+                            
+                            {/* Price - Always Visible on Right */}
+                            <div className='text-right flex-shrink-0'>
+                              <p className='font-bold text-base md:text-lg'>
+                                <ProductPrice
+                                  price={item.price * item.quantity}
+                                  plain
+                                />
+                              </p>
+                              {item.quantity > 1 && (
+                                <p className='text-xs text-muted-foreground'>
+                                  {item.quantity} × <ProductPrice price={item.price} plain />
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Variants */}
+                          {(item.color || item.size) && (
+                            <div className='flex gap-3 text-xs md:text-sm text-muted-foreground mb-3'>
+                              {item.color && <span>Color: {item.color}</span>}
+                              {item.size && <span>Size: {item.size}</span>}
+                            </div>
                           )}
 
-                          <span className='font-bold text-lg'>
-                            <ProductPrice
-                              price={item.price * item.quantity}
-                              plain
-                            />
-                          </span>
-                        </p>
+                          {/* Actions Row */}
+                          <div className='flex gap-2 mt-auto'>
+                            <Select
+                              value={item.quantity.toString()}
+                              onValueChange={(value) =>
+                                handleUpdateItem(item, Number(value))
+                              }
+                              disabled={isUpdating}
+                            >
+                              <SelectTrigger className='h-9 w-20 md:w-auto text-xs md:text-sm'>
+                                <SelectValue>
+                                  Qty: {item.quantity}
+                                </SelectValue>
+                              </SelectTrigger>
+                              <SelectContent position='popper'>
+                                {Array.from({
+                                  length: item.countInStock,
+                                }).map((_, i) => (
+                                  <SelectItem key={i + 1} value={`${i + 1}`}>
+                                    {i + 1}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <Button
+                              variant='ghost'
+                              size='sm'
+                              onClick={() => handleRemoveItem(item)}
+                              disabled={isUpdating}
+                              className='h-9 text-xs md:text-sm text-destructive hover:text-destructive hover:bg-destructive/10'
+                            >
+                              {t('Cart.Delete')}
+                            </Button>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -222,68 +220,25 @@ export default function CartPage() {
                 </CardContent>
               </Card>
             </div>
-            <div className='space-y-4'>
-              {/* Coupon Input */}
-              <CouponInput />
-
-              <Card className='rounded-none'>
-                <CardContent className='py-4 space-y-4'>
-                  {safeItemsPrice < freeShippingMinPrice ? (
-                    <div className='flex-1'>
-                      {t('Cart.Add')}{' '}
-                      <span className='text-green-700'>
-                        <ProductPrice
-                          price={freeShippingMinPrice - safeItemsPrice}
-                          plain
-                        />
-                      </span>{' '}
-                      {t(
-                        'Cart.of eligible items to your order to qualify for FREE Shipping'
-                      )}
-                    </div>
-                  ) : (
-                    <div className='flex-1'>
-                      <span className='text-green-700'>
-                        {t('Cart.Your order qualifies for FREE Shipping')}
-                      </span>{' '}
-                      {t('Cart.Choose this option at checkout')}
-                    </div>
-                  )}
-                  <div className='text-lg'>
-                    {t('Cart.Subtotal')} (
-                    {items.reduce((acc, item) => acc + item.quantity, 0)}{' '}
-                    {t('Cart.items')}):{' '}
-                    <span className='font-bold'>
-                      <ProductPrice price={safeItemsPrice} plain />
-                    </span>{' '}
-                  </div>
-
-                  {/* Discount Summary */}
-                  <DiscountSummary showDetails={false} />
-
-                  {discountAmount && (
-                    <div className='text-lg font-bold border-t pt-2'>
-                      {t('Cart.Total')}: <ProductPrice price={safeTotalPrice} plain />
-                    </div>
-                  )}
-
-                  {!user && (
-                    <div className='text-sm text-muted-foreground text-center mb-2'>
-                      {t('Cart.Sign in required to complete checkout')}
-                    </div>
-                  )}
-
-                  <Button
-                    onClick={() => {
-                      const checkoutPath = locale === 'en-US' ? '/checkout' : `/${locale}/checkout`
-                      router.push(checkoutPath)
-                    }}
-                    className='rounded-full w-full'
-                  >
-                    {user ? t('Cart.Proceed to Checkout') : t('Cart.Sign In to Checkout')}
-                  </Button>
-                </CardContent>
-              </Card>
+            <div className='col-span-1'>
+              <OrderSummary
+                itemsPrice={safeItemsPrice}
+                totalPrice={safeTotalPrice}
+                discountAmount={discountAmount}
+                itemCount={items.reduce((acc, item) => acc + item.quantity, 0)}
+                freeShippingMinPrice={freeShippingMinPrice}
+                showFreeShippingIndicator={true}
+                showCoupon={true}
+                showCheckoutButton={true}
+                checkoutButtonText={user ? t('Cart.Proceed to Checkout') : t('Cart.Sign In to Checkout')}
+                checkoutButtonOnClick={() => {
+                  const checkoutPath = locale === 'en-US' ? '/checkout' : `/${locale}/checkout`
+                  router.push(checkoutPath)
+                }}
+                showSignInMessage={!user}
+                signInMessage={t('Cart.Sign in required to complete checkout')}
+                sticky={true}
+              />
             </div>
           </>
         )}

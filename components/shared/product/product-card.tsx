@@ -45,7 +45,7 @@ const ProductCard = ({
     
     return (
       <Link href={`/product/${product.slug}`}>
-        <div className='relative h-52'>
+        <div className='relative h-48 md:h-52'>
           {validImages.length > 1 ? (
             <ImageHover
               src={validImages[0]}
@@ -53,12 +53,12 @@ const ProductCard = ({
               alt={product.name}
             />
           ) : (
-            <div className='relative h-52'>
+            <div className='relative h-48 md:h-52'>
               <Image
                 src={imageUrl}
                 alt={product.name}
                 fill
-                sizes='80vw'
+                sizes='(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 20vw, 16vw'
                 className='object-contain'
               />
             </div>
@@ -151,15 +151,29 @@ const ProductCard = ({
   )
 
   return hideBorder ? (
-    <div className='flex flex-col'>
+    <div className='flex flex-col h-full'>
       <ProductImage />
-      {!hideDetails && (
+      {!hideDetails ? (
         <>
           <div className='p-5 flex-1 text-center'>
             <ProductDetails />
           </div>
           {!hideAddToCart && <div className='px-5 pb-5'><AddButton /></div>}
         </>
+      ) : (
+        <div className='p-3 text-center space-y-2'>
+          <Link
+            href={`/product/${product.slug}`}
+            className='text-sm font-medium hover:text-primary transition-colors line-clamp-2 block'
+          >
+            {product.name}
+          </Link>
+          <ProductPrice
+            price={product.price}
+            listPrice={product.listPrice}
+            forListing
+          />
+        </div>
       )}
     </div>
   ) : (

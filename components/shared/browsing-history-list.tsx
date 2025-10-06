@@ -3,8 +3,8 @@ import useBrowsingHistory from '@/hooks/use-browsing-history'
 import React, { useEffect, useState, useMemo } from 'react'
 import ProductSlider from './product/product-slider'
 import { useTranslations } from 'next-intl'
-import { Separator } from '../ui/separator'
 import { cn } from '@/lib/utils'
+import { Card, CardContent } from '../ui/card'
 
 // Cache for API responses to prevent duplicate calls
 const apiCache = new Map<string, any>()
@@ -117,22 +117,73 @@ export default function BrowsingHistoryList({
   if (products.length === 0) return null
 
   return (
-    <div className='bg-secondary/30'>
-      <Separator className={cn('mb-4', className)} />
-      {relatedData.length > 0 && (
-        <ProductSlider
-          title={t("Related to items that you've viewed")}
-          products={relatedData}
-          hideDetails={false}
-        />
-      )}
-      <Separator className='mb-4' />
-      {historyData.length > 0 && (
-        <ProductSlider
-          title={t('Your browsing history')}
-          products={historyData}
-          hideDetails={true}
-        />
+    <div className={cn('py-8 md:py-12 space-y-6 md:space-y-8', className)}>
+      {loading ? (
+        <div className='space-y-6 md:space-y-8'>
+          {/* Related Products Skeleton */}
+          <Card className='rounded-lg border border-border'>
+            <CardContent className='p-4 md:p-6'>
+              <div className='h-8 w-64 bg-muted rounded mb-4 md:mb-6 animate-pulse' />
+              <div className='flex gap-2 md:gap-4'>
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className='flex-1 space-y-3'>
+                    <div className='aspect-square bg-muted rounded animate-pulse' />
+                    <div className='space-y-2 p-3'>
+                      <div className='h-4 bg-muted rounded animate-pulse' />
+                      <div className='h-4 bg-muted rounded w-3/4 animate-pulse' />
+                      <div className='h-6 bg-muted rounded w-1/2 animate-pulse' />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+          
+          {/* History Skeleton */}
+          <Card className='rounded-lg border border-border'>
+            <CardContent className='p-4 md:p-6'>
+              <div className='h-8 w-48 bg-muted rounded mb-4 md:mb-6 animate-pulse' />
+              <div className='flex gap-2 md:gap-4'>
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className='flex-1 space-y-2'>
+                    <div className='aspect-square bg-muted rounded animate-pulse' />
+                    <div className='h-3 bg-muted rounded animate-pulse mx-2' />
+                    <div className='h-4 bg-muted rounded w-2/3 mx-2 animate-pulse' />
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
+        <>
+          {relatedData.length > 0 && (
+            <Card className='rounded-lg border border-border'>
+              <CardContent className='p-4 md:p-6'>
+                <ProductSlider
+                  title={t("You May Also Like")}
+                  products={relatedData}
+                  hideDetails={false}
+                  viewAllHref='/search'
+                  viewAllText={t('View All')}
+                />
+              </CardContent>
+            </Card>
+          )}
+          {historyData.length > 0 && (
+            <Card className='rounded-lg border border-border'>
+              <CardContent className='p-4 md:p-6'>
+                <ProductSlider
+                  title={t('Recently Viewed')}
+                  products={historyData}
+                  hideDetails={true}
+                  viewAllHref='/search'
+                  viewAllText={t('View All')}
+                />
+              </CardContent>
+            </Card>
+          )}
+        </>
       )}
     </div>
   )
