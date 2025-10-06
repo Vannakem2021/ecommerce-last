@@ -24,7 +24,7 @@ import { AddressDisplay, isAddressComplete } from "@/components/shared/address/a
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import CheckoutFooter from "./checkout-footer";
 import { ShippingAddress, CambodiaAddress } from "@/types";
@@ -33,17 +33,18 @@ import Link from "next/link";
 import useUserCart from "@/hooks/use-user-cart";
 import useSettingStore from "@/hooks/use-setting-store";
 import ProductPrice from "@/components/shared/product/product-price";
-import CouponInput from "@/components/shared/promotion/coupon-input";
-import DiscountSummary from "@/components/shared/promotion/discount-summary";
+import OrderSummary from "@/components/shared/cart/order-summary";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { IUser } from "@/lib/db/models/user.model";
+import CheckoutStepper, { Step, StepStatus } from "@/components/shared/checkout/checkout-stepper";
+import { MapPin, CreditCard, Package } from "lucide-react";
 
 // Clean default values for address form (no pre-fill data)
 const emptyAddressValues = {
   fullName: "",
   phone: "",
-  provinceId: undefined,
-  districtId: undefined,
+  provinceId: "",
+  districtId: "",
   communeCode: "",
   houseNumber: "",
   street: "",
@@ -99,6 +100,7 @@ const CheckoutForm = () => {
     setDeliveryDateIndex,
   } = useUserCart();
   const isMounted = useIsMounted();
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
   // Fetch full user data when session user is available
   useEffect(() => {
@@ -205,6 +207,48 @@ const CheckoutForm = () => {
     useState<boolean>(false);
   const [showAddressForm, setShowAddressForm] = useState<boolean>(false);
 
+  // Calculate checkout steps
+  const checkoutSteps: Step[] = useMemo(() => {
+    const getStepStatus = (step: number): StepStatus => {
+      if (step === 1) {
+        return isAddressSelected ? 'completed' : 'active'
+      }
+      if (step === 2) {
+        if (!isAddressSelected) return 'pending'
+        return isPaymentMethodSelected ? 'completed' : 'active'
+      }
+      if (step === 3) {
+        if (!isPaymentMethodSelected || !isAddressSelected) return 'pending'
+        return 'active'
+      }
+      return 'pending'
+    }
+
+    return [
+      {
+        id: 1,
+        label: 'Shipping',
+        sublabel: 'Address',
+        icon: MapPin,
+        status: getStepStatus(1)
+      },
+      {
+        id: 2,
+        label: 'Payment',
+        sublabel: 'Method',
+        icon: CreditCard,
+        status: getStepStatus(2)
+      },
+      {
+        id: 3,
+        label: 'Review',
+        sublabel: '& Ship',
+        icon: Package,
+        status: getStepStatus(3)
+      }
+    ]
+  }, [isAddressSelected, isPaymentMethodSelected]);
+
   // Initialize address selection state when component mounts
   useEffect(() => {
     if ((userHasSavedAddress || hasCompleteShippingAddress) && shippingAddress) {
@@ -222,36 +266,52 @@ const CheckoutForm = () => {
       return;
     }
 
-    const res = await createOrder({
-      items,
-      shippingAddress,
-      expectedDeliveryDate: availableDeliveryDates &&
-        deliveryDateIndex !== undefined &&
-        availableDeliveryDates[deliveryDateIndex] &&
-        availableDeliveryDates[deliveryDateIndex].daysToDeliver
-        ? calculateFutureDate(availableDeliveryDates[deliveryDateIndex].daysToDeliver)
-        : new Date(),
-      deliveryDateIndex,
-      paymentMethod,
-      itemsPrice,
-      shippingPrice,
-      taxPrice,
-      totalPrice,
-      appliedPromotion,
-      discountAmount,
-    });
-    if (!res.success) {
+    setIsPlacingOrder(true);
+
+    try {
+      const res = await createOrder({
+        items,
+        shippingAddress,
+        expectedDeliveryDate: availableDeliveryDates &&
+          deliveryDateIndex !== undefined &&
+          availableDeliveryDates[deliveryDateIndex] &&
+          availableDeliveryDates[deliveryDateIndex].daysToDeliver
+          ? calculateFutureDate(availableDeliveryDates[deliveryDateIndex].daysToDeliver)
+          : new Date(),
+        deliveryDateIndex,
+        paymentMethod,
+        itemsPrice,
+        shippingPrice,
+        taxPrice,
+        totalPrice,
+        appliedPromotion,
+        discountAmount,
+      });
+      
+      if (!res.success) {
+        toast({
+          description: res.message,
+          variant: "destructive",
+        });
+        setIsPlacingOrder(false);
+      } else {
+        toast({
+          description: res.message,
+          variant: "default",
+        });
+        // Navigate first, then clear cart to prevent UI flicker
+        router.push(`/checkout/${res.data?.orderId}`);
+        // Clear cart after a short delay to ensure navigation has started
+        setTimeout(() => {
+          clearCart();
+        }, 100);
+      }
+    } catch (error) {
       toast({
-        description: res.message,
+        description: "An error occurred while placing your order. Please try again.",
         variant: "destructive",
       });
-    } else {
-      toast({
-        description: res.message,
-        variant: "default",
-      });
-      clearCart();
-      router.push(`/checkout/${res.data?.orderId}`);
+      setIsPlacingOrder(false);
     }
   };
   const handleSelectPaymentMethod = () => {
@@ -261,110 +321,25 @@ const CheckoutForm = () => {
   const handleSelectShippingAddress = () => {
     shippingAddressForm.handleSubmit(onSubmitShippingAddress)();
   };
-  const CheckoutSummary = () => (
-    <Card>
-      <CardContent className="p-4">
-        {!isAddressSelected && (
-          <div className="border-b mb-4">
-            <Button
-              className="rounded-full w-full"
-              onClick={handleSelectShippingAddress}
-            >
-              Ship to this address
-            </Button>
-            <p className="text-xs text-center py-2">
-              Choose a shipping address and payment method in order to calculate
-              shipping, handling, and tax.
-            </p>
-          </div>
-        )}
-        {isAddressSelected && !isPaymentMethodSelected && (
-          <div className=" mb-4">
-            <Button
-              className="rounded-full w-full"
-              onClick={handleSelectPaymentMethod}
-            >
-              Use this payment method
-            </Button>
+  // Helper text based on checkout step
+  const getHelpText = () => {
+    if (!isAddressSelected) {
+      return "Choose a shipping address and payment method to calculate shipping, handling, and tax."
+    }
+    if (isAddressSelected && !isPaymentMethodSelected) {
+      return "Choose a payment method to continue. You'll review your order before it's final."
+    }
+    return null
+  };
 
-            <p className="text-xs text-center py-2">
-              Choose a payment method to continue checking out. You&apos;ll
-              still have a chance to review and edit your order before it&apos;s
-              final.
-            </p>
-          </div>
-        )}
-        {isPaymentMethodSelected && isAddressSelected && (
-          <div>
-            <Button onClick={handlePlaceOrder} className="rounded-full w-full">
-              Place Your Order
-            </Button>
-            <p className="text-xs text-center py-2">
-              By placing your order, you agree to {site.name}&apos;s{" "}
-              <Link href="/page/privacy-policy">privacy notice</Link> and
-              <Link href="/page/conditions-of-use"> conditions of use</Link>.
-            </p>
-          </div>
-        )}
-
-        {/* Coupon Input */}
-        <CouponInput />
-
-        <div>
-          <div className="text-lg font-bold">Order Summary</div>
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <span>Items:</span>
-              <span>
-                <ProductPrice price={itemsPrice} plain />
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span>Shipping & Handling:</span>
-              <span>
-                {shippingPrice === undefined ? (
-                  "--"
-                ) : shippingPrice === 0 ? (
-                  "FREE"
-                ) : (
-                  <ProductPrice price={shippingPrice} plain />
-                )}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span> Tax:</span>
-              <span>
-                {taxPrice === undefined ? (
-                  "--"
-                ) : (
-                  <ProductPrice price={taxPrice} plain />
-                )}
-              </span>
-            </div>
-
-            {/* Discount Summary */}
-            <DiscountSummary />
-
-            <div className="flex justify-between  pt-4 font-bold text-lg">
-              <span> Order Total:</span>
-              <span>
-                <ProductPrice price={totalPrice} plain />
-              </span>
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-
-  // Show loading state while user data is being fetched
-  if (!isMounted || userLoading) {
+  // Show loading state while user data is being fetched or placing order
+  if (!isMounted || userLoading || isPlacingOrder) {
     return (
       <main className="max-w-6xl mx-auto highlight-link">
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p>Loading checkout...</p>
+            <p>{isPlacingOrder ? 'Placing your order...' : 'Loading checkout...'}</p>
           </div>
         </div>
       </main>
@@ -372,70 +347,82 @@ const CheckoutForm = () => {
   }
 
   return (
-    <main className="max-w-6xl mx-auto highlight-link">
-      <div className="grid md:grid-cols-4 gap-6">
+    <main className="max-w-6xl mx-auto px-4 py-6 md:py-8 highlight-link">
+      {/* Checkout Stepper */}
+      <div className="mb-8">
+        <CheckoutStepper 
+          steps={checkoutSteps}
+          onStepClick={(stepId) => {
+            if (stepId === 1 && isAddressSelected) {
+              setIsAddressSelected(false)
+              setIsPaymentMethodSelected(false)
+              setIsDeliveryDateSelected(false)
+              setShowAddressForm(true)
+            }
+          }}
+        />
+      </div>
+
+      <div className="grid md:grid-cols-4 gap-4 md:gap-6">
         <div className="md:col-span-3">
           {/* shipping address */}
           <div>
             {isAddressSelected && shippingAddress ? (
-              <div className="grid grid-cols-1 md:grid-cols-12    my-3  pb-3">
-                <div className="col-span-5 flex text-lg font-bold ">
-                  <span className="w-8">1 </span>
-                  <span>Shipping address</span>
-                </div>
-                <div className="col-span-5 ">
+              <Card className="my-4 rounded-lg border border-border">
+                <CardContent className="p-4 md:p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <h3 className="text-lg font-bold">Shipping Address</h3>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setIsAddressSelected(false);
+                        setShowAddressForm(true);
+                        // Reset form to current shipping address for editing
+                        shippingAddressForm.reset(shippingAddress);
+                      }}
+                    >
+                      Change
+                    </Button>
+                  </div>
                   <AddressDisplay address={shippingAddress} />
-                </div>
-                <div className="col-span-2">
-                  <Button
-                    variant={"outline"}
-                    onClick={() => {
-                      setIsAddressSelected(false);
-                      setShowAddressForm(true);
-                      // Reset form to current shipping address for editing
-                      shippingAddressForm.reset(shippingAddress);
-                    }}
-                  >
-                    Change
-                  </Button>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             ) : (
               <>
-                <div className="flex text-primary text-lg font-bold my-2">
-                  <span className="w-8">1 </span>
-                  <span>
-                    {userHasSavedAddress ? "Confirm shipping address" : "Enter shipping address"}
-                  </span>
+                <div className="text-lg font-bold my-4">
+                  {userHasSavedAddress ? "Confirm Shipping Address" : "Enter Shipping Address"}
                 </div>
 
                 {(userHasSavedAddress || hasCompleteShippingAddress) && !showAddressForm ? (
                   // Show saved address or complete shipping address with option to use it or change it
-                  <Card className="md:ml-8 my-4">
-                    <CardContent className="p-4 space-y-2">
+                  <Card className="my-4 rounded-lg border border-border">
+                    <CardContent className="p-4 md:p-6 space-y-2">
                       <div className="text-lg font-bold mb-2">
                         {userHasSavedAddress ? "Your saved address" : "Current shipping address"}
                       </div>
                       <AddressDisplay address={(userHasSavedAddress ? fullUser.address : shippingAddress) as CambodiaAddress} />
-                      <div className="flex gap-2 pt-4">
+                      <div className="flex flex-col sm:flex-row gap-2 pt-4">
                         <Button
                           onClick={() => {
                             const addressToUse = userHasSavedAddress ? fullUser.address : shippingAddress;
                             setShippingAddress(addressToUse as CambodiaAddress);
                             setIsAddressSelected(true);
                           }}
-                          className="rounded-full font-bold"
+                          size="lg"
+                          className="w-full sm:w-auto font-bold"
                         >
                           Use this address
                         </Button>
                         <Button
                           variant="outline"
+                          size="lg"
                           onClick={() => {
                             // Reset form to allow editing and show form
                             shippingAddressForm.reset(emptyAddressValues);
                             setShowAddressForm(true);
                           }}
-                          className="rounded-full"
+                          className="w-full sm:w-auto"
                         >
                           Use different address
                         </Button>
@@ -452,18 +439,19 @@ const CheckoutForm = () => {
                       )}
                       className="space-y-4"
                     >
-                      <Card className="md:ml-8 my-4">
-                        <CardContent className="p-4 space-y-2">
+                      <Card className="my-4 rounded-lg border border-border">
+                        <CardContent className="p-4 md:p-6 space-y-2">
                           <div className="text-lg font-bold mb-2">
                             Your address
                           </div>
 
                           <CambodiaAddressForm control={shippingAddressForm.control} setValue={shippingAddressForm.setValue} />
                         </CardContent>
-                        <CardFooter className="p-4">
+                        <CardFooter className="p-4 md:p-6 pt-0">
                           <Button
                             type="submit"
-                            className="rounded-full font-bold"
+                            size="lg"
+                            className="font-bold"
                           >
                             Ship to this address
                           </Button>
@@ -478,38 +466,35 @@ const CheckoutForm = () => {
             )}
           </div>
           {/* payment method */}
-          <div className="border-y">
+          <div className="my-4">
             {isPaymentMethodSelected && paymentMethod ? (
-              <div className="grid  grid-cols-1 md:grid-cols-12  my-3 pb-3">
-                <div className="flex text-lg font-bold  col-span-5">
-                  <span className="w-8">2 </span>
-                  <span>Payment Method</span>
-                </div>
-                <div className="col-span-5 ">
-                  <p>{paymentMethod}</p>
-                </div>
-                <div className="col-span-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setIsPaymentMethodSelected(false);
-                      if (paymentMethod) setIsDeliveryDateSelected(true);
-                    }}
-                  >
-                    Change
-                  </Button>
-                </div>
-              </div>
+              <Card className="my-4 rounded-lg border border-border">
+                <CardContent className="p-4 md:p-6">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="text-lg font-bold">Payment Method</h3>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setIsPaymentMethodSelected(false);
+                        if (paymentMethod) setIsDeliveryDateSelected(true);
+                      }}
+                    >
+                      Change
+                    </Button>
+                  </div>
+                  <p className="text-muted-foreground">{paymentMethod}</p>
+                </CardContent>
+              </Card>
             ) : isAddressSelected ? (
               <>
-                <div className="flex text-primary text-lg font-bold my-2">
-                  <span className="w-8">2 </span>
-                  <span>Choose a payment method</span>
+                <div className="text-lg font-bold my-4">
+                  Choose Payment Method
                 </div>
-                <Card className="md:ml-8 my-4">
-                  <CardContent className="p-4">
+                <Card className="my-4 rounded-lg border border-border">
+                  <CardContent className="p-4 md:p-6">
                     <RadioGroup
-                      value={paymentMethod}
+                      value={paymentMethod || ""}
                       onValueChange={(value) => setPaymentMethod(value)}
                     >
                       {filteredPaymentMethods.map((pm) => (
@@ -528,75 +513,28 @@ const CheckoutForm = () => {
                       ))}
                     </RadioGroup>
                   </CardContent>
-                  <CardFooter className="p-4">
+                  <CardFooter className="p-4 md:p-6 pt-0">
                     <Button
                       onClick={handleSelectPaymentMethod}
-                      className="rounded-full font-bold"
+                      size="lg"
+                      className="font-bold"
                     >
                       Use this payment method
                     </Button>
                   </CardFooter>
                 </Card>
               </>
-            ) : (
-              <div className="flex text-muted-foreground text-lg font-bold my-4 py-3">
-                <span className="w-8">2 </span>
-                <span>Choose a payment method</span>
-              </div>
-            )}
+            ) : null}
           </div>
           {/* items and delivery date */}
-          <div>
-            {isDeliveryDateSelected && deliveryDateIndex != undefined ? (
-              <div className="grid  grid-cols-1 md:grid-cols-12  my-3 pb-3">
-                <div className="flex text-lg font-bold  col-span-5">
-                  <span className="w-8">3 </span>
-                  <span>Items and shipping</span>
-                </div>
-                <div className="col-span-5">
-                  <p>
-                    Delivery date:{" "}
-                    {
-                      availableDeliveryDates &&
-                      deliveryDateIndex !== undefined &&
-                      availableDeliveryDates[deliveryDateIndex] &&
-                      availableDeliveryDates[deliveryDateIndex].daysToDeliver
-                        ? formatDateTime(
-                            calculateFutureDate(
-                              availableDeliveryDates[deliveryDateIndex].daysToDeliver
-                            )
-                          ).dateOnly
-                        : "TBD"
-                    }
-                  </p>
-                  <ul>
-                    {items.map((item, _index) => (
-                      <li key={_index}>
-                        {item.name} x {item.quantity} = {item.price}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="col-span-2">
-                  <Button
-                    variant={"outline"}
-                    onClick={() => {
-                      setIsPaymentMethodSelected(true);
-                      setIsDeliveryDateSelected(false);
-                    }}
-                  >
-                    Change
-                  </Button>
-                </div>
-              </div>
-            ) : isPaymentMethodSelected && isAddressSelected ? (
+          <div className="my-4">
+            {isPaymentMethodSelected && isAddressSelected ? (
               <>
-                <div className="flex text-primary  text-lg font-bold my-2">
-                  <span className="w-8">3 </span>
-                  <span>Review items and shipping</span>
+                <div className="text-lg font-bold my-4">
+                  Review Items & Shipping
                 </div>
-                <Card className="md:ml-8">
-                  <CardContent className="p-4">
+                <Card className="my-4 rounded-lg border border-border">
+                  <CardContent className="p-4 md:p-6">
                     <p className="mb-2">
                       <span className="text-lg font-bold text-green-700">
                         Arriving{" "}
@@ -731,50 +669,25 @@ const CheckoutForm = () => {
                   </CardContent>
                 </Card>
               </>
-            ) : (
-              <div className="flex text-muted-foreground text-lg font-bold my-4 py-3">
-                <span className="w-8">3 </span>
-                <span>Items and shipping</span>
-              </div>
-            )}
+            ) : null}
           </div>
-          {isPaymentMethodSelected && isAddressSelected && (
-            <div className="mt-6">
-              <div className="block md:hidden">
-                <CheckoutSummary />
-              </div>
-
-              <Card className="hidden md:block ">
-                <CardContent className="p-4 flex flex-col md:flex-row justify-between items-center gap-3">
-                  <Button onClick={handlePlaceOrder} className="rounded-full">
-                    Place Your Order
-                  </Button>
-                  <div className="flex-1">
-                    <p className="font-bold text-lg">
-                      Order Total: <ProductPrice price={totalPrice} plain />
-                    </p>
-                    <p className="text-xs">
-                      {" "}
-                      By placing your order, you agree to {
-                        site.name
-                      }&apos;s{" "}
-                      <Link href="/page/privacy-policy">privacy notice</Link>{" "}
-                      and
-                      <Link href="/page/conditions-of-use">
-                        {" "}
-                        conditions of use
-                      </Link>
-                      .
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
           <CheckoutFooter />
         </div>
-        <div className="hidden md:block">
-          <CheckoutSummary />
+        <div>
+          <OrderSummary
+            itemsPrice={itemsPrice}
+            shippingPrice={shippingPrice}
+            taxPrice={taxPrice}
+            totalPrice={totalPrice}
+            discountAmount={discountAmount}
+            showCoupon={true}
+            showPlaceOrderButton={isPaymentMethodSelected && isAddressSelected}
+            placeOrderButtonOnClick={handlePlaceOrder}
+            placeOrderButtonDisabled={isPlacingOrder}
+            helpText={getHelpText()}
+            siteName={site.name}
+            sticky={true}
+          />
         </div>
       </div>
     </main>
