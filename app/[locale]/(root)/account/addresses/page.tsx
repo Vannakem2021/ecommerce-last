@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 import { auth } from '@/auth'
 import { redirect } from 'next/navigation'
-import { getUserById } from '@/lib/actions/user.actions'
+import { getUserAddressesFromOrders } from '@/lib/actions/order.actions'
 import AddressesPage from './addresses-page'
 
 export const metadata: Metadata = {
@@ -14,10 +14,8 @@ export default async function AddressesPageWrapper() {
     redirect('/sign-in')
   }
 
-  const user = await getUserById(session.user.id)
-  if (!user) {
-    redirect('/sign-in')
-  }
+  const result = await getUserAddressesFromOrders(session.user.id)
+  const addresses = result.data || []
 
-  return <AddressesPage user={user} />
+  return <AddressesPage addresses={addresses} userId={session.user.id} />
 }

@@ -915,3 +915,230 @@ export async function setPassword(data: {
     }
   }
 }
+
+// SET DEFAULT ADDRESS
+export async function setDefaultAddress(address: unknown) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      throw new Error("Authentication required");
+    }
+
+    // Validate address data
+    const { ShippingAddressSchema } = await import('../validator');
+    const validatedAddress = ShippingAddressSchema.parse(address);
+
+    await connectToDatabase();
+
+    // Update user's default address
+    const updatedUser = await User.findByIdAndUpdate(
+      session.user.id,
+      { $set: { address: validatedAddress } },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedUser) {
+      throw new Error("Failed to set default address");
+    }
+
+    revalidatePath("/account/addresses");
+    return { success: true, message: "Default address set successfully" };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+// UPDATE PHONE NUMBER
+export async function updatePhoneNumber(phone: string) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      throw new Error("Authentication required");
+    }
+
+    // Basic phone validation
+    if (phone && phone.trim().length < 8) {
+      throw new Error("Invalid phone number");
+    }
+
+    await connectToDatabase();
+
+    const updatedUser = await User.findByIdAndUpdate(
+      session.user.id,
+      { $set: { phone: phone.trim() } },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      throw new Error("Failed to update phone number");
+    }
+
+    revalidatePath("/account/manage");
+    return { success: true, message: "Phone number updated successfully", data: { phone: updatedUser.phone } };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+// UPDATE LANGUAGE PREFERENCE
+export async function updateLanguagePreference(language: 'en-US' | 'kh') {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      throw new Error("Authentication required");
+    }
+
+    if (!['en-US', 'kh'].includes(language)) {
+      throw new Error("Invalid language");
+    }
+
+    await connectToDatabase();
+
+    const updatedUser = await User.findByIdAndUpdate(
+      session.user.id,
+      { $set: { preferredLanguage: language } },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      throw new Error("Failed to update language preference");
+    }
+
+    revalidatePath("/account/manage");
+    return { success: true, message: "Language updated successfully", data: { preferredLanguage: updatedUser.preferredLanguage } };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+// UPDATE CURRENCY PREFERENCE
+export async function updateCurrencyPreference(currency: 'USD' | 'KHR') {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      throw new Error("Authentication required");
+    }
+
+    if (!['USD', 'KHR'].includes(currency)) {
+      throw new Error("Invalid currency");
+    }
+
+    await connectToDatabase();
+
+    const updatedUser = await User.findByIdAndUpdate(
+      session.user.id,
+      { $set: { preferredCurrency: currency } },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      throw new Error("Failed to update currency preference");
+    }
+
+    revalidatePath("/account/manage");
+    return { success: true, message: "Currency updated successfully", data: { preferredCurrency: updatedUser.preferredCurrency } };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+// UPDATE PROFILE IMAGE
+export async function updateProfileImage(imageUrl: string) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      throw new Error("Authentication required");
+    }
+
+    if (!imageUrl || !imageUrl.trim()) {
+      throw new Error("Invalid image URL");
+    }
+
+    await connectToDatabase();
+
+    const updatedUser = await User.findByIdAndUpdate(
+      session.user.id,
+      { $set: { image: imageUrl.trim() } },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      throw new Error("Failed to update profile image");
+    }
+
+    revalidatePath("/account/manage");
+    revalidatePath("/account");
+    return { success: true, message: "Profile picture updated successfully", data: { image: updatedUser.image } };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+// REMOVE PROFILE IMAGE
+export async function removeProfileImage() {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      throw new Error("Authentication required");
+    }
+
+    await connectToDatabase();
+
+    const updatedUser = await User.findByIdAndUpdate(
+      session.user.id,
+      { $unset: { image: "" } },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      throw new Error("Failed to remove profile image");
+    }
+
+    revalidatePath("/account/manage");
+    revalidatePath("/account");
+    return { success: true, message: "Profile picture removed successfully" };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+// DELETE MY ACCOUNT (self-delete)
+export async function deleteMyAccount() {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      throw new Error("Authentication required");
+    }
+
+    await connectToDatabase();
+
+    // Get user data for verification
+    const user = await User.findById(session.user.id);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // Prevent admin/manager accounts from self-deleting
+    if (user.role === 'admin' || user.role === 'manager') {
+      throw new Error("Admin and Manager accounts cannot be self-deleted. Please contact support.");
+    }
+
+    // Delete user account
+    await User.findByIdAndDelete(session.user.id);
+
+    // Optional: Delete related data (orders, reviews, etc.)
+    // Note: You might want to keep orders for business records
+    // await Order.updateMany({ user: session.user.id }, { $set: { user: null, userName: user.name } });
+    // await Review.deleteMany({ user: session.user.id });
+
+    return { 
+      success: true, 
+      message: "Account deleted successfully. You will be signed out." 
+    };
+  } catch (error) {
+    return { 
+      success: false, 
+      message: formatError(error) 
+    };
+  }
+}

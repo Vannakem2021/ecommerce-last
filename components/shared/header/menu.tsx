@@ -37,22 +37,43 @@ const Menu = ({ forAdmin = false }: { forAdmin?: boolean }) => {
           <SheetTrigger className='align-middle header-button'>
             <EllipsisVertical className='h-6 w-6' />
           </SheetTrigger>
-          <SheetContent className='flex flex-col items-start'>
-            <SheetHeader className='w-full'>
-              <div className='flex items-center justify-between'>
-                <SheetTitle>{t('Header.Site Menu')}</SheetTitle>
-                <SheetDescription></SheetDescription>
-              </div>
+          <SheetContent className='w-[280px]'>
+            <SheetHeader>
+              <SheetTitle className='text-left'>{t('Header.Site Menu')}</SheetTitle>
+              <SheetDescription></SheetDescription>
             </SheetHeader>
-            <CurrencySwitcher />
-            <LanguageSwitcher />
-            <ThemeSwitcher />
-            <UserButton />
-            {forAdmin ? null : (
-              <>
-                <CartButton />
-              </>
-            )}
+            
+            <div className='mt-6 space-y-1'>
+              {/* Settings Section */}
+              <div className='space-y-1'>
+                <div className='px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider'>
+                  Preferences
+                </div>
+                <div className='w-full px-3 py-2 flex items-center justify-between hover:bg-muted/50 rounded-md transition-colors'>
+                  <span className='text-sm'>Currency</span>
+                  <CurrencySwitcher />
+                </div>
+                <div className='w-full px-3 py-2 flex items-center justify-between hover:bg-muted/50 rounded-md transition-colors'>
+                  <span className='text-sm'>Language</span>
+                  <LanguageSwitcher />
+                </div>
+                <div className='w-full px-3 py-2 flex items-center justify-between hover:bg-muted/50 rounded-md transition-colors'>
+                  <span className='text-sm'>Theme</span>
+                  <ThemeSwitcher />
+                </div>
+              </div>
+
+              {/* Account Section */}
+              <div className='pt-4 space-y-1'>
+                <div className='px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider'>
+                  Account
+                </div>
+                <div className='px-3 flex items-center gap-2'>
+                  <UserButton />
+                  {!forAdmin && <CartButton />}
+                </div>
+              </div>
+            </div>
           </SheetContent>
         </Sheet>
       </nav>

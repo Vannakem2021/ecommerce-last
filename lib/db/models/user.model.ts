@@ -21,6 +21,11 @@ const userSchema = new Schema<IUser>(
     emailVerifiedAt: { type: Date },
     lastLoginAt: { type: Date },
 
+    // Profile preferences (Phase 1 settings)
+    phone: { type: String },
+    preferredLanguage: { type: String, default: "en-US" }, // 'en-US' | 'kh'
+    preferredCurrency: { type: String, default: "USD" }, // 'USD' | 'KHR'
+
     // Customer-specific fields (optional during registration, required for checkout)
     paymentMethod: {
       type: String,

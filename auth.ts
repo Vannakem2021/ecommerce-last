@@ -149,10 +149,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             (user as { role: string }).role = existingUser.role;
             user.name = existingUser.name || user.name;
 
-            // Update last login timestamp
-            await User.findByIdAndUpdate(existingUser._id, {
-              lastLoginAt: new Date()
-            });
+            // Update last login timestamp and sync Google profile image
+            const updateData: any = { lastLoginAt: new Date() };
+            
+            // Always ensure user.image is set - prioritize custom upload over Google
+            if (existingUser.image) {
+              // User has an image in database (custom or Google), use it
+              user.image = existingUser.image;
+            } else if (user.image) {
+              // No image in database but Google provides one, save and use it
+              updateData.image = user.image;
+            }
+
+            await User.findByIdAndUpdate(existingUser._id, updateData);
           } else {
             // New OAuth user - set default role
             (user as { role: string }).role = "user";
@@ -214,9 +223,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
       }
 
-      // Handle session updates
-      if (session?.user?.name && trigger === "update") {
-        token.name = session.user.name;
+      // Handle session updates (name and image)
+      if (trigger === "update") {
+        if (session?.user?.name) {
+          token.name = session.user.name;
+        }
+        if (session?.user?.image !== undefined) {
+          token.picture = session.user.image;
+        }
       }
 
       return token;

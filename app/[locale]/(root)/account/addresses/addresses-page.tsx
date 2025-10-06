@@ -1,154 +1,138 @@
 'use client'
 
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Form } from '@/components/ui/form'
+import { Badge } from '@/components/ui/badge'
+import { AddressDisplay } from '@/components/shared/address/address-display'
+import { formatDateTime } from '@/lib/utils'
+import { MapPin, Package, ShoppingBag, Star } from 'lucide-react'
+import Link from 'next/link'
+import { ShippingAddress } from '@/types'
+import { setDefaultAddress } from '@/lib/actions/user.actions'
 import { useToast } from '@/hooks/use-toast'
-import { CambodiaAddressSchema } from '@/lib/validator'
-import { CambodiaAddress } from '@/types'
-import { CambodiaAddressForm } from '@/components/shared/address/cambodia-address-form'
-import { AddressDisplay, isAddressComplete } from '@/components/shared/address/address-display'
-import { updateUserAddress } from '@/lib/actions/user.actions'
-import { IUser } from '@/lib/db/models/user.model'
+import { useRouter } from 'next/navigation'
 
-interface AddressesPageProps {
-  user: IUser
+interface AddressWithMeta {
+  address: ShippingAddress
+  orderCount: number
+  lastUsed: Date
+  firstUsed: Date
+  key: string
+  isDefault: boolean
 }
 
-export default function AddressesPage({ user }: AddressesPageProps) {
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+interface AddressesPageProps {
+  addresses: AddressWithMeta[]
+  userId: string
+}
+
+export default function AddressesPage({ addresses, userId }: AddressesPageProps) {
+  const [loadingStates, setLoadingStates] = useState<{ [key: string]: boolean }>({})
   const { toast } = useToast()
+  const router = useRouter()
 
-  const form = useForm<CambodiaAddress>({
-    resolver: zodResolver(CambodiaAddressSchema),
-    defaultValues: {
-      fullName: user.address?.fullName || '',
-      phone: user.address?.phone || '',
-      provinceId: (user.address && 'provinceId' in user.address) ? user.address.provinceId : undefined,
-      districtId: (user.address && 'districtId' in user.address) ? user.address.districtId : undefined,
-      communeCode: (user.address && 'communeCode' in user.address) ? user.address.communeCode : '',
-      houseNumber: (user.address && 'houseNumber' in user.address) ? user.address.houseNumber : '',
-      street: user.address?.street || '',
-      postalCode: user.address?.postalCode || '',
-      provinceName: (user.address && 'provinceName' in user.address) ? user.address.provinceName : '',
-      districtName: (user.address && 'districtName' in user.address) ? user.address.districtName : '',
-      communeName: (user.address && 'communeName' in user.address) ? user.address.communeName : '',
-    },
-  })
-
-  const onSubmit = async (data: CambodiaAddress) => {
-    try {
-      setIsLoading(true)
-      await updateUserAddress(user._id, data)
+  const handleSetDefault = async (address: ShippingAddress, key: string) => {
+    setLoadingStates(prev => ({ ...prev, [`default-${key}`]: true }))
+    
+    const result = await setDefaultAddress(address)
+    
+    if (result.success) {
       toast({
         title: 'Success',
-        description: 'Address updated successfully',
+        description: result.message,
       })
-      setIsDialogOpen(false)
-      // Refresh the page to show updated data
-      window.location.reload()
-    } catch {
+      router.refresh()
+    } else {
       toast({
         title: 'Error',
-        description: 'Failed to update address',
+        description: result.message,
         variant: 'destructive',
       })
-    } finally {
-      setIsLoading(false)
     }
+    
+    setLoadingStates(prev => ({ ...prev, [`default-${key}`]: false }))
   }
 
-  const hasAddress = user.address && isAddressComplete(user.address as CambodiaAddress)
-
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">My Addresses</h1>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              {hasAddress ? 'Edit Address' : 'Add Address'}
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                {hasAddress ? 'Edit Address' : 'Add New Address'}
-              </DialogTitle>
-            </DialogHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <CambodiaAddressForm control={form.control} setValue={form.setValue} />
-                <div className="flex justify-end space-x-2 pt-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setIsDialogOpen(false)}
-                    disabled={isLoading}
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={isLoading}>
-                    {isLoading ? 'Saving...' : 'Save Address'}
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
+    <div className="space-y-4">
+      {/* Header */}
+      <div>
+        <h1 className="text-xl sm:text-2xl font-bold">Addresses</h1>
+        <p className="text-sm text-muted-foreground">
+          {addresses.length} saved {addresses.length === 1 ? 'address' : 'addresses'}
+        </p>
       </div>
 
-      <div className="grid gap-4">
-        {hasAddress ? (
-          <Card>
-            <CardHeader>
-              <CardTitle>Default Address</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <AddressDisplay address={user.address as CambodiaAddress} />
-            </CardContent>
-          </Card>
-        ) : (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <p className="text-muted-foreground mb-4">No addresses saved yet</p>
-              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button>Add Your First Address</Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle>Add New Address</DialogTitle>
-                  </DialogHeader>
-                  <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                      <CambodiaAddressForm control={form.control} setValue={form.setValue} />
-                      <div className="flex justify-end space-x-2 pt-4">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => setIsDialogOpen(false)}
-                          disabled={isLoading}
-                        >
-                          Cancel
-                        </Button>
-                        <Button type="submit" disabled={isLoading}>
-                          {isLoading ? 'Saving...' : 'Save Address'}
-                        </Button>
-                      </div>
-                    </form>
-                  </Form>
-                </DialogContent>
-              </Dialog>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+      {/* Addresses List */}
+      {addresses.length > 0 ? (
+        <div className="space-y-3">
+          {addresses.map((item, index) => (
+            <Card key={item.key || index} className={`transition-colors ${item.isDefault ? 'border-primary' : ''}`}>
+              <CardContent className="p-4">
+                <div className="flex flex-col gap-3">
+                  {/* Header with badges */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {item.isDefault && (
+                        <Badge variant="default" className="gap-1">
+                          <Star className="w-3 h-3" />
+                          Default
+                        </Badge>
+                      )}
+                      <Badge variant="outline" className="gap-1">
+                        <Package className="w-3 h-3" />
+                        {item.orderCount}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {formatDateTime(item.lastUsed).dateTime}
+                      </span>
+                    </div>
+                    {!item.isDefault && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleSetDefault(item.address, item.key)}
+                        disabled={loadingStates[`default-${item.key}`]}
+                        className="h-8 px-2 text-xs"
+                      >
+                        <Star className="w-3 h-3 mr-1" />
+                        {loadingStates[`default-${item.key}`] ? 'Setting...' : 'Set Default'}
+                      </Button>
+                    )}
+                  </div>
+                  
+                  {/* Address Details */}
+                  <AddressDisplay address={item.address} />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <Card>
+          <CardContent className="py-8 text-center">
+            <MapPin className="w-12 h-12 mx-auto mb-3 opacity-20" />
+            <p className="text-sm font-medium mb-1">No addresses yet</p>
+            <p className="text-xs text-muted-foreground mb-4">
+              Addresses are saved automatically when you place an order
+            </p>
+            <Link href="/search">
+              <Button size="sm" variant="outline">
+                <ShoppingBag className="w-3 h-3 mr-2" />
+                Start Shopping
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Info Text */}
+      {addresses.length > 0 && (
+        <p className="text-xs text-muted-foreground text-center">
+          Addresses from your orders • Set one as default for quick checkout
+        </p>
+      )}
     </div>
   )
 }
