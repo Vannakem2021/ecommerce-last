@@ -35,7 +35,7 @@ export default function ScrollHeader({ children }: { children: React.ReactNode }
   return (
     <div
       ref={headerRef}
-      className='transition-transform duration-300 will-change-transform'
+      className='transition-transform duration-300 will-change-transform relative z-[70]'
       style={{
         transform: isHidden ? 'translateY(-100%)' : 'translateY(0)',
       }}

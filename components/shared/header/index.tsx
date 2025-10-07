@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import Menu from './menu'
-import Search from './search'
+import StorefrontSearchWrapper from './storefront-search-wrapper'
 import { getSetting } from '@/lib/actions/setting.actions'
 import Container from '@/components/shared/container'
 import TopBar from './top-bar'
@@ -18,7 +18,7 @@ export default async function Header() {
         <TopBar />
 
         {/* Main Header */}
-        <div className='bg-background border-b'>
+        <div className='bg-background border-b relative z-[60]'>
           <Container padding='sm'>
             <div className='flex items-center justify-between h-16 lg:h-20'>
               {/* Left: Logo */}
@@ -43,7 +43,7 @@ export default async function Header() {
 
               {/* Center: Search Bar */}
               <div className='flex-1 max-w-2xl mx-4 hidden md:block'>
-                <Search />
+                <StorefrontSearchWrapper />
               </div>
 
               {/* Right: Utility Icons */}
@@ -54,7 +54,7 @@ export default async function Header() {
 
             {/* Mobile Search */}
             <div className='md:hidden pb-3'>
-              <Search />
+              <StorefrontSearchWrapper />
             </div>
           </Container>
         </div>
