@@ -44,14 +44,24 @@ export function ProfilePictureDialog({ open, onOpenChange, currentImage, userNam
       return
     }
 
-    // Update session
-    await update({ image: null })
-
-    // Close dialog
+    // Close dialog immediately
     onOpenChange(false)
 
-    // Force a hard reload to clear session cache and update all components
-    window.location.replace(window.location.href)
+    // Show success message
+    toast({
+      description: result.message,
+    })
+
+    // Update session, then force reload
+    try {
+      await update({ image: null })
+      // Force a hard reload to clear session cache and update all components
+      window.location.replace(window.location.href)
+    } catch (error) {
+      console.error('Failed to update session:', error)
+      // Fallback reload even if session update fails
+      window.location.replace(window.location.href)
+    }
   }
 
   async function handleUploadComplete(url: string) {
@@ -68,14 +78,24 @@ export function ProfilePictureDialog({ open, onOpenChange, currentImage, userNam
       return
     }
 
-    // Update session
-    await update({ image: url })
-
-    // Close dialog
+    // Close dialog immediately
     onOpenChange(false)
 
-    // Force a hard reload to clear session cache and update all components
-    window.location.replace(window.location.href)
+    // Show success message
+    toast({
+      description: result.message,
+    })
+
+    // Update session, then force reload
+    try {
+      await update({ image: url })
+      // Force a hard reload to clear session cache and update all components
+      window.location.replace(window.location.href)
+    } catch (error) {
+      console.error('Failed to update session:', error)
+      // Fallback reload even if session update fails
+      window.location.replace(window.location.href)
+    }
   }
 
   return (

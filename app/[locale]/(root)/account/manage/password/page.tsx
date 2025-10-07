@@ -28,7 +28,7 @@ export default async function ChangePasswordPage() {
     <div className='space-y-6'>
       <div>
         <div className='flex gap-2 mb-1'>
-          <Link href='/account' className='text-muted-foreground hover:text-foreground'>
+          <Link href='/account/manage' className='text-muted-foreground hover:text-foreground'>
             Your Account
           </Link>
           <span className='text-muted-foreground'>›</span>

@@ -76,13 +76,13 @@ export default function ProfilePictureModal({
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <button className={className} title="View profile picture">
-          <Avatar className={`${getAvatarSizeClass()} cursor-pointer hover:opacity-80 transition-opacity`}>
+          <Avatar className={`${getAvatarSizeClass()} cursor-pointer hover:opacity-80 transition-opacity border border-border hover:border-primary transition-colors`}>
             {hasImage && (
               <AvatarImage 
                 src={image || undefined} 
                 alt={userName}
                 className={cn(
-                  'transition-opacity duration-200',
+                  'object-cover transition-opacity duration-300',
                   imageLoaded ? 'opacity-100' : 'opacity-0'
                 )}
                 onLoad={() => setImageLoaded(true)}
@@ -91,8 +91,7 @@ export default function ProfilePictureModal({
             )}
             <AvatarFallback 
               className={cn(
-                `bg-primary text-primary-foreground font-semibold ${getAvatarTextSize()} transition-opacity duration-200`,
-                hasImage && !imageError && !imageLoaded ? 'opacity-0' : 'opacity-100'
+                `bg-muted text-foreground font-semibold ${getAvatarTextSize()} antialiased`
               )}
             >
               {getInitials()}
@@ -111,13 +110,13 @@ export default function ProfilePictureModal({
         <div className="space-y-6 py-2">
           {/* Avatar Preview */}
           <div className="flex justify-center">
-            <Avatar className="w-32 h-32">
+            <Avatar className="w-32 h-32 border border-border">
               {hasImage && (
                 <AvatarImage 
                   src={image || undefined} 
                   alt={userName}
                   className={cn(
-                    'transition-opacity duration-200',
+                    'object-cover transition-opacity duration-300',
                     imageLoaded ? 'opacity-100' : 'opacity-0'
                   )}
                   onLoad={() => setImageLoaded(true)}
@@ -126,8 +125,7 @@ export default function ProfilePictureModal({
               )}
               <AvatarFallback 
                 className={cn(
-                  "bg-primary text-primary-foreground font-semibold text-4xl transition-opacity duration-200",
-                  hasImage && !imageError && !imageLoaded ? 'opacity-0' : 'opacity-100'
+                  "bg-muted text-foreground font-semibold text-4xl antialiased"
                 )}
               >
                 {getInitials()}

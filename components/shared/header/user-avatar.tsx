@@ -44,7 +44,7 @@ export default function UserAvatar({ user, size = 'md', className }: UserAvatarP
           src={user.image || undefined} 
           alt={user.name || 'User'}
           className={cn(
-            'transition-opacity duration-200',
+            'object-cover transition-opacity duration-300',
             imageLoaded ? 'opacity-100' : 'opacity-0'
           )}
           onLoad={() => setImageLoaded(true)}
@@ -53,8 +53,7 @@ export default function UserAvatar({ user, size = 'md', className }: UserAvatarP
       )}
       <AvatarFallback 
         className={cn(
-          "bg-primary text-primary-foreground font-semibold transition-opacity duration-200",
-          hasImage && !imageError && !imageLoaded ? 'opacity-0' : 'opacity-100'
+          "bg-muted text-foreground font-semibold antialiased"
         )}
       >
         {getInitials()}
