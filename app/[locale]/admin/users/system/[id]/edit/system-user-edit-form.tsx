@@ -290,22 +290,7 @@ const SystemUserEditForm = ({ user, currentUserRole }: SystemUserEditFormProps) 
               />
 
 
-              {/* Role-specific security notices */}
-              <div className="rounded-lg border border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/30 p-4">
-                <div className="flex items-start gap-3">
-                  <ShieldIcon className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-red-900 dark:text-red-100">
-                      Security Notice
-                    </p>
-                    <p className="text-sm text-red-700 dark:text-red-200">
-                      {isAdminRole && 'This user will have full administrative access. Ensure proper security protocols are followed and only grant to trusted personnel.'}
-                      {isManagerRole && 'This user will have management-level access to products, orders, and analytics. Review access needs regularly.'}
-                      {isSellerRole && 'This user will have access to product and inventory management features. Monitor for appropriate usage.'}
-                    </p>
-                  </div>
-                </div>
-              </div>
+
             </CardContent>
           </Card>
 
@@ -337,7 +322,7 @@ const SystemUserEditForm = ({ user, currentUserRole }: SystemUserEditFormProps) 
                     disabled={form.formState.isSubmitting}
                     className="min-w-[140px]"
                   >
-                    {form.formState.isSubmitting ? 'Updating...' : 'Update System User'}
+                    {form.formState.isSubmitting ? 'Updating...' : 'Update User'}
                   </Button>
                 </div>
               </div>

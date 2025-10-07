@@ -10,7 +10,7 @@ import ProductPrice from "@/components/shared/product/product-price";
 import ABAPayWayForm from "./aba-payway-form";
 import { useEffect } from "react";
 import confetti from "canvas-confetti";
-import { Check, Mail, Package, Truck, ShoppingBag, ArrowRight } from "lucide-react";
+import { Check, Mail, Package, Truck, ShoppingBag, CreditCard, AlertCircle } from "lucide-react";
 import Link from "next/link";
 export default function OrderDetailsForm({
   order,
@@ -31,8 +31,16 @@ export default function OrderDetailsForm({
     isPaid,
   } = order;
 
-  // Trigger confetti animation on mount
+  // Determine if this is an unpaid ABA PayWay order
+  const isUnpaidABAPayWay = !isPaid && paymentMethod === "ABA PayWay";
+
+  // Trigger confetti animation ONLY for paid orders or Cash on Delivery
   useEffect(() => {
+    // Skip confetti for unpaid ABA PayWay orders
+    if (isUnpaidABAPayWay) {
+      return;
+    }
+
     const duration = 3000;
     const animationEnd = Date.now() + duration;
     const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
@@ -63,7 +71,7 @@ export default function OrderDetailsForm({
     }, 250);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [isUnpaidABAPayWay]);
 
   if (isPaid) {
     redirect(`/account/orders/${order._id}`);
@@ -71,6 +79,141 @@ export default function OrderDetailsForm({
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
 
+  // Render Payment Page for unpaid ABA PayWay orders
+  if (isUnpaidABAPayWay) {
+    return (
+      <main className="max-w-4xl mx-auto px-4 py-6 md:py-12">
+        <div className="space-y-6 md:space-y-8">
+          {/* Payment Hero Section */}
+          <div className="text-center space-y-4">
+            {/* Payment Icon */}
+            <div className="flex justify-center">
+              <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-primary/10 flex items-center justify-center">
+                <CreditCard className="w-12 h-12 md:w-14 md:h-14 text-primary" />
+              </div>
+            </div>
+
+            {/* Payment Message */}
+            <div className="space-y-2">
+              <h1 className="text-2xl md:text-4xl font-bold text-foreground">
+                Complete Your Payment
+              </h1>
+              <p className="text-base md:text-lg text-muted-foreground">
+                Your order has been created. Complete payment to confirm your order.
+              </p>
+            </div>
+
+            {/* Order Number */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted text-sm font-mono">
+              <span className="text-muted-foreground">Order #</span>
+              <span className="font-semibold">{generateOrderNumber(order._id.toString(), order.createdAt)}</span>
+            </div>
+          </div>
+
+          {/* Payment Notice */}
+          <Card className="rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-950/20">
+            <CardContent className="p-4 md:p-6">
+              <div className="flex gap-3">
+                <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm text-amber-800 dark:text-amber-200">
+                    Please complete your payment using ABA PayWay to confirm your order. Your order will be processed once payment is received.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Payment Card */}
+          <Card className="rounded-lg border-2 border-primary">
+            <CardContent className="p-6 md:p-8">
+              <div className="space-y-6">
+                {/* Order Total */}
+                <div className="text-center pb-6 border-b">
+                  <p className="text-sm text-muted-foreground mb-2">Total Amount</p>
+                  <p className="text-4xl font-bold">
+                    <ProductPrice price={totalPrice} plain />
+                  </p>
+                </div>
+
+                {/* Payment Button */}
+                <ABAPayWayForm orderId={order._id} amount={order.totalPrice} />
+
+                {/* Payment Details */}
+                <div className="pt-6 border-t space-y-3 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Items ({totalItems})</span>
+                    <span className="font-medium">
+                      <ProductPrice price={itemsPrice} plain />
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Shipping</span>
+                    <span className="font-medium">
+                      {shippingPrice === 0 ? (
+                        <span className="text-green-600">FREE</span>
+                      ) : (
+                        <ProductPrice price={shippingPrice} plain />
+                      )}
+                    </span>
+                  </div>
+                  {taxPrice !== undefined && taxPrice > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Tax</span>
+                      <span className="font-medium">
+                        <ProductPrice price={taxPrice} plain />
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Order Summary (Collapsible) */}
+          <Card className="rounded-lg border border-border">
+            <CardContent className="p-6 md:p-8">
+              <h2 className="text-lg font-bold mb-4">Order Summary</h2>
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Order Number</span>
+                  <span className="font-medium font-mono">{generateOrderNumber(order._id.toString(), order.createdAt)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Payment Method</span>
+                  <span className="font-medium">{paymentMethod}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Expected Delivery</span>
+                  <span className="font-medium text-green-700">
+                    {formatDateTime(expectedDeliveryDate).dateOnly}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Shipping to</span>
+                  <span className="font-medium text-right">
+                    {shippingAddress.fullName}, {shippingAddress.communeName}
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Help Text */}
+          <div className="text-center text-sm text-muted-foreground">
+            <p>
+              Need help? Contact our{" "}
+              <Link href="/contact" className="text-primary hover:underline">
+                customer support
+              </Link>
+            </p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // Render Success Page for Cash on Delivery and other payment methods
   return (
     <main className="max-w-4xl mx-auto px-4 py-6 md:py-12">
       <div className="space-y-6 md:space-y-8">
@@ -233,13 +376,6 @@ export default function OrderDetailsForm({
                 </div>
               </div>
             </div>
-
-            {/* Payment Actions */}
-            {!isPaid && paymentMethod === "ABA PayWay" && (
-              <div className="mt-6 pt-6 border-t">
-                <ABAPayWayForm orderId={order._id} amount={order.totalPrice} />
-              </div>
-            )}
           </CardContent>
         </Card>
 

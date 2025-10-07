@@ -11,21 +11,15 @@ const settingSchema = new Schema<ISetting>(
   {
     common: {
       pageSize: { type: Number, required: true, default: 9 },
-      isMaintenanceMode: { type: Boolean, required: true, default: false },
       freeShippingMinPrice: { type: Number, required: true, default: 0 },
-      defaultTheme: { type: String, required: true, default: "light" },
-      defaultColor: { type: String, required: true, default: "gold" },
     },
     site: {
       name: { type: String, required: true },
       url: { type: String, required: true },
       logo: { type: String, required: true },
-      slogan: { type: String, required: true },
       description: { type: String, required: true },
-      keywords: { type: String, required: true },
       email: { type: String, required: true },
       phone: { type: String, required: true },
-      author: { type: String, required: true },
       copyright: { type: String, required: true },
       address: { type: String, required: true },
     },

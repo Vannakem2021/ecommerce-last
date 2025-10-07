@@ -80,12 +80,9 @@ export default function InventoryList({
           <TableRow className="bg-muted/50">
             <TableHead className="w-16">IMAGE</TableHead>
             <TableHead>PRODUCT</TableHead>
-            <TableHead>SKU</TableHead>
             <TableHead>BRAND</TableHead>
             <TableHead>CATEGORY</TableHead>
-            <TableHead>STOCK LEVEL</TableHead>
-            <TableHead className="text-right">PRICE</TableHead>
-            <TableHead>STATUS</TableHead>
+            <TableHead>CURRENT STOCK</TableHead>
             <TableHead>UPDATED</TableHead>
             <TableHead className="w-24 text-center">ACTIONS</TableHead>
           </TableRow>
@@ -124,16 +121,9 @@ export default function InventoryList({
                       {product.name}
                     </Link>
                     <div className="text-xs text-muted-foreground">
-                      ID: {product._id.slice(-6).toUpperCase()}
+                      SKU: {product.sku}
                     </div>
                   </div>
-                </TableCell>
-
-                {/* SKU */}
-                <TableCell>
-                  <code className="bg-muted px-2 py-1 rounded text-xs font-mono">
-                    {product.sku}
-                  </code>
                 </TableCell>
 
                 {/* Brand */}
@@ -154,26 +144,11 @@ export default function InventoryList({
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <div className={`w-2 h-2 rounded-full ${stockStatus.dotColor}`}></div>
-                    <span className="font-medium">{product.countInStock}</span>
-                    <span className={`text-xs ${stockStatus.textColor}`}>
+                    <span className="font-medium text-lg">{product.countInStock}</span>
+                    <span className={`text-xs font-medium ${stockStatus.textColor}`}>
                       {stockStatus.label}
                     </span>
                   </div>
-                </TableCell>
-
-                {/* Price */}
-                <TableCell className="text-right font-semibold">
-                  {formatCurrency(product.price)}
-                </TableCell>
-
-                {/* Published Status */}
-                <TableCell>
-                  <Badge
-                    variant={product.isPublished ? "default" : "secondary"}
-                    className={product.isPublished ? "bg-green-600 hover:bg-green-700" : ""}
-                  >
-                    {product.isPublished ? "Published" : "Draft"}
-                  </Badge>
                 </TableCell>
 
                 {/* Last Update */}

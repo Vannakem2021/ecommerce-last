@@ -326,56 +326,7 @@ const CustomerDetailsView = ({ user }: CustomerDetailsViewProps) => {
         </CardContent>
       </Card>
 
-      {/* Quick Actions - Admin Tools */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-          <CardDescription>
-            Administrative tools to help manage this customer account
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-2">
-            {!user.emailVerified && (
-              <>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={handleResendVerification}
-                  disabled={actionLoading === 'verify'}
-                >
-                  <MailIcon className="h-3.5 w-3.5 mr-1.5" />
-                  {actionLoading === 'verify' ? 'Sending...' : 'Resend Verification'}
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={handleManualVerify}
-                  disabled={actionLoading === 'manual-verify'}
-                >
-                  <CheckCircleIcon className="h-3.5 w-3.5 mr-1.5" />
-                  {actionLoading === 'manual-verify' ? 'Verifying...' : 'Verify Email'}
-                </Button>
-              </>
-            )}
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={handleSendPasswordReset}
-              disabled={actionLoading === 'reset'}
-            >
-              <KeyIcon className="h-3.5 w-3.5 mr-1.5" />
-              {actionLoading === 'reset' ? 'Sending...' : 'Send Password Reset'}
-            </Button>
-            <Button asChild variant="outline" size="sm">
-              <Link href={`/admin/orders?search=${user.email}`}>
-                <ShoppingBagIcon className="h-3.5 w-3.5 mr-1.5" />
-                View All Orders
-              </Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+
     </div>
   )
 }

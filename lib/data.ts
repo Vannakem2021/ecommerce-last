@@ -1001,20 +1001,17 @@ We look forward to assisting you! Your satisfaction is our priority.`,
     {
       common: {
         freeShippingMinPrice: 35,
-        isMaintenanceMode: false,
-        defaultTheme: "Light",
-        defaultColor: "Gold",
         pageSize: 9,
       },
       site: {
         name: "BCS",
         description:
           "BCS is your premier destination for the latest electronics, smartphones, laptops, tablets, and tech accessories.",
-        keywords: "Electronics, Smartphones, Laptops, Tablets, Apple, Samsung, Oppo, MacBook, iPad, iPhone",
+
         url: "https://bcs.vercel.app",
         logo: "/icons/logo.webp",
-        slogan: "Power Your Digital Life.",
-        author: "BCS",
+
+
         copyright: "2000-2024, BCS.com, Inc. or its affiliates",
         email: "admin@bcs.com",
         address: "1234 Tech Street, Silicon Valley, CA, Zip 12345",

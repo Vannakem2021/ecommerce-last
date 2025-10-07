@@ -35,7 +35,6 @@ interface ProductFiltersProps {
 export interface ProductFilterState {
   category: string
   brand: string
-  stockStatus: string
   publishStatus: string
 }
 
@@ -51,7 +50,6 @@ export default function ProductFilters({
   const [filters, setFilters] = useState<ProductFilterState>({
     category: 'all',
     brand: 'all',
-    stockStatus: 'all',
     publishStatus: 'all'
   })
 
@@ -72,13 +70,6 @@ export default function ProductFilters({
     loadFilters()
   }, [])
 
-  const stockStatuses = [
-    { value: 'all', label: 'All Stock' },
-    { value: 'in-stock', label: 'In Stock (>10)' },
-    { value: 'low-stock', label: 'Low Stock (1-10)' },
-    { value: 'out-of-stock', label: 'Out of Stock' }
-  ]
-
   const publishStatuses = [
     { value: 'all', label: 'All Status' },
     { value: 'published', label: 'Published' },
@@ -95,7 +86,6 @@ export default function ProductFilters({
     const resetFilters = {
       category: 'all',
       brand: 'all',
-      stockStatus: 'all',
       publishStatus: 'all'
     }
     setFilters(resetFilters)
@@ -169,7 +159,7 @@ export default function ProductFilters({
         {/* Advanced Filters */}
         {showAdvanced && (
           <div className="border-t pt-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Category Filter */}
               <div className="space-y-2">
                 <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1">
@@ -206,26 +196,6 @@ export default function ProductFilters({
                     {brands.map((brand) => (
                       <SelectItem key={brand._id} value={brand._id}>
                         {brand.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Stock Status Filter */}
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1">
-                  <PackageIcon className="h-3 w-3" />
-                  Stock Status
-                </label>
-                <Select value={filters.stockStatus} onValueChange={(value) => handleFilterChange('stockStatus', value)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {stockStatuses.map((status) => (
-                      <SelectItem key={status.value} value={status.value}>
-                        {status.label}
                       </SelectItem>
                     ))}
                   </SelectContent>

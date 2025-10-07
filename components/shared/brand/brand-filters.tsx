@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -17,45 +18,81 @@ import {
   FilterIcon,
   XIcon,
   CheckCircleIcon,
-  SortAscIcon,
-  ImageIcon
+  SortAscIcon
 } from 'lucide-react'
 
 interface BrandFiltersProps {
   totalResults?: number
   currentRange?: string
   className?: string
+  initialQuery?: string
+  initialStatus?: string
+  initialSort?: string
 }
 
 export interface BrandFilterState {
   status: string
-  logoStatus: string
   sort: string
 }
 
 export default function BrandFilters({
   totalResults = 0,
   currentRange = '',
-  className = ''
+  className = '',
+  initialQuery = '',
+  initialStatus = 'all',
+  initialSort = 'latest'
 }: BrandFiltersProps) {
-  const [searchValue, setSearchValue] = useState('')
-  const [isPending] = useState(false)
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const [isPending, startTransition] = useTransition()
+  
+  const [searchValue, setSearchValue] = useState(initialQuery)
   const [filters, setFilters] = useState<BrandFilterState>({
-    status: 'all',
-    logoStatus: 'all',
-    sort: 'latest'
+    status: initialStatus,
+    sort: initialSort
   })
 
   const [showAdvanced, setShowAdvanced] = useState(false)
 
+  // Update URL params when filters change
+  const updateURL = (query: string, newFilters: BrandFilterState) => {
+    const params = new URLSearchParams(searchParams.toString())
+    
+    if (query) {
+      params.set('query', query)
+    } else {
+      params.delete('query')
+    }
+    
+    if (newFilters.status !== 'all') {
+      params.set('status', newFilters.status)
+    } else {
+      params.delete('status')
+    }
+    
+    if (newFilters.sort !== 'latest') {
+      params.set('sort', newFilters.sort)
+    } else {
+      params.delete('sort')
+    }
+    
+    // Reset to page 1 when filters change
+    params.delete('page')
+    
+    startTransition(() => {
+      router.push(`?${params.toString()}`)
+    })
+  }
+
   const handleSearchChange = (value: string) => {
     setSearchValue(value)
-    // TODO: Implement search functionality
+    updateURL(value, filters)
   }
 
   const handleFilterChange = (newFilters: BrandFilterState) => {
     setFilters(newFilters)
-    // TODO: Implement filter functionality
+    updateURL(searchValue, newFilters)
   }
 
   const statusOptions = [
@@ -64,19 +101,13 @@ export default function BrandFilters({
     { value: 'inactive', label: 'Inactive Only' }
   ]
 
-  const logoStatusOptions = [
-    { value: 'all', label: 'All' },
-    { value: 'with-logo', label: 'With Logo' },
-    { value: 'without-logo', label: 'Without Logo' }
-  ]
+
 
   const sortOptions = [
     { value: 'latest', label: 'Latest First' },
     { value: 'oldest', label: 'Oldest First' },
     { value: 'name-asc', label: 'Name A-Z' },
-    { value: 'name-desc', label: 'Name Z-A' },
-    { value: 'products-high', label: 'Most Products' },
-    { value: 'products-low', label: 'Least Products' }
+    { value: 'name-desc', label: 'Name Z-A' }
   ]
 
   const handleSingleFilterChange = (key: keyof BrandFilterState, value: string) => {
@@ -88,12 +119,11 @@ export default function BrandFilters({
   const clearAllFilters = () => {
     const resetFilters = {
       status: 'all',
-      logoStatus: 'all',
       sort: 'latest'
     }
+    setSearchValue('')
     setFilters(resetFilters)
-    handleFilterChange(resetFilters)
-    handleSearchChange('')
+    updateURL('', resetFilters)
   }
 
   const activeFiltersCount = Object.values(filters).filter(value => value !== 'all' && value !== 'latest').length + (searchValue ? 1 : 0)
@@ -161,7 +191,7 @@ export default function BrandFilters({
         {/* Advanced Filters */}
         {showAdvanced && (
           <div className="border-t pt-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Status Filter */}
               <div className="space-y-2">
                 <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1">
@@ -176,26 +206,6 @@ export default function BrandFilters({
                     {statusOptions.map((status) => (
                       <SelectItem key={status.value} value={status.value}>
                         {status.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Logo Status Filter */}
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1">
-                  <ImageIcon className="h-3 w-3" />
-                  Logo Status
-                </label>
-                <Select value={filters.logoStatus} onValueChange={(value) => handleSingleFilterChange('logoStatus', value)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {logoStatusOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
                       </SelectItem>
                     ))}
                   </SelectContent>

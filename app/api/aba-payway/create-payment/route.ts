@@ -43,10 +43,22 @@ export async function POST(req: NextRequest) {
     // 4. Authorization check - CRITICAL SECURITY
     // Check if user is admin/manager OR owns the order
     const isAdmin = session.user.role === 'admin' || session.user.role === 'manager';
-    const isOrderOwner = order.user.toString() === session.user.id;
+    
+    // Handle both populated and non-populated user field
+    const orderUserId = typeof order.user === 'object' && order.user !== null 
+      ? (order.user as any)._id?.toString() || (order.user as any).id?.toString()
+      : order.user?.toString();
+    
+    const isOrderOwner = orderUserId === session.user.id;
 
     if (!isAdmin && !isOrderOwner) {
-      console.warn(`[SECURITY] Unauthorized payment attempt: User ${session.user.id} (role: ${session.user.role}) tried to access order ${orderId}`);
+      console.warn(`[SECURITY] Unauthorized payment attempt:`, {
+        sessionUserId: session.user.id,
+        orderUserId: orderUserId,
+        orderUserType: typeof order.user,
+        role: session.user.role,
+        orderId: orderId
+      });
       return NextResponse.json(
         { error: "Unauthorized access to order" },
         { status: 403 }

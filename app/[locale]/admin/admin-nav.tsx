@@ -5,7 +5,7 @@ import React from "react";
 import {
   BarChart3,
   Package,
-  Users,
+  User,
   Settings,
   Warehouse,
   Percent,
@@ -58,9 +58,9 @@ const mainLinks = [
     permission: "brands.read" as Permission,
   },
   {
-    title: "Users",
+    title: "User",
     href: "/admin/users",
-    icon: Users,
+    icon: User,
     permission: "users.read" as Permission,
   },
   {

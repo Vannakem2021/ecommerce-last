@@ -36,6 +36,16 @@ export function UserCreatedSuccessDialog({
 }: UserCreatedSuccessDialogProps) {
   const { toast } = useToast()
   const [showPassword, setShowPassword] = useState(false)
+  
+  console.log('UserCreatedSuccessDialog - userId:', userId)
+  console.log('UserCreatedSuccessDialog - userId type:', typeof userId)
+  console.log('UserCreatedSuccessDialog - userId is valid:', userId && userId !== 'undefined')
+  
+  // Alert if userId is missing
+  if (!userId || userId === 'undefined') {
+    console.error('CRITICAL: userId is missing in UserCreatedSuccessDialog!')
+    console.error('Props received:', { userName, userEmail, userId, welcomeEmailSent })
+  }
 
   const copyCredentials = () => {
     const credentials = `Email: ${userEmail}\nPassword: ${temporaryPassword}`
@@ -126,17 +136,29 @@ export function UserCreatedSuccessDialog({
         </div>
 
         <DialogFooter className="flex-col sm:flex-row gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full sm:w-auto"
-            asChild
-          >
-            <Link href={`/admin/users/system/${userId}/edit`}>
+          {userId && userId !== 'undefined' ? (
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full sm:w-auto"
+              asChild
+            >
+              <Link href={`/admin/users/system/${userId}/edit`}>
+                <Eye className="h-4 w-4 mr-2" />
+                View User
+              </Link>
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full sm:w-auto"
+              disabled
+            >
               <Eye className="h-4 w-4 mr-2" />
-              View User
-            </Link>
-          </Button>
+              View User (ID Missing)
+            </Button>
+          )}
           <Button
             type="button"
             className="w-full sm:w-auto"

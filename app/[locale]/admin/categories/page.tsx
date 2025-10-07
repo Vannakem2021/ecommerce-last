@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Plus, Download, Upload, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Plus, ChevronLeft, ChevronRight } from 'lucide-react'
 import { getAllCategoriesForAdmin } from '@/lib/actions/category.actions'
 import CategoryList from './category-list'
 import CategoryOverviewCards from '@/components/shared/category/category-overview-cards'
@@ -16,27 +16,27 @@ export default async function AdminCategoriesPage(props: {
     page: string
     query: string
     sort: string
+    status: string
   }>
 }) {
   const searchParams = await props.searchParams
   const page = Number(searchParams.page) || 1
   const searchText = searchParams.query || ''
   const sort = searchParams.sort || 'latest'
+  const status = searchParams.status || 'all'
 
   const data = await getAllCategoriesForAdmin({
     query: searchText,
     page,
     sort,
+    status,
   })
 
   // Calculate category metrics
   const categoryMetrics = {
     totalCategories: data.totalCategories,
     activeCategories: data.categories.filter(cat => cat.active).length,
-    inactiveCategories: data.categories.filter(cat => !cat.active).length,
-    totalProducts: 0,
-    averageProductsPerCategory: 0,
-    mostPopularCategory: data.categories[0]?.name
+    inactiveCategories: data.categories.filter(cat => !cat.active).length
   }
 
   const currentPage = Number(page)
@@ -53,22 +53,12 @@ export default async function AdminCategoriesPage(props: {
             Organize and manage product categories
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" className="flex items-center gap-2">
-            <Download className="h-4 w-4" />
-            Export
-          </Button>
-          <Button variant="outline" className="flex items-center gap-2">
-            <Upload className="h-4 w-4" />
-            Import
-          </Button>
-          <Button asChild className="flex items-center gap-2">
-            <Link href="/admin/categories/create">
-              <Plus className="h-4 w-4" />
-              Create Category
-            </Link>
-          </Button>
-        </div>
+        <Button asChild className="flex items-center gap-2">
+          <Link href="/admin/categories/create">
+            <Plus className="h-4 w-4" />
+            Create Category
+          </Link>
+        </Button>
       </div>
 
       {/* Category Overview Cards */}
@@ -78,6 +68,9 @@ export default async function AdminCategoriesPage(props: {
       <CategoryFilters
         totalResults={data.totalCategories}
         currentRange={data.totalCategories === 0 ? 'No' : `${startItem}-${endItem} of ${data.totalCategories}`}
+        initialQuery={searchText}
+        initialStatus={status}
+        initialSort={sort}
       />
 
       {/* Enhanced Categories Table */}
@@ -104,7 +97,7 @@ export default async function AdminCategoriesPage(props: {
                 disabled={currentPage <= 1}
               >
                 <Link
-                  href={currentPage <= 1 ? '#' : `?page=${currentPage - 1}&query=${searchText}&sort=${sort}`}
+                  href={currentPage <= 1 ? '#' : `?page=${currentPage - 1}&query=${searchText}&sort=${sort}&status=${status}`}
                   className={currentPage <= 1 ? 'pointer-events-none opacity-50' : ''}
                 >
                   <ChevronLeft className="h-4 w-4" />
@@ -122,7 +115,7 @@ export default async function AdminCategoriesPage(props: {
                 disabled={currentPage >= data.totalPages}
               >
                 <Link
-                  href={currentPage >= data.totalPages ? '#' : `?page=${currentPage + 1}&query=${searchText}&sort=${sort}`}
+                  href={currentPage >= data.totalPages ? '#' : `?page=${currentPage + 1}&query=${searchText}&sort=${sort}&status=${status}`}
                   className={currentPage >= data.totalPages ? 'pointer-events-none opacity-50' : ''}
                 >
                   Next

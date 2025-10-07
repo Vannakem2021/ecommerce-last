@@ -70,9 +70,22 @@ export async function deleteWebPage(id: string) {
 }
 
 // GET ALL
-export async function getAllWebPages() {
+export async function getAllWebPages(query?: string) {
   await connectToDatabase()
-  const webPages = await WebPage.find()
+  
+  // Build query filter
+  const queryFilter: Record<string, unknown> = {}
+  
+  // Search filter - search in title, content, and slug
+  if (query && query !== 'all') {
+    queryFilter.$or = [
+      { title: { $regex: query, $options: 'i' } },
+      { content: { $regex: query, $options: 'i' } },
+      { slug: { $regex: query, $options: 'i' } }
+    ]
+  }
+  
+  const webPages = await WebPage.find(queryFilter).sort({ createdAt: -1 })
   return JSON.parse(JSON.stringify(webPages)) as IWebPage[]
 }
 export async function getWebPageById(webPageId: string) {

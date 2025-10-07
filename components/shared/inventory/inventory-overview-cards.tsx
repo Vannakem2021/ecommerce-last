@@ -31,11 +31,13 @@ export default function InventoryOverviewCards({ metrics, className = '' }: Inve
     averageStockLevel
   } = metrics
 
+  const totalUnits = Math.round(averageStockLevel * totalProducts)
+
   const cards = [
     {
-      title: 'Total Products',
-      value: totalProducts,
-      subtitle: 'All Inventory Items',
+      title: 'Total Units',
+      value: totalUnits.toLocaleString(),
+      subtitle: 'In Warehouse',
       icon: PackageIcon,
       iconColor: 'text-blue-600',
       bgColor: 'bg-blue-50 dark:bg-blue-950',
@@ -44,7 +46,7 @@ export default function InventoryOverviewCards({ metrics, className = '' }: Inve
     {
       title: 'Out of Stock',
       value: outOfStockCount,
-      subtitle: 'Needs Urgent Restock',
+      subtitle: 'Urgent Restock',
       icon: XCircleIcon,
       iconColor: 'text-red-600',
       bgColor: 'bg-red-50 dark:bg-red-950',
@@ -54,17 +56,17 @@ export default function InventoryOverviewCards({ metrics, className = '' }: Inve
     {
       title: 'Low Stock',
       value: lowStockCount,
-      subtitle: 'Restock Soon (1-10)',
+      subtitle: '1-10 Units Left',
       icon: ClockIcon,
       iconColor: 'text-amber-600',
       bgColor: 'bg-amber-50 dark:bg-amber-950',
-      badge: lowStockCount > 0 ? 'Action Required' : null,
+      badge: lowStockCount > 0 ? 'Review' : null,
       badgeVariant: 'default' as const
     },
     {
-      title: 'Inventory Value',
+      title: 'Stock Value',
       value: `$${(totalInventoryValue / 1000).toFixed(1)}K`,
-      subtitle: `Avg: ${averageStockLevel.toFixed(0)} units`,
+      subtitle: 'Total Asset Value',
       icon: DollarSignIcon,
       iconColor: 'text-emerald-600',
       bgColor: 'bg-emerald-50 dark:bg-emerald-950',

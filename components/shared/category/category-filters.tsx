@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -24,6 +25,9 @@ interface CategoryFiltersProps {
   totalResults?: number
   currentRange?: string
   className?: string
+  initialQuery?: string
+  initialStatus?: string
+  initialSort?: string
 }
 
 export interface CategoryFilterState {
@@ -34,25 +38,61 @@ export interface CategoryFilterState {
 export default function CategoryFilters({
   totalResults = 0,
   currentRange = '',
-  className = ''
+  className = '',
+  initialQuery = '',
+  initialStatus = 'all',
+  initialSort = 'latest'
 }: CategoryFiltersProps) {
-  const [searchValue, setSearchValue] = useState('')
-  const [isPending] = useState(false)
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const [isPending, startTransition] = useTransition()
+  
+  const [searchValue, setSearchValue] = useState(initialQuery)
   const [filters, setFilters] = useState<CategoryFilterState>({
-    status: 'all',
-    sort: 'latest'
+    status: initialStatus,
+    sort: initialSort
   })
 
   const [showAdvanced, setShowAdvanced] = useState(false)
 
+  // Update URL params when filters change
+  const updateURL = (query: string, newFilters: CategoryFilterState) => {
+    const params = new URLSearchParams(searchParams.toString())
+    
+    if (query) {
+      params.set('query', query)
+    } else {
+      params.delete('query')
+    }
+    
+    if (newFilters.status !== 'all') {
+      params.set('status', newFilters.status)
+    } else {
+      params.delete('status')
+    }
+    
+    if (newFilters.sort !== 'latest') {
+      params.set('sort', newFilters.sort)
+    } else {
+      params.delete('sort')
+    }
+    
+    // Reset to page 1 when filters change
+    params.delete('page')
+    
+    startTransition(() => {
+      router.push(`?${params.toString()}`)
+    })
+  }
+
   const handleSearchChange = (value: string) => {
     setSearchValue(value)
-    // TODO: Implement search functionality
+    updateURL(value, filters)
   }
 
   const handleFilterChange = (newFilters: CategoryFilterState) => {
     setFilters(newFilters)
-    // TODO: Implement filter functionality
+    updateURL(searchValue, newFilters)
   }
 
   const statusOptions = [
@@ -65,9 +105,7 @@ export default function CategoryFilters({
     { value: 'latest', label: 'Latest First' },
     { value: 'oldest', label: 'Oldest First' },
     { value: 'name-asc', label: 'Name A-Z' },
-    { value: 'name-desc', label: 'Name Z-A' },
-    { value: 'products-high', label: 'Most Products' },
-    { value: 'products-low', label: 'Least Products' }
+    { value: 'name-desc', label: 'Name Z-A' }
   ]
 
   const handleSingleFilterChange = (key: keyof CategoryFilterState, value: string) => {
@@ -81,9 +119,9 @@ export default function CategoryFilters({
       status: 'all',
       sort: 'latest'
     }
+    setSearchValue('')
     setFilters(resetFilters)
-    handleFilterChange(resetFilters)
-    handleSearchChange('')
+    updateURL('', resetFilters)
   }
 
   const activeFiltersCount = Object.values(filters).filter(value => value !== 'all' && value !== 'latest').length + (searchValue ? 1 : 0)

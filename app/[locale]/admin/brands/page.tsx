@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Plus, Download, Upload, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Plus, ChevronLeft, ChevronRight } from 'lucide-react'
 import { getAllBrandsForAdmin } from '@/lib/actions/brand.actions'
 import BrandList from './brand-list'
 import BrandOverviewCards from '@/components/shared/brand/brand-overview-cards'
@@ -16,27 +16,27 @@ export default async function AdminBrandsPage(props: {
     page: string
     query: string
     sort: string
+    status: string
   }>
 }) {
   const searchParams = await props.searchParams
   const page = Number(searchParams.page) || 1
   const searchText = searchParams.query || ''
   const sort = searchParams.sort || 'latest'
+  const status = searchParams.status || 'all'
 
   const data = await getAllBrandsForAdmin({
     query: searchText,
     page,
     sort,
+    status,
   })
 
   // Calculate brand metrics
   const brandMetrics = {
     totalBrands: data.totalBrands,
     activeBrands: data.brands.filter(brand => brand.active).length,
-    inactiveBrands: data.brands.filter(brand => !brand.active).length,
-    brandsWithLogo: data.brands.filter(brand => brand.logo).length,
-    brandsWithoutLogo: data.brands.filter(brand => !brand.logo).length,
-    mostUsedBrand: data.brands[0]?.name
+    inactiveBrands: data.brands.filter(brand => !brand.active).length
   }
 
   const currentPage = Number(page)
@@ -53,22 +53,12 @@ export default async function AdminBrandsPage(props: {
             Manage and organize product brands
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" className="flex items-center gap-2">
-            <Download className="h-4 w-4" />
-            Export
-          </Button>
-          <Button variant="outline" className="flex items-center gap-2">
-            <Upload className="h-4 w-4" />
-            Import
-          </Button>
-          <Button asChild className="flex items-center gap-2">
-            <Link href="/admin/brands/create">
-              <Plus className="h-4 w-4" />
-              Create Brand
-            </Link>
-          </Button>
-        </div>
+        <Button asChild className="flex items-center gap-2">
+          <Link href="/admin/brands/create">
+            <Plus className="h-4 w-4" />
+            Create Brand
+          </Link>
+        </Button>
       </div>
 
       {/* Brand Overview Cards */}
@@ -78,6 +68,9 @@ export default async function AdminBrandsPage(props: {
       <BrandFilters
         totalResults={data.totalBrands}
         currentRange={data.totalBrands === 0 ? 'No' : `${startItem}-${endItem} of ${data.totalBrands}`}
+        initialQuery={searchText}
+        initialStatus={status}
+        initialSort={sort}
       />
 
       {/* Enhanced Brands Table */}
@@ -104,7 +97,7 @@ export default async function AdminBrandsPage(props: {
                 disabled={currentPage <= 1}
               >
                 <Link
-                  href={currentPage <= 1 ? '#' : `?page=${currentPage - 1}&query=${searchText}&sort=${sort}`}
+                  href={currentPage <= 1 ? '#' : `?page=${currentPage - 1}&query=${searchText}&sort=${sort}&status=${status}`}
                   className={currentPage <= 1 ? 'pointer-events-none opacity-50' : ''}
                 >
                   <ChevronLeft className="h-4 w-4" />
@@ -122,7 +115,7 @@ export default async function AdminBrandsPage(props: {
                 disabled={currentPage >= data.totalPages}
               >
                 <Link
-                  href={currentPage >= data.totalPages ? '#' : `?page=${currentPage + 1}&query=${searchText}&sort=${sort}`}
+                  href={currentPage >= data.totalPages ? '#' : `?page=${currentPage + 1}&query=${searchText}&sort=${sort}&status=${status}`}
                   className={currentPage >= data.totalPages ? 'pointer-events-none opacity-50' : ''}
                 >
                   Next
