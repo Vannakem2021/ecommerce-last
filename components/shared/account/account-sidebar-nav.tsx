@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Package, MapPin, Settings } from 'lucide-react'
+import { Package, MapPin, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface NavItem {
@@ -16,7 +16,6 @@ interface AccountSidebarNavProps {
 }
 
 const iconMap = {
-  Home,
   Package,
   MapPin,
   Settings,
@@ -28,9 +27,7 @@ export default function AccountSidebarNav({ items }: AccountSidebarNavProps) {
   return (
     <>
       {items.map((item) => {
-        const isActive = item.href === '/account' 
-          ? pathname === item.href || pathname === '/account/'
-          : pathname.startsWith(item.href)
+        const isActive = pathname.startsWith(item.href)
         const Icon = iconMap[item.icon as keyof typeof iconMap]
         
         return (

@@ -4,7 +4,7 @@ import React from 'react'
 import { LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import AccountSidebarNav from './account-sidebar-nav'
-import ProfilePictureModal from './profile-picture-modal'
+import UserAvatar from '../header/user-avatar'
 import useSignOut from '@/hooks/use-sign-out'
 
 interface NavItem {
@@ -32,9 +32,13 @@ export function AccountSidebarContent({ session, navItems }: AccountSidebarConte
     <div className='space-y-4 pb-6'>
       {/* Profile Section */}
       <div className='flex items-center gap-3 mb-6'>
-        <ProfilePictureModal
-          currentImage={session.user.image || undefined}
-          userName={session.user.name || 'User'}
+        <UserAvatar
+          user={{
+            name: session.user.name,
+            image: session.user.image,
+          }}
+          size="md"
+          className='flex-shrink-0 border border-border'
         />
         <div className='flex-1 min-w-0'>
           <h2 className='font-semibold text-sm truncate'>{session.user.name}</h2>

@@ -45,7 +45,7 @@ export default async function UserButton() {
     <div className='flex gap-2 items-center'>
       <DropdownMenu>
         <DropdownMenuTrigger className='header-button' asChild>
-          <Button variant='ghost' size='icon' className='relative rounded-full p-0 h-12 w-12 overflow-hidden'>
+          <Button variant='ghost' className='relative h-12 w-12 p-0 rounded-full hover:bg-accent/50 transition-colors'>
             {session ? (
               <UserAvatar
                 user={{
@@ -53,10 +53,10 @@ export default async function UserButton() {
                   image: userImage, // Use database image
                 }}
                 size="md"
-                className='border-2 border-border'
+                className='border border-border hover:border-primary transition-colors'
               />
             ) : (
-              <UserRound className='h-5 w-5' />
+              <UserRound className='h-6 w-6 text-muted-foreground' />
             )}
           </Button>
         </DropdownMenuTrigger>
@@ -71,7 +71,7 @@ export default async function UserButton() {
                     image: userImage, // Use database image
                   }}
                   size="md"
-                  className='border-2 border-border flex-shrink-0'
+                  className='border border-border flex-shrink-0'
                 />
                 <div className='flex flex-col min-w-0'>
                   <p className='text-base font-semibold text-foreground truncate'>
@@ -93,7 +93,7 @@ export default async function UserButton() {
 
             {/* Account Actions */}
             <DropdownMenuGroup className='p-1'>
-              <Link href='/account'>
+              <Link href='/account/manage'>
                 <DropdownMenuItem className='flex items-center gap-3 cursor-pointer px-3 py-2.5'>
                   <User className='h-4 w-4 text-muted-foreground' />
                   <span className='text-sm'>My Profile</span>

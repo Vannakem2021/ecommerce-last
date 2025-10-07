@@ -21,11 +21,6 @@ export default async function AccountLayout({
 
   const navItems = [
     {
-      title: 'Overview',
-      href: '/account',
-      icon: 'Home',
-    },
-    {
       title: 'My Orders',
       href: '/account/orders',
       icon: 'Package',

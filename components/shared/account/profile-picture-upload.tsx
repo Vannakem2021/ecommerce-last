@@ -30,23 +30,23 @@ export default function ProfilePictureUpload({
     try {
       const result = await removeUserImage()
       if (result.success) {
-        setImage('')
         toast({
           description: result.message,
         })
-        router.refresh()
+        // Use hard reload instead of router.refresh to avoid timing issues
+        window.location.replace(window.location.href)
       } else {
         toast({
           variant: 'destructive',
           description: result.message,
         })
+        setIsRemoving(false)
       }
     } catch {
       toast({
         variant: 'destructive',
         description: 'Failed to remove profile picture',
       })
-    } finally {
       setIsRemoving(false)
     }
   }
@@ -103,23 +103,23 @@ export default function ProfilePictureUpload({
                   try {
                     const result = await updateUserImage(res[0].url)
                     if (result.success) {
-                      setImage(res[0].url)
                       toast({
                         description: result.message,
                       })
-                      router.refresh()
+                      // Use hard reload for consistency
+                      window.location.replace(window.location.href)
                     } else {
                       toast({
                         variant: 'destructive',
                         description: result.message,
                       })
+                      setIsUploading(false)
                     }
                   } catch {
                     toast({
                       variant: 'destructive',
                       description: 'Failed to update profile picture',
                     })
-                  } finally {
                     setIsUploading(false)
                   }
                 }}
@@ -163,23 +163,23 @@ export default function ProfilePictureUpload({
                       try {
                         const result = await updateUserImage(res[0].url)
                         if (result.success) {
-                          setImage(res[0].url)
                           toast({
                             description: result.message,
                           })
-                          router.refresh()
+                          // Use hard reload for consistency
+                          window.location.replace(window.location.href)
                         } else {
                           toast({
                             variant: 'destructive',
                             description: result.message,
                           })
+                          setIsUploading(false)
                         }
                       } catch {
                         toast({
                           variant: 'destructive',
                           description: 'Failed to update profile picture',
                         })
-                      } finally {
                         setIsUploading(false)
                       }
                     }}

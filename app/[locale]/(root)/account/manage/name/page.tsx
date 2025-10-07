@@ -20,7 +20,7 @@ export default async function ProfilePage() {
     <div className='mb-24'>
       <SessionProvider session={session}>
         <div className='flex gap-2 '>
-          <Link href='/account'>Your Account</Link>
+          <Link href='/account/manage'>Your Account</Link>
           <span>›</span>
           <Link href='/account/manage'>Login & Security</Link>
           <span>›</span>

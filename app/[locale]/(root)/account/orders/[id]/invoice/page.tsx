@@ -46,7 +46,7 @@ export default async function InvoicePage(props: InvoicePageProps) {
         {!isPrintMode && (
           <div className="no-print mb-6">
             <div className="flex gap-2 text-sm text-gray-600 mb-4">
-              <Link href="/account" className="hover:text-gray-900">
+              <Link href="/account/manage" className="hover:text-gray-900">
                 Your Account
               </Link>
               <span>›</span>

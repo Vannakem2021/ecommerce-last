@@ -46,7 +46,7 @@ export default async function OrderDetailsPage(props: {
     <>
       {/* Breadcrumb - Responsive */}
       <nav className='flex flex-wrap items-center gap-2 text-sm mb-4' aria-label='Breadcrumb'>
-        <Link href='/account' className='text-muted-foreground hover:text-foreground transition-colors'>
+        <Link href='/account/manage' className='text-muted-foreground hover:text-foreground transition-colors'>
           <span className='hidden sm:inline'>Your Account</span>
           <span className='sm:hidden'>Account</span>
         </Link>
