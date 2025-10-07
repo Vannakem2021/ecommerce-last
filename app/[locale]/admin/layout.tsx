@@ -18,7 +18,7 @@ import Script from 'next/script'
 import Container from '@/components/shared/container'
 import { SessionProvider } from 'next-auth/react'
 import NotificationBell from '@/components/shared/header/notification-bell'
-import GlobalSearch from '@/components/shared/header/global-search'
+import AdminGlobalSearch from '@/components/shared/admin/admin-global-search'
 import QuickAddButton from '@/components/shared/header/quick-add-button'
 import AdminPageTitle from './admin-page-title'
 
@@ -115,9 +115,9 @@ export default async function AdminLayout({
 
               {/* Right side actions */}
               <div className='flex items-center gap-4'>
-                {/* Global Search */}
-                <div className='hidden md:block w-64'>
-                  <GlobalSearch />
+                {/* Admin Global Search */}
+                <div className='hidden md:block'>
+                  <AdminGlobalSearch />
                 </div>
 
                 {/* Quick Add Button */}
