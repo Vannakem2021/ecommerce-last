@@ -61,7 +61,7 @@ export default async function Header() {
       </ScrollHeader>
 
       {/* Category Navigation - Sticky */}
-      <div className='sticky top-0 z-50'>
+      <div className='sticky top-0 z-[65]'>
         <CategoryNav />
       </div>
     </>
