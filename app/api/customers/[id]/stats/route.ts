@@ -25,7 +25,7 @@ export async function GET(
 
     // Fetch all orders for this customer
     const orders = await Order.find({ user: customerId })
-      .select('orderNumber totalPrice deliveryStatus paymentStatus createdAt')
+      .select('orderNumber totalPrice isPaid isDelivered createdAt')
       .sort({ createdAt: -1 })
       .lean()
 
@@ -39,12 +39,19 @@ export async function GET(
     
     const lastOrderDate = orders.length > 0 ? orders[0].createdAt : null
 
+    // Helper function to get order status
+    const getOrderStatus = (order: any) => {
+      if (order.isDelivered) return 'Delivered'
+      if (order.isPaid) return 'Paid'
+      return 'Pending'
+    }
+
     // Get recent orders (last 5)
     const recentOrders = orders.slice(0, 5).map((order) => ({
       _id: order._id.toString(),
       orderNumber: order.orderNumber,
       totalPrice: order.totalPrice,
-      deliveryStatus: order.deliveryStatus,
+      deliveryStatus: getOrderStatus(order),
       createdAt: order.createdAt.toISOString(),
     }))
 

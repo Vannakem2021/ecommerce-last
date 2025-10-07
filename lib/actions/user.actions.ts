@@ -139,9 +139,12 @@ export async function createUserByAdmin(userInput: IAdminUserCreate) {
     // Create the new user
     const newUser = await User.create(userData);
 
+    console.log('Created user in DB:', newUser._id)
+    console.log('Returning user ID:', newUser._id.toString())
+
     revalidatePath("/admin/users");
 
-    return {
+    const response = {
       success: true,
       message: "User created successfully",
       data: {
@@ -151,6 +154,11 @@ export async function createUserByAdmin(userInput: IAdminUserCreate) {
         role: newUser.role,
       },
     };
+    
+    console.log('Server action response:', response)
+    console.log('Response data.id:', response.data.id)
+    
+    return response;
   } catch (error) {
     return { success: false, message: formatError(error) };
   }

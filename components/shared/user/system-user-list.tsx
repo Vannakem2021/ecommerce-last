@@ -12,9 +12,10 @@ import {
 } from '@/components/ui/table'
 import { IUser } from '@/lib/db/models/user.model'
 import { formatDateTime } from '@/lib/utils'
-import { Eye, ShieldIcon, CrownIcon, UserCogIcon, UsersIcon, ClockIcon } from 'lucide-react'
+import { ShieldIcon, CrownIcon, UserCogIcon, UsersIcon, ClockIcon } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import Link from 'next/link'
+import { FaRegEdit } from 'react-icons/fa'
 
 interface SystemUserWithStats extends IUser {
   canEdit?: boolean
@@ -147,12 +148,12 @@ export default function SystemUserList({
                             <TooltipTrigger asChild>
                               <Button asChild variant='ghost' size='sm' className='h-8 w-8 p-0 hover:bg-muted'>
                                 <Link href={`/admin/users/system/${user._id}/edit`}>
-                                  <Eye className='h-3.5 w-3.5' />
+                                  <FaRegEdit className='h-3.5 w-3.5' />
                                 </Link>
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>View system user</p>
+                              <p>Edit user</p>
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>

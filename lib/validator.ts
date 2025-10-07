@@ -766,30 +766,18 @@ export const SettingInputSchema = z.object({
       .number()
       .min(1, "Page size must be at least 1")
       .default(9),
-    isMaintenanceMode: z.boolean().default(false),
     freeShippingMinPrice: z.coerce
       .number()
       .min(0, "Free shipping min price must be at least 0")
       .default(0),
-    defaultTheme: z
-      .string()
-      .min(1, "Default theme is required")
-      .default("light"),
-    defaultColor: z
-      .string()
-      .min(1, "Default color is required")
-      .default("green"),
   }),
   site: z.object({
     name: z.string().min(1, "Name is required"),
     logo: z.string().min(1, "logo is required"),
-    slogan: z.string().min(1, "Slogan is required"),
     description: z.string().min(1, "Description is required"),
-    keywords: z.string().min(1, "Keywords is required"),
     url: z.string().min(1, "Url is required"),
     email: z.string().min(1, "Email is required"),
     phone: z.string().min(1, "Phone is required"),
-    author: z.string().min(1, "Author is required"),
     copyright: z.string().min(1, "Copyright is required"),
     address: z.string().min(1, "Address is required"),
   }),

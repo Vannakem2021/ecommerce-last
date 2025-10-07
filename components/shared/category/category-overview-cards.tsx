@@ -5,19 +5,13 @@ import { Badge } from '@/components/ui/badge'
 import {
   FolderIcon,
   CheckCircleIcon,
-  XCircleIcon,
-  TrendingUpIcon,
-  BarChart3Icon,
-  TagIcon
+  XCircleIcon
 } from 'lucide-react'
 
 interface CategoryMetrics {
   totalCategories: number
   activeCategories: number
   inactiveCategories: number
-  totalProducts: number
-  averageProductsPerCategory: number
-  mostPopularCategory?: string
 }
 
 interface CategoryOverviewCardsProps {
@@ -29,10 +23,7 @@ export default function CategoryOverviewCards({ metrics, className = '' }: Categ
   const {
     totalCategories,
     activeCategories,
-    inactiveCategories,
-    totalProducts,
-    averageProductsPerCategory,
-    mostPopularCategory
+    inactiveCategories
   } = metrics
 
   const cards = [
@@ -60,19 +51,11 @@ export default function CategoryOverviewCards({ metrics, className = '' }: Categ
       iconColor: 'text-amber-600',
       bgColor: 'bg-amber-50 dark:bg-amber-950',
       alert: inactiveCategories > 0
-    },
-    {
-      title: 'Total Products',
-      value: totalProducts,
-      subtitle: `Avg: ${averageProductsPerCategory.toFixed(1)} per category`,
-      icon: TagIcon,
-      iconColor: 'text-purple-600',
-      bgColor: 'bg-purple-50 dark:bg-purple-950'
     }
   ]
 
   return (
-    <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 ${className}`}>
+    <div className={`grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 ${className}`}>
       {cards.map((card, index) => {
         const Icon = card.icon
         return (
@@ -104,21 +87,7 @@ export default function CategoryOverviewCards({ metrics, className = '' }: Categ
                 </div>
               </div>
 
-              {/* Optional trend indicator */}
-              {card.title === 'Total Categories' && (
-                <div className="mt-3 flex items-center gap-1 text-xs text-green-600">
-                  <TrendingUpIcon className="h-3 w-3" />
-                  <span>+2 this month</span>
-                </div>
-              )}
 
-              {/* Most popular category indicator */}
-              {card.title === 'Total Products' && mostPopularCategory && (
-                <div className="mt-3 flex items-center gap-1 text-xs text-blue-600">
-                  <BarChart3Icon className="h-3 w-3" />
-                  <span>Top: {mostPopularCategory}</span>
-                </div>
-              )}
             </CardContent>
           </Card>
         )

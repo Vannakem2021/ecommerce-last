@@ -226,22 +226,6 @@ export default function PaymentMethodForm({
                     </FormItem>
                   )}
                 />
-
-                <div className="rounded-lg border p-4 bg-yellow-50 border-yellow-200">
-                  <h4 className="font-semibold text-yellow-800 mb-2">
-                    Environment Variables Required
-                  </h4>
-                  <p className="text-sm text-yellow-700 mb-2">
-                    The following environment variables must be set for ABA PayWay to work:
-                  </p>
-                  <ul className="text-sm text-yellow-700 space-y-1">
-                    <li>• <code>PAYWAY_SECRET_KEY</code> - Your API secret key from ABA Bank</li>
-                    <li>• <code>PAYWAY_ENABLED=true</code> - Enable ABA PayWay service</li>
-                  </ul>
-                  <p className="text-xs text-yellow-600 mt-2">
-                    Contact ABA Bank merchant support to obtain your credentials.
-                  </p>
-                </div>
               </>
             )}
           </div>

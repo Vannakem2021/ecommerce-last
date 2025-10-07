@@ -24,6 +24,7 @@ interface SystemUserMetrics {
   totalSystemUsers: number
   admins: number
   managers: number
+  sellers: number
 }
 
 interface UserOverviewCardsProps {
@@ -127,14 +128,15 @@ export default function UserOverviewCards({
     const {
       totalSystemUsers,
       admins,
-      managers
+      managers,
+      sellers
     } = systemMetrics
 
     const cards = [
       {
-        title: 'System Users',
+        title: 'Total Users',
         value: totalSystemUsers,
-        subtitle: 'Staff accounts',
+        subtitle: 'All staff accounts',
         icon: ShieldIcon,
         iconColor: 'text-blue-600',
         bgColor: 'bg-blue-50 dark:bg-blue-950'
@@ -154,11 +156,19 @@ export default function UserOverviewCards({
         icon: UserCogIcon,
         iconColor: 'text-amber-600',
         bgColor: 'bg-amber-50 dark:bg-amber-950'
+      },
+      {
+        title: 'Sellers',
+        value: sellers,
+        subtitle: 'Product access',
+        icon: UsersIcon,
+        iconColor: 'text-emerald-600',
+        bgColor: 'bg-emerald-50 dark:bg-emerald-950'
       }
     ]
 
     return (
-      <div className={`grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 ${className}`}>
+      <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 ${className}`}>
         {cards.map((card, index) => {
           const Icon = card.icon
           return (

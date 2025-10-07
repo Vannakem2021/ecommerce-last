@@ -27,9 +27,9 @@ interface ProductOverviewCardsProps {
 export default function ProductOverviewCards({ metrics, className = '' }: ProductOverviewCardsProps) {
   const {
     totalProducts,
-    outOfStockCount,
-    lowStockCount,
-    totalValue
+    publishedProducts,
+    draftProducts,
+    lowStockCount
   } = metrics
 
   const cards = [
@@ -43,33 +43,33 @@ export default function ProductOverviewCards({ metrics, className = '' }: Produc
       badge: null
     },
     {
-      title: 'Out of Stock',
-      value: outOfStockCount,
-      subtitle: 'Needs Urgent Restock',
-      icon: XCircleIcon,
-      iconColor: 'text-red-600',
-      bgColor: 'bg-red-50 dark:bg-red-950',
-      badge: outOfStockCount > 0 ? 'URGENT' : null,
-      badgeVariant: 'destructive' as const
+      title: 'Published',
+      value: publishedProducts,
+      subtitle: 'Live on Store',
+      icon: PackageIcon,
+      iconColor: 'text-green-600',
+      bgColor: 'bg-green-50 dark:bg-green-950',
+      badge: null
+    },
+    {
+      title: 'Drafts',
+      value: draftProducts,
+      subtitle: 'Not Visible',
+      icon: ClockIcon,
+      iconColor: 'text-blue-600',
+      bgColor: 'bg-blue-50 dark:bg-blue-950',
+      badge: draftProducts > 0 ? 'Review' : null,
+      badgeVariant: 'default' as const
     },
     {
       title: 'Low Stock',
       value: lowStockCount,
-      subtitle: 'Restock Soon (1-10)',
-      icon: ClockIcon,
+      subtitle: 'Needs Attention',
+      icon: XCircleIcon,
       iconColor: 'text-amber-600',
       bgColor: 'bg-amber-50 dark:bg-amber-950',
       badge: lowStockCount > 0 ? 'Action Required' : null,
       badgeVariant: 'default' as const
-    },
-    {
-      title: 'Inventory Value',
-      value: `$${(totalValue / 1000).toFixed(1)}K`,
-      subtitle: 'Current Stock',
-      icon: DollarSignIcon,
-      iconColor: 'text-emerald-600',
-      bgColor: 'bg-emerald-50 dark:bg-emerald-950',
-      badge: null
     }
   ]
 

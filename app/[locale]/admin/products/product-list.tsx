@@ -50,7 +50,6 @@ const ProductList = () => {
   const [filters, setFilters] = useState<ProductFilterState>({
     category: 'all',
     brand: 'all',
-    stockStatus: 'all',
     publishStatus: 'all'
   })
   const [data, setData] = useState<ProductListDataProps>()
@@ -64,7 +63,6 @@ const ProductList = () => {
         page: pageNum,
         category: currentFilters.category,
         brand: currentFilters.brand,
-        stockStatus: currentFilters.stockStatus,
         publishStatus: currentFilters.publishStatus,
       })
       setData(data)
@@ -132,7 +130,6 @@ const ProductList = () => {
               query: searchValue,
               category: filters.category,
               brand: filters.brand,
-              stockStatus: filters.stockStatus,
               publishStatus: filters.publishStatus,
             }}
             totalProducts={data?.totalProducts || 0}
@@ -166,10 +163,8 @@ const ProductList = () => {
             <TableRow className="bg-muted/50">
               <TableHead className="w-16">IMAGE</TableHead>
               <TableHead>PRODUCT</TableHead>
-              <TableHead>SKU</TableHead>
-              <TableHead className="text-right">PRICE</TableHead>
               <TableHead>CATEGORY</TableHead>
-              <TableHead>STOCK</TableHead>
+              <TableHead className="text-right">PRICE</TableHead>
               <TableHead>RATING</TableHead>
               <TableHead>STATUS</TableHead>
               <TableHead>UPDATED</TableHead>
@@ -227,18 +222,6 @@ const ProductList = () => {
                     </div>
                   </TableCell>
 
-                  {/* SKU */}
-                  <TableCell>
-                    <code className="bg-muted px-2 py-1 rounded text-xs font-mono">
-                      {productSKU}
-                    </code>
-                  </TableCell>
-
-                  {/* Price */}
-                  <TableCell className="text-right font-semibold">
-                    ${product.price.toLocaleString()}
-                  </TableCell>
-
                   {/* Category */}
                   <TableCell>
                     <Badge variant="outline">
@@ -246,15 +229,9 @@ const ProductList = () => {
                     </Badge>
                   </TableCell>
 
-                  {/* Stock with Status */}
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <div className={`w-2 h-2 rounded-full ${stockInfo.bgColor}`}></div>
-                      <span className="font-medium">{product.countInStock}</span>
-                      <span className={`text-xs ${stockInfo.textColor}`}>
-                        {stockInfo.status}
-                      </span>
-                    </div>
+                  {/* Price */}
+                  <TableCell className="text-right font-semibold">
+                    ${product.price.toLocaleString()}
                   </TableCell>
 
                   {/* Rating */}

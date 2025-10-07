@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Plus, ChevronLeft, ChevronRight, Users, Shield } from 'lucide-react'
+import { Plus, ChevronLeft, ChevronRight, Users, UserCog } from 'lucide-react'
 import UserOverviewCards from '@/components/shared/user/user-overview-cards'
 import UserFilters from '@/components/shared/user/user-filters'
 import CustomerList from '@/components/shared/user/customer-list'
@@ -161,7 +161,8 @@ export default function AdminUsersPage() {
   const systemMetrics = {
     totalSystemUsers: systemUsers.length,
     admins: systemUsers.filter(user => normalizeRole(user.role) === 'admin').length,
-    managers: systemUsers.filter(user => normalizeRole(user.role) === 'manager').length
+    managers: systemUsers.filter(user => normalizeRole(user.role) === 'manager').length,
+    sellers: systemUsers.filter(user => normalizeRole(user.role) === 'seller').length
   }
 
   // Pagination for filtered results
@@ -199,7 +200,7 @@ export default function AdminUsersPage() {
             <Button asChild className="flex items-center gap-2">
               <Link href="/admin/users/create">
                 <Plus className="h-4 w-4" />
-                Create System User
+                Create User
               </Link>
             </Button>
           )}
@@ -215,8 +216,8 @@ export default function AdminUsersPage() {
             Customers ({customers.length})
           </TabsTrigger>
           <TabsTrigger value="system" className="flex items-center gap-2">
-            <Shield className="h-4 w-4" />
-            System Users ({systemUsers.length})
+            <UserCog className="h-4 w-4" />
+            User ({systemUsers.length})
           </TabsTrigger>
         </TabsList>
 

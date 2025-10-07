@@ -79,11 +79,13 @@ export async function getAllBrandsForAdmin({
   query,
   page = 1,
   sort = 'latest',
+  status = 'all',
   limit,
 }: {
   query: string
   page?: number
   sort?: string
+  status?: string
   limit?: number
 }) {
   await connectToDatabase()
@@ -92,34 +94,43 @@ export async function getAllBrandsForAdmin({
     common: { pageSize },
   } = await getSetting()
   limit = limit || pageSize
-  const queryFilter =
-    query && query !== 'all'
-      ? {
-          name: {
-            $regex: query,
-            $options: 'i',
-          },
-        }
-      : {}
+  
+  // Build query filter
+  const queryFilter: Record<string, unknown> = {}
+  
+  // Search filter
+  if (query && query !== 'all') {
+    queryFilter.name = {
+      $regex: query,
+      $options: 'i',
+    }
+  }
+  
+  // Status filter
+  if (status === 'active') {
+    queryFilter.active = true
+  } else if (status === 'inactive') {
+    queryFilter.active = false
+  }
 
+  // Sort order
   const order: Record<string, 1 | -1> =
     sort === 'name-asc'
       ? { name: 1 }
       : sort === 'name-desc'
         ? { name: -1 }
-        : { _id: -1 }
+        : sort === 'oldest'
+          ? { _id: 1 }
+          : { _id: -1 } // latest (default)
 
-  const brands = await Brand.find({
-    ...queryFilter,
-  })
+  const brands = await Brand.find(queryFilter)
     .sort(order)
     .skip(limit * (Number(page) - 1))
     .limit(limit)
     .lean()
 
-  const countBrands = await Brand.countDocuments({
-    ...queryFilter,
-  })
+  const countBrands = await Brand.countDocuments(queryFilter)
+  
   return {
     brands: JSON.parse(JSON.stringify(brands)) as IBrand[],
     totalPages: Math.ceil(countBrands / limit),

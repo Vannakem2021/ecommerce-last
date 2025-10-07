@@ -5,19 +5,13 @@ import { Badge } from '@/components/ui/badge'
 import {
   TagIcon,
   CheckCircleIcon,
-  XCircleIcon,
-  TrendingUpIcon,
-  BarChart3Icon,
-  ImageIcon
+  XCircleIcon
 } from 'lucide-react'
 
 interface BrandMetrics {
   totalBrands: number
   activeBrands: number
   inactiveBrands: number
-  brandsWithLogo: number
-  brandsWithoutLogo: number
-  mostUsedBrand?: string
 }
 
 interface BrandOverviewCardsProps {
@@ -29,10 +23,7 @@ export default function BrandOverviewCards({ metrics, className = '' }: BrandOve
   const {
     totalBrands,
     activeBrands,
-    inactiveBrands,
-    brandsWithLogo,
-    brandsWithoutLogo,
-    mostUsedBrand
+    inactiveBrands
   } = metrics
 
   const cards = [
@@ -60,19 +51,11 @@ export default function BrandOverviewCards({ metrics, className = '' }: BrandOve
       iconColor: 'text-amber-600',
       bgColor: 'bg-amber-50 dark:bg-amber-950',
       alert: inactiveBrands > 0
-    },
-    {
-      title: 'With Logo',
-      value: brandsWithLogo,
-      subtitle: `${brandsWithoutLogo} without logo`,
-      icon: ImageIcon,
-      iconColor: 'text-purple-600',
-      bgColor: 'bg-purple-50 dark:bg-purple-950'
     }
   ]
 
   return (
-    <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 ${className}`}>
+    <div className={`grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 ${className}`}>
       {cards.map((card, index) => {
         const Icon = card.icon
         return (
@@ -104,21 +87,7 @@ export default function BrandOverviewCards({ metrics, className = '' }: BrandOve
                 </div>
               </div>
 
-              {/* Optional trend indicator */}
-              {card.title === 'Total Brands' && (
-                <div className="mt-3 flex items-center gap-1 text-xs text-green-600">
-                  <TrendingUpIcon className="h-3 w-3" />
-                  <span>+1 this month</span>
-                </div>
-              )}
 
-              {/* Most used brand indicator */}
-              {card.title === 'With Logo' && mostUsedBrand && (
-                <div className="mt-3 flex items-center gap-1 text-xs text-blue-600">
-                  <BarChart3Icon className="h-3 w-3" />
-                  <span>Top: {mostUsedBrand}</span>
-                </div>
-              )}
             </CardContent>
           </Card>
         )

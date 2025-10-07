@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { ChevronLeft, Shield } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Edit System User',
+  title: 'Edit User',
 }
 
 export default async function SystemUserEditPage(props: {
@@ -49,9 +49,9 @@ export default async function SystemUserEditPage(props: {
             </Link>
           </Button>
           <span>/</span>
-          <span className="text-muted-foreground">System Users</span>
+          <span className="text-muted-foreground">User</span>
           <span>/</span>
-          <span className="text-foreground">Edit System User</span>
+          <span className="text-foreground">Edit User</span>
         </div>
 
         {/* Page Header */}
@@ -62,9 +62,9 @@ export default async function SystemUserEditPage(props: {
                 <Shield className="h-6 w-6 text-red-600" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-foreground">Edit System User</h1>
+                <h1 className="text-3xl font-bold text-foreground">Edit User</h1>
                 <p className="text-muted-foreground mt-1">
-                  Update system user roles, permissions, and access levels
+                  Update user roles, permissions, and access levels
                 </p>
               </div>
             </div>

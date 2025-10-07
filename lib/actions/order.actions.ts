@@ -303,8 +303,10 @@ export async function updateOrderToPaid(
     // Send Telegram notification for paid order (non-blocking)
     try {
       if (didUpdate) {
-        // Use fresh order state
-        const o = await Order.findById(order._id)
+        // Use fresh order state with populated user field
+        const o = await Order.findById(order._id).populate<{
+          user: { email: string; name: string }
+        }>('user', 'name email')
         if (o) await sendOrderPaidNotification(o as any)
       }
     } catch (telegramError) {

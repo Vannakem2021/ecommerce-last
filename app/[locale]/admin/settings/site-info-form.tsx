@@ -1,6 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   FormControl,
   FormField,
@@ -13,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/hooks/use-toast'
 import { UploadButton } from '@/lib/uploadthing'
 import { ISettingInput } from '@/types'
-import { TrashIcon, Globe } from 'lucide-react'
+import { TrashIcon } from 'lucide-react'
 import React from 'react'
 import { UseFormReturn } from 'react-hook-form'
 
@@ -28,79 +27,79 @@ export default function SiteInfoForm({
 
   const siteLogo = watch('site.logo')
   return (
-    <Card id={id}>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <div className="p-1.5 rounded-md bg-blue-50 dark:bg-blue-950">
-            <Globe className="h-4 w-4 text-blue-600" />
-          </div>
-          Site Information
-        </CardTitle>
-      </CardHeader>
-      <CardContent className='space-y-4'>
-        <div className='flex flex-col gap-5 md:flex-row'>
+    <div id={id} className='space-y-8'>
+      {/* BASIC DETAILS */}
+      <div className='space-y-4'>
+        <h3 className='text-xs font-semibold text-muted-foreground uppercase tracking-wider'>Basic Details</h3>
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
           <FormField
             control={control}
             name='site.name'
             render={({ field }) => (
-              <FormItem className='w-full'>
-                <FormLabel>Name</FormLabel>
+              <FormItem>
+                <FormLabel>Site Name</FormLabel>
                 <FormControl>
-                  <Input placeholder='Enter site name' {...field} />
+                  <Input placeholder='Enter your site name' className='rounded-sm' {...field} />
                 </FormControl>
-
                 <FormMessage />
               </FormItem>
             )}
           />
-
           <FormField
             control={control}
             name='site.url'
             render={({ field }) => (
-              <FormItem className='w-full'>
-                <FormLabel>Url</FormLabel>
+              <FormItem>
+                <FormLabel>Site URL</FormLabel>
                 <FormControl>
-                  <Input placeholder='Enter url' {...field} />
+                  <Input placeholder='https://example.com' className='rounded-sm' {...field} />
                 </FormControl>
-
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
-        <div className='flex flex-col gap-5 md:flex-row'>
-          <div className='w-full text-left'>
+      </div>
+
+      <div className='border-t' />
+
+      {/* BRANDING */}
+      <div className='space-y-4'>
+        <h3 className='text-xs font-semibold text-muted-foreground uppercase tracking-wider'>Branding</h3>
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+          <div className='space-y-4'>
             <FormField
               control={control}
               name='site.logo'
               render={({ field }) => (
-                <FormItem className='w-full'>
+                <FormItem>
                   <FormLabel>Logo</FormLabel>
                   <FormControl>
-                    <Input placeholder='Enter image url' {...field} />
+                    <Input placeholder='Enter image url' className='rounded-sm' {...field} />
                   </FormControl>
-
                   <FormMessage />
                 </FormItem>
               )}
             />
 
             {siteLogo && (
-              <div className='flex my-2 items-center gap-2'>
-                <img src={siteLogo} alt='logo' width={48} height={48} />
+              <div className='flex items-center gap-3'>
+                <img src={siteLogo} alt='logo' width={48} height={48} className='rounded-sm' />
                 <Button
                   type='button'
-                  variant='outline'
+                  variant='ghost'
+                  size='sm'
                   onClick={() => form.setValue('site.logo', '')}
                 >
-                  <TrashIcon className='w-4 h-4' />
+                  <TrashIcon className='w-4 h-4 mr-2' />
+                  Remove
                 </Button>
               </div>
             )}
+            
             {!siteLogo && (
               <UploadButton
-                className='!items-start py-2'
+                className='!items-start'
                 endpoint='imageUploader'
                 onClientUploadComplete={(res) => {
                   form.setValue('site.logo', res[0].url)
@@ -114,116 +113,97 @@ export default function SiteInfoForm({
               />
             )}
           </div>
+
           <FormField
             control={control}
             name='site.description'
             render={({ field }) => (
-              <FormItem className='w-full'>
+              <FormItem>
                 <FormLabel>Description</FormLabel>
                 <FormControl>
                   <Textarea
-                    placeholder='Enter description'
-                    className='h-40'
+                    placeholder='Enter a brief description of your site'
+                    className='resize-none rounded-sm'
+                    rows={4}
                     {...field}
                   />
                 </FormControl>
-
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
-        <div className='flex flex-col gap-5 md:flex-row'>
-          <FormField
-            control={control}
-            name='site.slogan'
-            render={({ field }) => (
-              <FormItem className='w-full'>
-                <FormLabel>Slogan</FormLabel>
-                <FormControl>
-                  <Input placeholder='Enter slogan name' {...field} />
-                </FormControl>
+      </div>
 
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={control}
-            name='site.keywords'
-            render={({ field }) => (
-              <FormItem className='w-full'>
-                <FormLabel>Keywords</FormLabel>
-                <FormControl>
-                  <Input placeholder='Enter keywords' {...field} />
-                </FormControl>
+      <div className='border-t' />
 
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        <div className='flex flex-col gap-5 md:flex-row'>
-          <FormField
-            control={control}
-            name='site.phone'
-            render={({ field }) => (
-              <FormItem className='w-full'>
-                <FormLabel>Phone</FormLabel>
-                <FormControl>
-                  <Input placeholder='Enter phone number' {...field} />
-                </FormControl>
-
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={control}
-            name='site.email'
-            render={({ field }) => (
-              <FormItem className='w-full'>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input placeholder='Enter email address' {...field} />
-                </FormControl>
-
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        <div className='flex flex-col gap-5 md:flex-row'>
+      {/* CONTACT */}
+      <div className='space-y-4'>
+        <h3 className='text-xs font-semibold text-muted-foreground uppercase tracking-wider'>Contact</h3>
+        <div className='space-y-4'>
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            <FormField
+              control={control}
+              name='site.phone'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Phone</FormLabel>
+                  <FormControl>
+                    <Input placeholder='+1 (555) 123-4567' className='rounded-sm' {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={control}
+              name='site.email'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input placeholder='contact@example.com' className='rounded-sm' {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
           <FormField
             control={control}
             name='site.address'
             render={({ field }) => (
-              <FormItem className='w-full'>
+              <FormItem>
                 <FormLabel>Address</FormLabel>
                 <FormControl>
-                  <Input placeholder='Enter address' {...field} />
+                  <Input placeholder='123 Main St, City, Country' className='rounded-sm' {...field} />
                 </FormControl>
-
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={control}
-            name='site.copyright'
-            render={({ field }) => (
-              <FormItem className='w-full'>
-                <FormLabel>Copyright</FormLabel>
-                <FormControl>
-                  <Input placeholder='Enter copyright' {...field} />
-                </FormControl>
-
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
-      </CardContent>
-    </Card>
+      </div>
+
+      <div className='border-t' />
+
+      {/* LEGAL */}
+      <div className='space-y-4'>
+        <h3 className='text-xs font-semibold text-muted-foreground uppercase tracking-wider'>Legal</h3>
+        <FormField
+          control={control}
+          name='site.copyright'
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Copyright</FormLabel>
+              <FormControl>
+                <Input placeholder='© 2024 Your Company. All rights reserved.' className='rounded-sm' {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+    </div>
   )
 }

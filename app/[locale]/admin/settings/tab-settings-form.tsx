@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { SettingInputSchema } from "@/lib/validator";
@@ -29,11 +29,8 @@ const TabSettingsForm = ({ setting }: { setting: ISettingInput }) => {
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
   
-  // Default open sections
-  const [openSections, setOpenSections] = useState<string[]>([
-    "site-info",
-    "general"
-  ]);
+  // Active tab state
+  const [activeTab, setActiveTab] = useState("site-info");
 
   const form = useForm<ISettingInput>({
     resolver: zodResolver(SettingInputSchema),
@@ -101,21 +98,6 @@ const TabSettingsForm = ({ setting }: { setting: ISettingInput }) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const toggleExpandAll = () => {
-    if (openSections.length > 0) {
-      setOpenSections([]);
-    } else {
-      setOpenSections([
-        "site-info",
-        "general",
-        "homepage",
-        "commerce",
-        "content",
-        "integrations"
-      ]);
-    }
-  };
-
   async function onSubmit(values: ISettingInput) {
     // Cancel any pending auto-save
     if (autoSaveTimeoutRef.current) {
@@ -141,216 +123,181 @@ const TabSettingsForm = ({ setting }: { setting: ISettingInput }) => {
   }
 
   return (
-    <Card>
-      <CardContent className="p-6">
-        <Form {...form}>
-          <form
-            className="space-y-6 max-w-none"
-            method="post"
-            onSubmit={form.handleSubmit(onSubmit)}
-          >
+    <>
+      <Form {...form}>
+        <form
+          className="space-y-6"
+          method="post"
+          onSubmit={form.handleSubmit(onSubmit)}
+        >
             <div className="space-y-6">
-              {/* Header with Save Status and Controls */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    {saveStatus === 'saving' && (
-                      <>
-                          <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
-                          <span>Auto-saving changes...</span>
-                        </>
-                      )}
-                      {saveStatus === 'saved' && (
-                        <>
-                          <div className="h-4 w-4 rounded-full bg-green-500 flex items-center justify-center">
-                            <div className="h-2 w-2 bg-white rounded-full"></div>
-                          </div>
-                          <span className="text-green-700 dark:text-green-400">All changes saved automatically</span>
-                        </>
-                      )}
-                      {saveStatus === 'error' && (
-                        <>
-                          <div className="h-4 w-4 rounded-full bg-red-500 flex items-center justify-center">
-                            <div className="h-1 w-1 bg-white rounded-full"></div>
-                          </div>
-                          <span className="text-red-700 dark:text-red-400">Failed to save changes</span>
-                        </>
-                      )}
-                    {saveStatus === 'idle' && (
-                      <span>Changes are automatically saved as you type</span>
-                    )}
-                  </div>
-                  
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={toggleExpandAll}
-                  >
-                    {openSections.length > 0 ? 'Collapse All' : 'Expand All'}
-                  </Button>
-                </div>
+              {/* Header with Save Status */}
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                {saveStatus === 'saving' && (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+                    <span>Auto-saving changes...</span>
+                  </>
+                )}
+                {saveStatus === 'saved' && (
+                  <>
+                    <div className="h-4 w-4 rounded-full bg-green-500 flex items-center justify-center">
+                      <div className="h-2 w-2 bg-white rounded-full"></div>
+                    </div>
+                    <span className="text-green-700 dark:text-green-400">All changes saved automatically</span>
+                  </>
+                )}
+                {saveStatus === 'error' && (
+                  <>
+                    <div className="h-4 w-4 rounded-full bg-red-500 flex items-center justify-center">
+                      <div className="h-1 w-1 bg-white rounded-full"></div>
+                    </div>
+                    <span className="text-red-700 dark:text-red-400">Failed to save changes</span>
+                  </>
+                )}
+                {saveStatus === 'idle' && (
+                  <span>Changes are automatically saved as you type</span>
+                )}
               </div>
 
-              {/* Accordion Settings */}
-              <Accordion 
-                type="multiple" 
-                value={openSections}
-                onValueChange={setOpenSections}
-                className="space-y-4"
-              >
+              {/* Tabs Settings */}
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+                <TabsList className="inline-flex h-auto w-full justify-start gap-1 rounded-lg bg-gradient-to-r from-muted/50 to-muted/30 p-1.5 shadow-sm border border-border/50">
+                  <TabsTrigger 
+                    value="site-info" 
+                    className="group relative gap-2 rounded-md px-4 py-2.5 transition-all duration-200 data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:border data-[state=active]:border-border hover:bg-background/50"
+                  >
+                    <Globe className="h-4 w-4 transition-colors group-data-[state=active]:text-green-600" />
+                    <span className="hidden sm:inline font-medium">Site Information</span>
+                    <span className="sm:hidden font-medium">Site</span>
+                    <div className="absolute bottom-0 left-1/2 h-0.5 w-0 -translate-x-1/2 rounded-full bg-green-600 transition-all duration-200 group-data-[state=active]:w-3/4" />
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="general" 
+                    className="group relative gap-2 rounded-md px-4 py-2.5 transition-all duration-200 data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:border data-[state=active]:border-border hover:bg-background/50"
+                  >
+                    <Settings2 className="h-4 w-4 transition-colors group-data-[state=active]:text-green-600" />
+                    <span className="hidden sm:inline font-medium">General Settings</span>
+                    <span className="sm:hidden font-medium">General</span>
+                    <div className="absolute bottom-0 left-1/2 h-0.5 w-0 -translate-x-1/2 rounded-full bg-green-600 transition-all duration-200 group-data-[state=active]:w-3/4" />
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="homepage" 
+                    className="group relative gap-2 rounded-md px-4 py-2.5 transition-all duration-200 data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:border data-[state=active]:border-border hover:bg-background/50"
+                  >
+                    <Home className="h-4 w-4 transition-colors group-data-[state=active]:text-green-600" />
+                    <span className="hidden sm:inline font-medium">Home Page</span>
+                    <span className="sm:hidden font-medium">Home</span>
+                    <div className="absolute bottom-0 left-1/2 h-0.5 w-0 -translate-x-1/2 rounded-full bg-green-600 transition-all duration-200 group-data-[state=active]:w-3/4" />
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="commerce" 
+                    className="group relative gap-2 rounded-md px-4 py-2.5 transition-all duration-200 data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:border data-[state=active]:border-border hover:bg-background/50"
+                  >
+                    <ShoppingCart className="h-4 w-4 transition-colors group-data-[state=active]:text-green-600" />
+                    <span className="hidden sm:inline font-medium">Commerce</span>
+                    <span className="sm:hidden font-medium">Commerce</span>
+                    <div className="absolute bottom-0 left-1/2 h-0.5 w-0 -translate-x-1/2 rounded-full bg-green-600 transition-all duration-200 group-data-[state=active]:w-3/4" />
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="content" 
+                    className="group relative gap-2 rounded-md px-4 py-2.5 transition-all duration-200 data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:border data-[state=active]:border-border hover:bg-background/50"
+                  >
+                    <FileText className="h-4 w-4 transition-colors group-data-[state=active]:text-green-600" />
+                    <span className="hidden sm:inline font-medium">Content</span>
+                    <span className="sm:hidden font-medium">Content</span>
+                    <div className="absolute bottom-0 left-1/2 h-0.5 w-0 -translate-x-1/2 rounded-full bg-green-600 transition-all duration-200 group-data-[state=active]:w-3/4" />
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="integrations" 
+                    className="group relative gap-2 rounded-md px-4 py-2.5 transition-all duration-200 data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:border data-[state=active]:border-border hover:bg-background/50"
+                  >
+                    <Zap className="h-4 w-4 transition-colors group-data-[state=active]:text-green-600" />
+                    <span className="hidden sm:inline font-medium">Integrations</span>
+                    <span className="sm:hidden font-medium">Integrations</span>
+                    <div className="absolute bottom-0 left-1/2 h-0.5 w-0 -translate-x-1/2 rounded-full bg-green-600 transition-all duration-200 group-data-[state=active]:w-3/4" />
+                  </TabsTrigger>
+                </TabsList>
+
                 {/* Site Information */}
-                <AccordionItem value="site-info" className="border rounded-lg">
-                  <AccordionTrigger className="px-4 hover:no-underline">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-md bg-blue-50 dark:bg-blue-950">
-                        <Globe className="h-4 w-4 text-blue-600" />
-                      </div>
-                      <div className="text-left">
-                        <div className="font-semibold">Site Information</div>
-                        <div className="text-sm text-muted-foreground font-normal">
-                          Configure your site name, logo, and URL
-                        </div>
-                      </div>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="px-4 pb-4">
-                    <SiteInfoForm id="setting-site-info" form={form} />
-                  </AccordionContent>
-                </AccordionItem>
+                <TabsContent value="site-info" className="space-y-4">
+                  <div className="text-sm text-muted-foreground">
+                    Configure your site name, logo, and URL
+                  </div>
+                  <SiteInfoForm id="setting-site-info" form={form} />
+                </TabsContent>
 
                 {/* General Settings */}
-                <AccordionItem value="general" className="border rounded-lg">
-                  <AccordionTrigger className="px-4 hover:no-underline">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-md bg-emerald-50 dark:bg-emerald-950">
-                        <Settings2 className="h-4 w-4 text-emerald-600" />
-                      </div>
-                      <div className="text-left">
-                        <div className="font-semibold">General Settings</div>
-                        <div className="text-sm text-muted-foreground font-normal">
-                          Page size, theme, colors, and defaults
-                        </div>
-                      </div>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="px-4 pb-4">
-                    <CommonForm id="setting-common" form={form} />
-                  </AccordionContent>
-                </AccordionItem>
+                <TabsContent value="general" className="space-y-4">
+                  <div className="text-sm text-muted-foreground">
+                    Page size and other general preferences
+                  </div>
+                  <CommonForm id="setting-common" form={form} />
+                </TabsContent>
 
                 {/* Home Page */}
-                <AccordionItem value="homepage" className="border rounded-lg">
-                  <AccordionTrigger className="px-4 hover:no-underline">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-md bg-purple-50 dark:bg-purple-950">
-                        <Home className="h-4 w-4 text-purple-600" />
-                      </div>
-                      <div className="text-left">
-                        <div className="font-semibold">Home Page</div>
-                        <div className="text-sm text-muted-foreground font-normal">
-                          Customize homepage sections and layout
-                        </div>
-                      </div>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="px-4 pb-4">
-                    <HomePageForm form={form} />
-                  </AccordionContent>
-                </AccordionItem>
+                <TabsContent value="homepage" className="space-y-4">
+                  <div className="text-sm text-muted-foreground">
+                    Customize homepage sections and layout
+                  </div>
+                  <HomePageForm form={form} />
+                </TabsContent>
 
                 {/* Commerce */}
-                <AccordionItem value="commerce" className="border rounded-lg">
-                  <AccordionTrigger className="px-4 hover:no-underline">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-md bg-orange-50 dark:bg-orange-950">
-                        <ShoppingCart className="h-4 w-4 text-orange-600" />
-                      </div>
-                      <div className="text-left">
-                        <div className="font-semibold">Commerce Settings</div>
-                        <div className="text-sm text-muted-foreground font-normal">
-                          Currencies, payment methods, and delivery options
-                        </div>
-                      </div>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="px-4 pb-4 space-y-6">
-                    <CurrencyForm id="setting-currencies" form={form} />
-                    <PaymentMethodForm id="setting-payment-methods" form={form} />
-                    <DeliveryDateForm id="setting-delivery-dates" form={form} />
-                  </AccordionContent>
-                </AccordionItem>
+                <TabsContent value="commerce" className="space-y-6">
+                  <div className="text-sm text-muted-foreground">
+                    Currencies, payment methods, and delivery options
+                  </div>
+                  <CurrencyForm id="setting-currencies" form={form} />
+                  <PaymentMethodForm id="setting-payment-methods" form={form} />
+                  <DeliveryDateForm id="setting-delivery-dates" form={form} />
+                </TabsContent>
 
                 {/* Content */}
-                <AccordionItem value="content" className="border rounded-lg">
-                  <AccordionTrigger className="px-4 hover:no-underline">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-md bg-cyan-50 dark:bg-cyan-950">
-                        <FileText className="h-4 w-4 text-cyan-600" />
-                      </div>
-                      <div className="text-left">
-                        <div className="font-semibold">Content Management</div>
-                        <div className="text-sm text-muted-foreground font-normal">
-                          Manage carousels and languages
-                        </div>
-                      </div>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="px-4 pb-4 space-y-6">
-                    <CarouselForm id="setting-carousels" form={form} />
-                    <LanguageForm id="setting-languages" form={form} />
-                  </AccordionContent>
-                </AccordionItem>
+                <TabsContent value="content" className="space-y-6">
+                  <div className="text-sm text-muted-foreground">
+                    Manage carousels and languages
+                  </div>
+                  <CarouselForm id="setting-carousels" form={form} />
+                  <LanguageForm id="setting-languages" form={form} />
+                </TabsContent>
 
                 {/* Integrations */}
-                <AccordionItem value="integrations" className="border rounded-lg">
-                  <AccordionTrigger className="px-4 hover:no-underline">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-md bg-amber-50 dark:bg-amber-950">
-                        <Zap className="h-4 w-4 text-amber-600" />
-                      </div>
-                      <div className="text-left">
-                        <div className="font-semibold">Integrations</div>
-                        <div className="text-sm text-muted-foreground font-normal">
-                          Connect external services like Telegram
-                        </div>
-                      </div>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="px-4 pb-4">
-                    <TelegramForm id="setting-telegram" form={form} />
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
+                <TabsContent value="integrations" className="space-y-4">
+                  <div className="text-sm text-muted-foreground">
+                    Connect external services like Telegram
+                  </div>
+                  <TelegramForm id="setting-telegram" form={form} />
+                </TabsContent>
+              </Tabs>
             </div>
 
-            {/* Professional Action Buttons */}
-            <Card className="mt-8">
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm text-muted-foreground">
-                    {isSubmitting || saveStatus === 'saving' ? (
-                      <span className="flex items-center gap-2">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Saving all settings...
-                      </span>
-                    ) : (
-                      'Manual save will override auto-save and sync all settings'
-                    )}
-                  </div>
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting || saveStatus === 'saving'}
-                    className="min-w-[140px]"
-                  >
-                    {isSubmitting || saveStatus === 'saving' ? 'Saving...' : 'Save All Settings'}
-                  </Button>
+          {/* Professional Action Buttons */}
+          <Card className="mt-8">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-muted-foreground">
+                  {isSubmitting || saveStatus === 'saving' ? (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Saving all settings...
+                    </span>
+                  ) : (
+                    'Manual save will override auto-save and sync all settings'
+                  )}
                 </div>
-              </CardContent>
-            </Card>
-          </form>
-        </Form>
-      </CardContent>
+                <Button
+                  type="submit"
+                  disabled={isSubmitting || saveStatus === 'saving'}
+                  className="min-w-[140px]"
+                >
+                  {isSubmitting || saveStatus === 'saving' ? 'Saving...' : 'Save All Settings'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </form>
+      </Form>
 
       {/* Floating Scroll to Top Button */}
       {showScrollTop && (
@@ -363,7 +310,7 @@ const TabSettingsForm = ({ setting }: { setting: ISettingInput }) => {
           <ChevronUp className="h-5 w-5" />
         </Button>
       )}
-    </Card>
+    </>
   );
 };
 

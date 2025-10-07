@@ -251,20 +251,14 @@ export async function generateProductsExcel(products: any[]): Promise<Buffer> {
     views: [{ state: 'frozen', xSplit: 0, ySplit: 1 }] // Freeze header row
   })
   
-  // Define columns
+  // Define columns (matching Products table: no stock info)
   worksheet.columns = [
-    { header: 'SKU', key: 'sku', width: 15 },
     { header: 'Product Name', key: 'name', width: 30 },
     { header: 'Category', key: 'category', width: 20 },
-    { header: 'Brand', key: 'brand', width: 20 },
     { header: 'Price', key: 'price', width: 12 },
-    { header: 'List Price', key: 'listPrice', width: 12 },
-    { header: 'Stock', key: 'stock', width: 10 },
-    { header: 'Stock Status', key: 'stockStatus', width: 15 },
-    { header: 'Status', key: 'status', width: 12 },
     { header: 'Rating', key: 'rating', width: 10 },
     { header: 'Reviews', key: 'reviews', width: 10 },
-    { header: 'Sales', key: 'sales', width: 10 },
+    { header: 'Status', key: 'status', width: 12 },
     { header: 'Created Date', key: 'createdAt', width: 20 },
   ]
   
@@ -289,24 +283,17 @@ export async function generateProductsExcel(products: any[]): Promise<Buffer> {
       : 'N/A'
     
     const row = worksheet.addRow({
-      sku: product.sku || 'N/A',
       name: product.name,
       category: categoryName,
-      brand: brandName,
       price: product.price,
-      listPrice: product.listPrice || product.price,
-      stock: product.countInStock,
-      stockStatus: getStockStatus(product.countInStock),
-      status: product.isPublished ? 'Published' : 'Draft',
       rating: product.avgRating || 0,
       reviews: product.numReviews || 0,
-      sales: product.numSales || 0,
+      status: product.isPublished ? 'Published' : 'Draft',
       createdAt: new Date(product.createdAt),
     })
     
-    // Format currency columns
+    // Format currency column
     row.getCell('price').numFmt = '$#,##0.00'
-    row.getCell('listPrice').numFmt = '$#,##0.00'
     
     // Format date column
     const dateCell = row.getCell('createdAt')
@@ -316,20 +303,10 @@ export async function generateProductsExcel(products: any[]): Promise<Buffer> {
     const ratingCell = row.getCell('rating')
     ratingCell.numFmt = '0.0'
     
-    // Center align numeric columns
-    row.getCell('stock').alignment = { horizontal: 'center' }
-    row.getCell('stockStatus').alignment = { horizontal: 'center' }
+    // Center align columns
     row.getCell('status').alignment = { horizontal: 'center' }
     row.getCell('rating').alignment = { horizontal: 'center' }
     row.getCell('reviews').alignment = { horizontal: 'center' }
-    row.getCell('sales').alignment = { horizontal: 'center' }
-    
-    // Color code stock status
-    const stockStatusCell = row.getCell('stockStatus')
-    stockStatusCell.font = { 
-      color: { argb: getStockStatusColor(product.countInStock) },
-      bold: true
-    }
     
     // Color code publish status
     const statusCell = row.getCell('status')
@@ -555,18 +532,14 @@ export async function generateInventoryExcel(products: any[]): Promise<Buffer> {
     views: [{ state: 'frozen', xSplit: 0, ySplit: 1 }] // Freeze header row
   })
   
-  // Define columns
+  // Define columns (matching Inventory table: no price, no publish status)
   worksheet.columns = [
-    { header: 'SKU', key: 'sku', width: 15 },
-    { header: 'Product Name', key: 'name', width: 30 },
-    { header: 'Category', key: 'category', width: 20 },
+    { header: 'Product Name (SKU)', key: 'name', width: 35 },
     { header: 'Brand', key: 'brand', width: 20 },
+    { header: 'Category', key: 'category', width: 20 },
     { header: 'Current Stock', key: 'stock', width: 12 },
     { header: 'Stock Status', key: 'stockStatus', width: 15 },
-    { header: 'Unit Price', key: 'price', width: 12 },
-    { header: 'Total Value', key: 'totalValue', width: 15 },
     { header: 'Last Updated', key: 'updatedAt', width: 20 },
-    { header: 'Status', key: 'publishStatus', width: 12 },
   ]
   
   // Style header row
@@ -589,45 +562,31 @@ export async function generateInventoryExcel(products: any[]): Promise<Buffer> {
       ? product.brand.name
       : 'N/A'
     
+    const sku = product.sku || 'N/A'
+    const nameWithSku = `${product.name} (${sku})`
+    
     const row = worksheet.addRow({
-      sku: product.sku || 'N/A',
-      name: product.name,
-      category: categoryName,
+      name: nameWithSku,
       brand: brandName,
+      category: categoryName,
       stock: product.countInStock,
       stockStatus: getInventoryStockStatus(product.countInStock),
-      price: product.price,
-      totalValue: product.price * product.countInStock,
       updatedAt: new Date(product.updatedAt),
-      publishStatus: product.isPublished ? 'Published' : 'Draft',
     })
-    
-    // Format currency columns
-    row.getCell('price').numFmt = '$#,##0.00'
-    row.getCell('totalValue').numFmt = '$#,##0.00'
     
     // Format date column
     const dateCell = row.getCell('updatedAt')
     dateCell.numFmt = 'yyyy-mm-dd hh:mm:ss'
     
-    // Center align numeric columns
+    // Center align columns
     row.getCell('stock').alignment = { horizontal: 'center' }
     row.getCell('stockStatus').alignment = { horizontal: 'center' }
-    row.getCell('publishStatus').alignment = { horizontal: 'center' }
     
     // Color code stock status
     const stockStatusCell = row.getCell('stockStatus')
     stockStatusCell.font = { 
       color: { argb: getInventoryStockStatusColor(product.countInStock) },
       bold: true
-    }
-    
-    // Color code publish status
-    const statusCell = row.getCell('publishStatus')
-    if (product.isPublished) {
-      statusCell.font = { color: { argb: 'FF16A34A' }, bold: true } // Green
-    } else {
-      statusCell.font = { color: { argb: 'FF6B7280' }, bold: true } // Gray
     }
   })
   

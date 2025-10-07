@@ -80,7 +80,7 @@ export default async function AdminLayout({
         {/* Main content area */}
         <div className='flex flex-col flex-1 md:ml-64'>
           {/* Header - Full Width */}
-          <header className='bg-background text-foreground border-b border-border sticky top-0 z-10'>
+          <header className='bg-background text-foreground border-b border-border fixed top-0 left-0 right-0 md:left-64 z-10'>
             <div className='flex h-16 items-center px-6'>
               {/* Mobile sidebar trigger */}
               <div className='md:hidden mr-3'>
@@ -133,7 +133,7 @@ export default async function AdminLayout({
           </header>
 
           {/* Page content - Scrollable */}
-          <main className='flex-1 overflow-y-auto' data-main-content>
+          <main className='flex-1 h-0 overflow-y-auto pt-16' data-main-content>
             <Container padding='default' className='pt-6 pb-20'>
               {children}
             </Container>

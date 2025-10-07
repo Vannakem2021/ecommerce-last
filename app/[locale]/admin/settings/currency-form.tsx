@@ -181,12 +181,6 @@ export default function CurrencyForm({
             </FormItem>
           )}
         />
-
-        <div className="text-sm text-muted-foreground space-y-1">
-          <p>• USD is the base currency (rate = 1)</p>
-          <p>• Update KHR exchange rate as needed (e.g., 1 USD = 4100 KHR)</p>
-          <p>• Users can switch between currencies on the frontend</p>
-        </div>
       </CardContent>
     </Card>
   )
