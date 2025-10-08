@@ -5,7 +5,7 @@ import { connectToDatabase } from "../db";
 import User from "../db/models/user.model";
 import OTP from "../db/models/otp.model";
 import { formatError } from "../utils";
-import { sendEmailVerificationOTP } from "../../emails";
+import { sendPasswordResetOTP } from "../../emails";
 
 // Helper function to check rate limit (in-memory for now)
 const otpGenerationMap = new Map<string, { count: number; resetAt: number }>();
@@ -16,7 +16,7 @@ function checkOTPGenerationRateLimit(userId: string): {
   resetIn: number;
 } {
   const now = Date.now();
-  const key = `otp-gen:${userId}`;
+  const key = `pwd-otp-gen:${userId}`;
   const record = otpGenerationMap.get(key);
 
   if (!record || now > record.resetAt) {
@@ -52,41 +52,40 @@ setInterval(() => {
 }, 5 * 60 * 1000); // Every 5 minutes
 
 /**
- * Generate and send OTP for email verification
+ * Generate and send OTP for password reset
  */
-export async function generateEmailOTP(userId: string): Promise<{
+export async function generatePasswordResetOTP(email: string): Promise<{
   success: boolean;
   message?: string;
   error?: string;
+  userId?: string;
 }> {
   try {
     await connectToDatabase();
 
-    // Find user
-    const user = await User.findById(userId);
+    // Find user by email
+    const user = await User.findOne({ email });
     if (!user) {
-      return { success: false, error: "User not found" };
-    }
-
-    // Check if already verified
-    if (user.emailVerified) {
+      // Don't reveal if email exists or not for security
       return {
         success: true,
-        message: "Email is already verified",
+        message: "If an account with that email exists, a verification code has been sent.",
       };
     }
+
+    const userId = user._id.toString();
 
     // Check rate limit
     const rateLimit = checkOTPGenerationRateLimit(userId);
     if (!rateLimit.allowed) {
       return {
         success: false,
-        error: `Too many OTP requests. Please try again in ${Math.ceil(rateLimit.resetIn / 60)} minutes.`,
+        error: `Too many password reset requests. Please try again in ${Math.ceil(rateLimit.resetIn / 60)} minutes.`,
       };
     }
 
     // Delete any existing OTPs for this user and purpose
-    await OTP.deleteMany({ userId, purpose: 'email-verification' });
+    await OTP.deleteMany({ userId, purpose: 'password-reset' });
 
     // Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -94,13 +93,13 @@ export async function generateEmailOTP(userId: string): Promise<{
     // Hash OTP with bcrypt (4 rounds for speed, still secure for short-lived tokens)
     const otpHash = await bcrypt.hash(otp, 4);
 
-    // Set expiration time (10 minutes from now)
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    // Set expiration time (15 minutes from now - longer for password reset)
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
     // Create new OTP record
     await OTP.create({
       userId,
-      purpose: 'email-verification',
+      purpose: 'password-reset',
       otpHash,
       expiresAt,
       attempts: 0,
@@ -114,28 +113,29 @@ export async function generateEmailOTP(userId: string): Promise<{
     if (isDevelopment && devMode) {
       // Development mode: Log OTP to console instead of sending email
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log('📧 EMAIL VERIFICATION OTP (Development Mode)');
+      console.log('🔒 PASSWORD RESET OTP (Development Mode)');
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       console.log(`User: ${user.name} (${user.email})`);
       console.log(`OTP: ${otp}`);
-      console.log(`Expires in: 10 minutes`);
+      console.log(`Expires in: 15 minutes`);
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
       return {
         success: true,
         message: "Verification code generated (check server console in dev mode)",
+        userId,
       };
     }
 
     // Production mode: Send email with OTP
-    const emailResult = await sendEmailVerificationOTP({
+    const emailResult = await sendPasswordResetOTP({
       otp,
       userEmail: user.email,
       userName: user.name,
     });
 
     if (!emailResult.success) {
-      console.error("Failed to send verification OTP email:", emailResult.error);
+      console.error("Failed to send password reset OTP email:", emailResult.error);
       
       // In development, still return success so flow continues
       if (isDevelopment) {
@@ -147,6 +147,7 @@ export async function generateEmailOTP(userId: string): Promise<{
         return {
           success: true,
           message: "Verification code generated (email failed, check server console)",
+          userId,
         };
       }
       
@@ -159,20 +160,22 @@ export async function generateEmailOTP(userId: string): Promise<{
 
     return {
       success: true,
-      message: "Verification code sent to your email",
+      message: "If an account with that email exists, a verification code has been sent.",
+      userId,
     };
   } catch (error) {
-    console.error("Error generating email OTP:", error);
+    console.error("Error generating password reset OTP:", error);
     return { success: false, error: formatError(error) };
   }
 }
 
 /**
- * Verify OTP for email verification
+ * Verify OTP and reset password
  */
-export async function verifyEmailOTP(
+export async function verifyPasswordResetOTP(
   userId: string,
-  otp: string
+  otp: string,
+  newPassword: string
 ): Promise<{
   success: boolean;
   message?: string;
@@ -184,6 +187,11 @@ export async function verifyEmailOTP(
       return { success: false, error: "Invalid code format. Please enter 6 digits." };
     }
 
+    // Validate password
+    if (!newPassword || newPassword.length < 6) {
+      return { success: false, error: "Password must be at least 6 characters long." };
+    }
+
     await connectToDatabase();
 
     // Find user
@@ -192,18 +200,10 @@ export async function verifyEmailOTP(
       return { success: false, error: "User not found" };
     }
 
-    // Check if already verified
-    if (user.emailVerified) {
-      return {
-        success: true,
-        message: "Email is already verified",
-      };
-    }
-
-    // Find active OTP record for email verification
+    // Find active OTP record for password reset
     const otpRecord = await OTP.findOne({
       userId,
-      purpose: 'email-verification',
+      purpose: 'password-reset',
       verified: false,
       expiresAt: { $gt: new Date() },
     });
@@ -240,28 +240,27 @@ export async function verifyEmailOTP(
       };
     }
 
-    // OTP is valid - update user
-    user.emailVerified = true;
-    user.emailVerifiedAt = new Date();
+    // OTP is valid - update user password
+    user.password = await bcrypt.hash(newPassword, 12);
     await user.save();
 
-    // Mark OTP as verified and delete it
+    // Delete the OTP record
     await OTP.deleteOne({ _id: otpRecord._id });
 
     return {
       success: true,
-      message: "Email verified successfully!",
+      message: "Password has been reset successfully. You can now sign in with your new password.",
     };
   } catch (error) {
-    console.error("Error verifying email OTP:", error);
+    console.error("Error verifying password reset OTP:", error);
     return { success: false, error: formatError(error) };
   }
 }
 
 /**
- * Resend OTP with cooldown
+ * Resend password reset OTP with cooldown
  */
-export async function resendEmailOTP(userId: string): Promise<{
+export async function resendPasswordResetOTP(userId: string): Promise<{
   success: boolean;
   message?: string;
   error?: string;
@@ -276,18 +275,10 @@ export async function resendEmailOTP(userId: string): Promise<{
       return { success: false, error: "User not found" };
     }
 
-    // Check if already verified
-    if (user.emailVerified) {
-      return {
-        success: true,
-        message: "Email is already verified",
-      };
-    }
-
-    // Find last OTP creation time for email verification
+    // Find last OTP creation time for password reset
     const lastOTP = await OTP.findOne({ 
       userId, 
-      purpose: 'email-verification' 
+      purpose: 'password-reset' 
     }).sort({
       createdAt: -1,
     });
@@ -308,19 +299,18 @@ export async function resendEmailOTP(userId: string): Promise<{
       }
     }
 
-    // Generate new OTP
-    return await generateEmailOTP(userId);
+    // Generate new OTP by calling the email-based function
+    return await generatePasswordResetOTP(user.email);
   } catch (error) {
-    console.error("Error resending email OTP:", error);
+    console.error("Error resending password reset OTP:", error);
     return { success: false, error: formatError(error) };
   }
 }
 
 /**
- * Check email verification status
+ * Check password reset OTP status
  */
-export async function checkEmailVerificationStatus(userId: string): Promise<{
-  verified: boolean;
+export async function checkPasswordResetOTPStatus(userId: string): Promise<{
   hasActiveOTP: boolean;
   attemptsRemaining?: number;
   expiresIn?: number;
@@ -332,30 +322,20 @@ export async function checkEmailVerificationStatus(userId: string): Promise<{
     const user = await User.findById(userId);
     if (!user) {
       return {
-        verified: false,
         hasActiveOTP: false,
       };
     }
 
-    // Check if verified
-    if (user.emailVerified) {
-      return {
-        verified: true,
-        hasActiveOTP: false,
-      };
-    }
-
-    // Check for active OTP for email verification
+    // Check for active OTP for password reset
     const otpRecord = await OTP.findOne({
       userId,
-      purpose: 'email-verification',
+      purpose: 'password-reset',
       verified: false,
       expiresAt: { $gt: new Date() },
     });
 
     if (!otpRecord) {
       return {
-        verified: false,
         hasActiveOTP: false,
       };
     }
@@ -366,15 +346,13 @@ export async function checkEmailVerificationStatus(userId: string): Promise<{
     const attemptsRemaining = 5 - otpRecord.attempts;
 
     return {
-      verified: false,
       hasActiveOTP: true,
       attemptsRemaining,
       expiresIn,
     };
   } catch (error) {
-    console.error("Error checking email verification status:", error);
+    console.error("Error checking password reset OTP status:", error);
     return {
-      verified: false,
       hasActiveOTP: false,
     };
   }
