@@ -70,15 +70,6 @@ const CheckoutForm = () => {
     },
   } = useSettingStore();
 
-  // Filter payment methods based on configuration
-  const filteredPaymentMethods = availablePaymentMethods.filter((pm) => {
-    if (pm.name === "ABA PayWay") {
-      // Only show ABA PayWay if it's enabled and has merchant ID configured
-      return abaPayWay?.enabled && abaPayWay?.merchantId;
-    }
-    return true; // Show all other payment methods
-  });
-
   const {
     cart: {
       items,
@@ -99,6 +90,26 @@ const CheckoutForm = () => {
     clearCart,
     setDeliveryDateIndex,
   } = useUserCart();
+
+  // Filter payment methods based on configuration and shipping address
+  const filteredPaymentMethods = useMemo(() => {
+    return availablePaymentMethods.filter((pm) => {
+      // Check if address is in Phnom Penh or province
+      const isPhnomPenh = shippingAddress?.provinceName?.toLowerCase().includes('phnom penh');
+      
+      // If shipping to province (not Phnom Penh), only show ABA PayWay
+      if (!isPhnomPenh && shippingAddress?.provinceName) {
+        return pm.name === "ABA PayWay" && abaPayWay?.enabled && abaPayWay?.merchantId;
+      }
+      
+      // For Phnom Penh, apply normal filtering
+      if (pm.name === "ABA PayWay") {
+        // Only show ABA PayWay if it's enabled and has merchant ID configured
+        return abaPayWay?.enabled && abaPayWay?.merchantId;
+      }
+      return true; // Show all other payment methods
+    });
+  }, [availablePaymentMethods, shippingAddress, abaPayWay]);
   const isMounted = useIsMounted();
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
