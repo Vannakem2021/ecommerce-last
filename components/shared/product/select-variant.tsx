@@ -44,13 +44,21 @@ export default function SelectVariant({
   product,
   size,
   color,
+  onColorChange,
 }: {
   product: IProduct
   color: string
   size: string
+  onColorChange?: (color: string) => void
 }) {
   const selectedColor = color || product.colors[0]
   const selectedSize = size || product.sizes[0]
+
+  const handleColorClick = (clickedColor: string) => {
+    if (onColorChange) {
+      onColorChange(clickedColor)
+    }
+  }
 
   return (
     <>
@@ -61,6 +69,35 @@ export default function SelectVariant({
             {product.colors.map((x: string) => {
               const normalizedColor = normalizeColor(x)
               const isLight = isLightColor(x)
+              
+              // If onColorChange is provided, use button instead of link
+              if (onColorChange) {
+                return (
+                  <button
+                    key={x}
+                    onClick={() => handleColorClick(x)}
+                    className='relative rounded-full transition-all hover:scale-110'
+                    title={x}
+                    aria-label={`Select color ${x}`}
+                  >
+                    <span
+                      style={{ 
+                        backgroundColor: normalizedColor,
+                      }}
+                      className='inline-flex h-10 w-10 rounded-full border-2 border-gray-300 dark:border-gray-600 items-center justify-center'
+                    >
+                      {selectedColor === x && (
+                        <Check 
+                          className={`h-5 w-5 drop-shadow-lg ${isLight ? 'text-gray-900' : 'text-white'}`}
+                          strokeWidth={3} 
+                        />
+                      )}
+                    </span>
+                  </button>
+                )
+              }
+              
+              // Otherwise use Link (legacy behavior)
               return (
               <Link
                 key={x}

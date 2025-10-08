@@ -27,6 +27,18 @@ const orderSchema = new Schema<IOrder>(
         image: { type: String, required: true },
         category: { type: String, required: true },
         price: { type: Number, required: true },
+        // Variant pricing breakdown (for products with variants)
+        basePrice: { type: Number },
+        variantModifiers: [
+          {
+            type: { 
+              type: String, 
+              enum: ['storage', 'ram', 'color', 'size'],
+            },
+            value: { type: String },
+            priceModifier: { type: Number, default: 0 },
+          },
+        ],
         countInStock: { type: Number, required: true },
         quantity: { type: Number, required: true },
         size: { type: String },

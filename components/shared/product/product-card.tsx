@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { IProduct } from '@/lib/db/models/product.model'
 
 import Rating from './rating'
-import { formatNumber, generateId, round2 } from '@/lib/utils'
+import { formatNumber, generateId, round2, getProductPriceRange } from '@/lib/utils'
 import ProductPrice from './product-price'
 import ImageHover from './image-hover'
 import AddToCart from './add-to-cart'
@@ -120,35 +120,51 @@ const ProductCard = ({
       </div>
     </div>
   )
-  const AddButton = () => (
-    <div className='w-full flex items-center justify-between gap-3'>
-      {/* Price */}
-      <ProductPrice
-        price={product.price}
-        listPrice={product.listPrice}
-        forListing
-      />
-      
-      {/* Cart Icon Button */}
-      <AddToCart
-        minimal
-        iconOnly
-        item={{
-          clientId: generateId(),
-          product: product._id,
-          size: product.sizes[0],
-          color: product.colors[0],
-          countInStock: product.countInStock,
-          name: product.name,
-          slug: product.slug,
-          category: typeof product.category === 'object' ? (product.category as unknown as { name: string }).name : product.category,
-          price: round2(product.price),
-          quantity: 1,
-          image: product.images && product.images[0] && product.images[0].trim() !== '' ? product.images[0] : '/placeholder.png',
-        }}
-      />
-    </div>
-  )
+  const AddButton = () => {
+    // Calculate price range for products with variants
+    const priceRange = getProductPriceRange(product)
+    
+    return (
+      <div className='w-full flex items-center justify-between gap-3'>
+        {/* Price */}
+        {priceRange.hasRange ? (
+          <div className="flex flex-col items-start">
+            <ProductPrice
+              price={priceRange.min}
+              listPrice={product.listPrice}
+              forListing
+            />
+            <span className="text-xs text-muted-foreground">Starting at</span>
+          </div>
+        ) : (
+          <ProductPrice
+            price={product.price}
+            listPrice={product.listPrice}
+            forListing
+          />
+        )}
+        
+        {/* Cart Icon Button */}
+        <AddToCart
+          minimal
+          iconOnly
+          item={{
+            clientId: generateId(),
+            product: product._id,
+            size: product.sizes[0],
+            color: product.colors[0],
+            countInStock: product.countInStock,
+            name: product.name,
+            slug: product.slug,
+            category: typeof product.category === 'object' ? (product.category as unknown as { name: string }).name : product.category,
+            price: round2(product.price),
+            quantity: 1,
+            image: product.images && product.images[0] && product.images[0].trim() !== '' ? product.images[0] : '/placeholder.png',
+          }}
+        />
+      </div>
+    )
+  }
 
   return hideBorder ? (
     <div className='flex flex-col h-full'>

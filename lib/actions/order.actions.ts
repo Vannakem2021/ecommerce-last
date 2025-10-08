@@ -1,7 +1,7 @@
 'use server'
 
 import { Cart, IOrderList, OrderItem, ShippingAddress } from '@/types'
-import { formatError, round2, getEffectivePrice } from '../utils'
+import { formatError, round2, getEffectivePrice, validateVariantPrice, calculateVariantPrice } from '../utils'
 import { connectToDatabase } from '../db'
 import { auth } from '@/auth'
 import { OrderInputSchema } from '../validator'
@@ -61,10 +61,10 @@ export const createOrderFromCart = async (
   // Collect unique product IDs from cart items
   const productIds = [...new Set(cart.items.map((item: { product: string }) => item.product))]
 
-  // Query products with pricing/sale fields
+  // Query products with pricing/sale fields and variants
   const products = await Product.find(
     { _id: { $in: productIds } },
-    { _id: 1, price: 1, listPrice: 1, saleStartDate: 1, saleEndDate: 1 }
+    { _id: 1, price: 1, listPrice: 1, saleStartDate: 1, saleEndDate: 1, variants: 1 }
   )
 
   // Build product map for efficient lookup
@@ -79,12 +79,37 @@ export const createOrderFromCart = async (
       return item
     }
 
-    // Compute effective price using server-side logic
-    const effectivePrice = round2(getEffectivePrice(product, currentTime))
+    // Compute base effective price using server-side logic
+    let effectivePrice = round2(getEffectivePrice(product, currentTime))
+    
+    // Add variant pricing if item has variant modifiers
+    if (item.variantModifiers && item.variantModifiers.length > 0) {
+      // Validate variant pricing to prevent manipulation
+      const selectedVariants: { storage?: string; ram?: string } = {}
+      
+      for (const modifier of item.variantModifiers) {
+        if (modifier.type === 'storage') selectedVariants.storage = modifier.value
+        if (modifier.type === 'ram') selectedVariants.ram = modifier.value
+      }
+      
+      const validation = validateVariantPrice(product, selectedVariants, item.price)
+      
+      if (!validation.valid) {
+        console.warn(`Price mismatch for item ${item.name}: expected ${item.price}, calculated ${validation.calculatedPrice}`)
+        // Use server-calculated price instead of client price
+        effectivePrice = validation.calculatedPrice
+      } else {
+        // Client price is valid, but still use server calculation for consistency
+        effectivePrice = validation.calculatedPrice
+      }
+    }
 
     return {
       ...item,
-      price: effectivePrice
+      price: effectivePrice,
+      // Preserve variant breakdown for order history
+      basePrice: item.basePrice || product.price,
+      variantModifiers: item.variantModifiers || []
     }
   })
 
