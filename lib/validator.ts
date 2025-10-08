@@ -81,7 +81,6 @@ const ProductBaseSchema = z.object({
     .number()
     .int()
     .nonnegative("count in stock must be a non-negative number"),
-  tags: z.array(z.string()).optional().default([]),
   sizes: z.array(z.string()).optional().default([]),
   colors: z.array(z.string()).optional().default([]),
   // Product type and configurations
@@ -303,7 +302,6 @@ export const ProductInputLegacySchema = z.object({
     .number()
     .int()
     .nonnegative("count in stock must be a non-negative number"),
-  tags: z.array(z.string()).optional().default([]),
   sizes: z.array(z.string()).optional().default([]),
   colors: z.array(z.string()).optional().default([]),
   variants: z.object({
