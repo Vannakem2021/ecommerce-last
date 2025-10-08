@@ -13,15 +13,12 @@ import { updateSetting } from "@/lib/actions/setting.actions";
 import useSetting from "@/hooks/use-setting-store";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { Globe, Settings2, Home, ShoppingCart, FileText, Zap, Loader2, ChevronUp } from "lucide-react";
-import LanguageForm from "./language-form";
-import CurrencyForm from "./currency-form";
-import PaymentMethodForm from "./payment-method-form";
 import TelegramForm from "./telegram-form";
-import DeliveryDateForm from "./delivery-date-form";
 import SiteInfoForm from "./site-info-form";
 import CommonForm from "./common-form";
-import CarouselForm from "./carousel-form";
 import HomePageForm from "./home-page-form";
+import CommerceForm from "./commerce-form";
+import ContentForm from "./content-form";
 
 const TabSettingsForm = ({ setting }: { setting: ISettingInput }) => {
   const { setSetting } = useSetting();
@@ -248,9 +245,7 @@ const TabSettingsForm = ({ setting }: { setting: ISettingInput }) => {
                   <div className="text-sm text-muted-foreground">
                     Currencies, payment methods, and delivery options
                   </div>
-                  <CurrencyForm id="setting-currencies" form={form} />
-                  <PaymentMethodForm id="setting-payment-methods" form={form} />
-                  <DeliveryDateForm id="setting-delivery-dates" form={form} />
+                  <CommerceForm id="setting-commerce" form={form} />
                 </TabsContent>
 
                 {/* Content */}
@@ -258,8 +253,7 @@ const TabSettingsForm = ({ setting }: { setting: ISettingInput }) => {
                   <div className="text-sm text-muted-foreground">
                     Manage carousels and languages
                   </div>
-                  <CarouselForm id="setting-carousels" form={form} />
-                  <LanguageForm id="setting-languages" form={form} />
+                  <ContentForm id="setting-content" form={form} />
                 </TabsContent>
 
                 {/* Integrations */}
