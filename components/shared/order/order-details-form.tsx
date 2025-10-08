@@ -40,7 +40,6 @@ interface OrderWithABAPayWay extends Omit<IOrder, 'abaLastStatusCheck' | 'abaPay
 }
 import { formatDateTime } from "@/lib/utils";
 import ProductPrice from "../product/product-price";
-import { PaymentStatusHistory } from "@/components/aba-payway/payment-status-history";
 import { MarkDeliveredDialog } from "./mark-delivered-dialog";
 import { MarkPaidDialog } from "./mark-paid-dialog";
 import { generateOrderNumber } from "@/lib/utils/order-utils";
@@ -231,16 +230,6 @@ export default function OrderDetailsForm({
               deliveredAt={deliveredAt}
               isPaid={isPaid}
               isDelivered={isDelivered}
-            />
-          )}
-
-          {/* ABA PayWay Payment Status History - Collapsed by default */}
-          {paymentMethod === "ABA PayWay" && order.abaStatusHistory && order.abaStatusHistory.length > 0 && (
-            <PaymentStatusHistory
-              history={(order.abaStatusHistory || [])
-                .filter((entry): entry is { status: string; statusCode: number; timestamp: string; source: "callback" | "manual"; details?: string } =>
-                  entry.source === "callback" || entry.source === "manual"
-                )}
             />
           )}
         </div>

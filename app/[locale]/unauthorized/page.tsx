@@ -22,11 +22,22 @@ export default function UnauthorizedPage() {
   const getErrorMessage = () => {
     switch (reason) {
       case 'insufficient-role':
-        return 'You do not have the required permissions to access this resource. Please contact an administrator if you believe this is an error.'
+        return 'Your current role does not have the required permissions to access this page or perform this action. If you need access, please contact your system administrator.'
       case 'authentication-required':
-        return 'You must be signed in to access this resource.'
+        return 'You must be signed in to access this page. Please sign in with your account to continue.'
       default:
-        return 'Access to this resource is restricted. You do not have the necessary permissions.'
+        return 'Access to this page is restricted. You do not have the necessary permissions to view this content.'
+    }
+  }
+
+  const getDetailedMessage = () => {
+    switch (reason) {
+      case 'insufficient-role':
+        return 'This typically means you need a higher role (Manager or Admin) to access this resource. Contact your administrator to request elevated permissions.'
+      case 'authentication-required':
+        return 'Authentication is required to protect sensitive information and ensure secure access.'
+      default:
+        return 'If you believe you should have access, please verify you are signed in with the correct account.'
     }
   }
 
@@ -65,9 +76,26 @@ export default function UnauthorizedPage() {
               </p>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-muted-foreground text-sm">
-                {getErrorMessage()}
-              </p>
+              <div className="space-y-3">
+                <p className="text-foreground text-sm font-medium">
+                  {getErrorMessage()}
+                </p>
+                <p className="text-muted-foreground text-xs">
+                  {getDetailedMessage()}
+                </p>
+              </div>
+
+              {/* Show the attempted path if available */}
+              {from && (
+                <div className="p-3 bg-muted/50 rounded-md border border-border/50">
+                  <p className="text-xs text-muted-foreground">
+                    <span className="font-semibold">Attempted to access:</span>
+                  </p>
+                  <p className="text-xs font-mono text-foreground mt-1 break-all">
+                    {from}
+                  </p>
+                </div>
+              )}
 
               <div className="flex flex-col gap-3 pt-4">
                 {reason === 'authentication-required' ? (
