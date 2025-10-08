@@ -20,6 +20,7 @@ export async function createBrand(data: IBrandInput) {
     await connectToDatabase()
     await Brand.create(brand)
     revalidatePath('/admin/brands')
+    revalidatePath('/') // Revalidate homepage to show new brand
     return {
       success: true,
       message: 'Brand created successfully',
@@ -39,6 +40,7 @@ export async function updateBrand(data: z.infer<typeof BrandUpdateSchema>) {
     await connectToDatabase()
     await Brand.findByIdAndUpdate(brand._id, brand)
     revalidatePath('/admin/brands')
+    revalidatePath('/') // Revalidate homepage to show brand updates
     return {
       success: true,
       message: 'Brand updated successfully',
@@ -58,6 +60,7 @@ export async function deleteBrand(id: string) {
     const res = await Brand.findByIdAndDelete(id)
     if (!res) throw new Error('Brand not found')
     revalidatePath('/admin/brands')
+    revalidatePath('/') // Revalidate homepage to remove deleted brand
     return {
       success: true,
       message: 'Brand deleted successfully',
@@ -171,9 +174,8 @@ export async function getAllActiveBrandsWithCounts(limit?: number) {
     })
   )
   
-  // Filter out brands with no products and apply limit
-  const filteredBrands = brandsWithCounts.filter(b => b.productCount > 0)
-  const limitedBrands = limit ? filteredBrands.slice(0, limit) : filteredBrands
+  // Apply limit (show all active brands, even with 0 products)
+  const limitedBrands = limit ? brandsWithCounts.slice(0, limit) : brandsWithCounts
   
   return JSON.parse(JSON.stringify(limitedBrands)) as (IBrand & { productCount: number })[]
 }

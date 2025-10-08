@@ -16,11 +16,7 @@ export default function CartAddItem({ itemId }: { itemId: string }) {
   const {
     cart: { items, itemsPrice },
   } = useUserCart()
-  const {
-    setting: {
-      common: { freeShippingMinPrice },
-    },
-  } = useSettingStore()
+
   const item = items.find((x) => x.clientId === itemId)
 
   const t = useTranslations()
@@ -62,29 +58,11 @@ export default function CartAddItem({ itemId }: { itemId: string }) {
           <CardContent className='p-4 h-full'>
             <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
               <div className='flex justify-center items-center'>
-                {itemsPrice < freeShippingMinPrice ? (
-                  <div className='text-center '>
-                    {t('Cart.Add')}{' '}
-                    <span className='text-green-700'>
-                      <ProductPrice
-                        price={freeShippingMinPrice - itemsPrice}
-                        plain
-                      />
-                    </span>{' '}
-                    {t(
-                      'Cart.of eligible items to your order to qualify for FREE Shipping'
-                    )}
-                  </div>
-                ) : (
-                  <div className='flex items-center'>
-                    <div>
-                      <span className='text-green-700'>
-                        Your order qualifies for FREE Shipping.
-                      </span>{' '}
-                      Choose this option at checkout.
-                    </div>
-                  </div>
-                )}
+                <div className='text-center'>
+                  <p className='text-muted-foreground'>
+                    {t('Cart.Continue shopping or proceed to checkout')}
+                  </p>
+                </div>
               </div>
               <div className='lg:border-l lg:border-muted lg:pl-3 flex flex-col items-center gap-3  '>
                 <div className='flex gap-3'>

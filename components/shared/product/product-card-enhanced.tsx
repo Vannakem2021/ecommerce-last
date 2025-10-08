@@ -176,6 +176,7 @@ const ProductCardEnhanced = ({
           slug: product.slug,
           category: typeof product.category === 'object' ? (product.category as unknown as { name: string }).name : product.category,
           price: round2(product.price),
+          listPrice: product.listPrice,
           quantity: 1,
           image: product.images && product.images[0] && product.images[0].trim() !== '' ? product.images[0] : '/placeholder.png',
         }}

@@ -153,7 +153,7 @@ export const createOrderFromCart = async (
       const usagePayload = {
         promotion: cart.appliedPromotion.promotionId,
         user: userId,
-        order: createdOrder._id,
+        order: createdOrder._id.toString(), // Convert ObjectId to string
         discountAmount: cart.appliedPromotion.discountAmount,
         originalTotal: baseTotal,
         finalTotal: finalTotal,
@@ -196,7 +196,7 @@ export const createOrderFromCart = async (
         await recordPromotionUsage({
           promotion: cart.appliedPromotion.promotionId,
           user: userId,
-          order: createdOrder._id,
+          order: createdOrder._id.toString(), // Convert ObjectId to string
           discountAmount: cart.appliedPromotion.discountAmount,
           originalTotal: baseTotal,
           finalTotal: finalTotal,
@@ -914,10 +914,7 @@ export const calcDeliveryDateAndPrice = async ({
     const shippingPrice =
       !shippingAddress || !deliveryDate
         ? undefined
-        : deliveryDate.freeShippingMinPrice > 0 &&
-            itemsPrice >= deliveryDate.freeShippingMinPrice
-          ? 0
-          : deliveryDate.shippingPrice
+        : deliveryDate.shippingPrice
 
     const taxPrice = !shippingAddress ? undefined : round2(itemsPrice * 0.15)
     const totalPrice = round2(

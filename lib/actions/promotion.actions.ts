@@ -388,12 +388,33 @@ export async function validatePromotionCode(
     }
 
     // Check if promotion applies to cart items
-    const eligibleItems = getEligibleCartItems(cart.items, promotion)
+    let eligibleItems = getEligibleCartItems(cart.items, promotion)
     if (eligibleItems.length === 0) {
       return {
         success: false,
         error: 'Promotion not applicable to items in your cart'
       }
+    }
+
+    // Check if promotion excludes sale items (hot deals)
+    const excludeSaleItems = (promotion as unknown as { excludeSaleItems?: boolean }).excludeSaleItems
+    if (excludeSaleItems) {
+      // Filter out items that are on sale (have listPrice > price)
+      const nonSaleItems = eligibleItems.filter(item => {
+        // If item has listPrice and it's greater than price, it's a hot deal
+        const itemListPrice = (item as unknown as { listPrice?: number }).listPrice
+        return !itemListPrice || itemListPrice <= item.price
+      })
+
+      if (nonSaleItems.length === 0) {
+        return {
+          success: false,
+          error: 'This promotion code cannot be applied to items already on sale. Please use full-price items to apply this discount.'
+        }
+      }
+
+      // Update eligible items to only non-sale items
+      eligibleItems = nonSaleItems
     }
 
     // Calculate discount
@@ -458,6 +479,11 @@ function calculatePromotionDiscount(
     discount = Math.min(promotion.value, eligibleTotal)
   }
 
+  // Apply maxDiscountAmount cap if set (prevents excessive discounts)
+  if (promotion.maxDiscountAmount > 0) {
+    discount = Math.min(discount, promotion.maxDiscountAmount)
+  }
+
   return { discount: round2(discount) }
 }
 
@@ -494,9 +520,10 @@ export async function recordPromotionUsage(
         { session }
       )
     } else {
-      await Promotion.findByIdAndUpdate(usage.promotion, {
-        $inc: { usedCount: 1 }
-      })
+      await Promotion.findByIdAndUpdate(
+        usage.promotion,
+        { $inc: { usedCount: 1 } }
+      )
     }
 
     return {

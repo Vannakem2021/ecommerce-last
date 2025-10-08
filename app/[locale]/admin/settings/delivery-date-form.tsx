@@ -109,24 +109,6 @@ export default function DeliveryDateForm({
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name={`availableDeliveryDates.${index}.freeShippingMinPrice`}
-                render={({ field }) => (
-                  <FormItem>
-                    {index == 0 && <FormLabel>Free Shipping</FormLabel>}
-                    <FormControl>
-                      <Input {...field} placeholder='freeShippingMinPrice' />
-                    </FormControl>
-                    <FormMessage>
-                      {
-                        errors.availableDeliveryDates?.[index]
-                          ?.freeShippingMinPrice?.message
-                      }
-                    </FormMessage>
-                  </FormItem>
-                )}
-              />
               <div>
                 {index == 0 && <div className=''>Action</div>}
                 <Button
@@ -152,7 +134,6 @@ export default function DeliveryDateForm({
                 name: '',
                 daysToDeliver: 0,
                 shippingPrice: 0,
-                freeShippingMinPrice: 0,
               })
             }
           >

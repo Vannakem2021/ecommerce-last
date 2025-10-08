@@ -11,7 +11,6 @@ const settingSchema = new Schema<ISetting>(
   {
     common: {
       pageSize: { type: Number, required: true, default: 9 },
-      freeShippingMinPrice: { type: Number, required: true, default: 0 },
     },
     site: {
       name: { type: String, required: true },
@@ -84,7 +83,6 @@ const settingSchema = new Schema<ISetting>(
         name: { type: String, required: true },
         daysToDeliver: { type: Number, required: true },
         shippingPrice: { type: Number, required: true },
-        freeShippingMinPrice: { type: Number, required: true },
       },
     ],
     defaultDeliveryDate: { type: String, required: true },

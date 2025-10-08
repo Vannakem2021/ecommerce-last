@@ -27,11 +27,6 @@ export default function CartSidebar() {
     removeItem,
   } = useUserCart()
   const { user } = useAuthSession()
-  const {
-    setting: {
-      common: { freeShippingMinPrice },
-    },
-  } = useSettingStore()
 
   const t = useTranslations()
 
@@ -49,11 +44,6 @@ export default function CartSidebar() {
             <div className='font-bold '>
               <ProductPrice price={itemsPrice} plain />
             </div>
-            {itemsPrice > freeShippingMinPrice && (
-              <div className=' text-center text-xs'>
-                {t('Cart.Your order qualifies for FREE Shipping')}
-              </div>
-            )}
 
             {!user && items.length > 0 && (
               <div className='text-center text-xs text-muted-foreground'>

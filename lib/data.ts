@@ -974,7 +974,6 @@ We look forward to assisting you! Your satisfaction is our priority.`,
   settings: [
     {
       common: {
-        freeShippingMinPrice: 35,
         pageSize: 9,
       },
       site: {
@@ -1041,19 +1040,16 @@ We look forward to assisting you! Your satisfaction is our priority.`,
           name: "Tomorrow",
           daysToDeliver: 1,
           shippingPrice: 12.9,
-          freeShippingMinPrice: 0,
         },
         {
           name: "Next 3 Days",
           daysToDeliver: 3,
           shippingPrice: 6.9,
-          freeShippingMinPrice: 0,
         },
         {
           name: "Next 5 Days",
           daysToDeliver: 5,
           shippingPrice: 4.9,
-          freeShippingMinPrice: 35,
         },
       ],
       defaultDeliveryDate: "Next 5 Days",

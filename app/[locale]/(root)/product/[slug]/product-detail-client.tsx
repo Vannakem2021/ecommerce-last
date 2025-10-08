@@ -249,6 +249,7 @@ export default function ProductDetailClient({
                 ? (product.category as unknown as { name: string }).name 
                 : product.category,
               price: round2(currentPrice),
+              listPrice: product.listPrice,
               // Configuration details
               configurationSku: hasConfigurations && currentConfiguration ? currentConfiguration.sku : undefined,
               basePrice: hasConfigurations && currentConfiguration ? currentConfiguration.price : product.price,

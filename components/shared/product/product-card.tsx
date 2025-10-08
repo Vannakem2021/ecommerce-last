@@ -73,21 +73,20 @@ const ProductCard = ({
             useInternalToggle={!favoriteButtonControlled}
           />
         </div>
-        {product.secondHand && (
-          <div className='absolute top-2 left-2 z-10'>
+        {/* Badges: Second Hand or Promotion (not both) */}
+        <div className='absolute top-2 left-2 z-10'>
+          {product.secondHand ? (
             <Badge className='bg-orange-500 hover:bg-orange-600 text-white font-medium text-xs px-2 py-0.5'>
               {t('Second Hand')}
             </Badge>
-          </div>
-        )}
-        {/* Promotion Badge - Disabled in product cards to reduce server action calls */}
-        {/* <div className='absolute top-2 left-2 z-10'>
-          <PromotionBadge
-            productId={product._id}
-            categoryId={typeof product.category === 'object' ? product.category._id : product.category}
-            size='sm'
-          />
-        </div> */}
+          ) : (
+            product.listPrice && product.listPrice > product.price && (
+              <Badge className='bg-destructive text-destructive-foreground font-medium text-xs px-2 py-0.5'>
+                {Math.round(((product.listPrice - product.price) / product.listPrice) * 100)}% OFF
+              </Badge>
+            )
+          )}
+        </div>
       </div>
     </Link>
     )
@@ -158,6 +157,7 @@ const ProductCard = ({
             slug: product.slug,
             category: typeof product.category === 'object' ? (product.category as unknown as { name: string }).name : product.category,
             price: round2(product.price),
+            listPrice: product.listPrice,
             quantity: 1,
             image: product.images && product.images[0] && product.images[0].trim() !== '' ? product.images[0] : '/placeholder.png',
           }}

@@ -408,19 +408,6 @@ export default function CommerceForm({
                       </FormItem>
                     )}
                   />
-                  <FormField
-                    control={control}
-                    name={`availableDeliveryDates.${index}.freeShippingMinPrice`}
-                    render={({ field }) => (
-                      <FormItem className='w-32'>
-                        {index === 0 && <FormLabel className='text-xs'>Free @ Min</FormLabel>}
-                        <FormControl>
-                          <Input {...field} placeholder='100' className='text-xs h-8' />
-                        </FormControl>
-                        <FormMessage className='text-xs' />
-                      </FormItem>
-                    )}
-                  />
                   <div className='flex items-end'>
                     <Button
                       type='button'
@@ -445,7 +432,6 @@ export default function CommerceForm({
                     name: '',
                     daysToDeliver: 0,
                     shippingPrice: 0,
-                    freeShippingMinPrice: 0,
                   })
                 }
               >

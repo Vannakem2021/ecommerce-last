@@ -401,6 +401,7 @@ export const OrderItemSchema = z.object({
     .nonnegative("Quantity must be a non-negative number"),
   image: z.string().min(1, "Image is required"),
   price: Price("Price"),
+  listPrice: z.number().optional(), // Original price before discount (for hot deals)
   // Variant pricing breakdown (optional for backward compatibility)
   basePrice: z.number().optional(),
   variantModifiers: z.array(z.object({
@@ -857,9 +858,6 @@ export const DeliveryDateSchema = z.object({
   name: z.string().min(1, "Name is required"),
   daysToDeliver: z.number().min(0, "Days to deliver must be at least 0"),
   shippingPrice: z.coerce.number().min(0, "Shipping price must be at least 0"),
-  freeShippingMinPrice: z.coerce
-    .number()
-    .min(0, "Free shipping min amount must be at least 0"),
 });
 
 export const SettingInputSchema = z.object({
@@ -870,10 +868,6 @@ export const SettingInputSchema = z.object({
       .number()
       .min(1, "Page size must be at least 1")
       .default(9),
-    freeShippingMinPrice: z.coerce
-      .number()
-      .min(0, "Free shipping min price must be at least 0")
-      .default(0),
   }),
   site: z.object({
     name: z.string().min(1, "Name is required"),
@@ -991,6 +985,7 @@ const PromotionBaseSchema = z.object({
     .default("all"),
   applicableProducts: z.array(MongoId).default([]),
   applicableCategories: z.array(MongoId).default([]),
+  excludeSaleItems: z.boolean().default(false),
 })
 
 const PercentagePromotionSchema = PromotionBaseSchema.extend({

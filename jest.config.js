@@ -24,11 +24,16 @@ const config = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
     '^query-string$': '<rootDir>/__mocks__/query-string.js',
+    '^next-auth$': '<rootDir>/__mocks__/next-auth.js',
+    '^next-auth/(.*)$': '<rootDir>/__mocks__/next-auth.js',
+    '^@auth/(.*)$': '<rootDir>/__mocks__/@auth/mongodb-adapter.js',
+    '^@/auth$': '<rootDir>/__mocks__/auth.ts',
+    '^@/auth.config$': '<rootDir>/__mocks__/auth.config.ts',
   },
 
   // Transform ignore patterns - allow transformation of ESM modules
   transformIgnorePatterns: [
-    'node_modules/(?!(@?query-string|decode-uri-component|split-on-first|filter-obj)/)',
+    'node_modules/(?!(@?query-string|decode-uri-component|split-on-first|filter-obj|next-auth|@auth)/)',
   ],
 
   // Coverage configuration

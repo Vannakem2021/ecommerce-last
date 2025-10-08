@@ -12,10 +12,9 @@ import { ClientSetting, ISettingInput } from "@/types";
 import { updateSetting } from "@/lib/actions/setting.actions";
 import useSetting from "@/hooks/use-setting-store";
 import { useEffect, useState, useCallback, useRef } from "react";
-import { Globe, Settings2, Home, ShoppingCart, FileText, Zap, Loader2, ChevronUp } from "lucide-react";
+import { Globe, Home, ShoppingCart, FileText, Zap, Loader2, ChevronUp } from "lucide-react";
 import TelegramForm from "./telegram-form";
 import SiteInfoForm from "./site-info-form";
-import CommonForm from "./common-form";
 import HomePageForm from "./home-page-form";
 import CommerceForm from "./commerce-form";
 import ContentForm from "./content-form";
@@ -170,15 +169,6 @@ const TabSettingsForm = ({ setting }: { setting: ISettingInput }) => {
                     <div className="absolute bottom-0 left-1/2 h-0.5 w-0 -translate-x-1/2 rounded-full bg-green-600 transition-all duration-200 group-data-[state=active]:w-3/4" />
                   </TabsTrigger>
                   <TabsTrigger 
-                    value="general" 
-                    className="group relative gap-2 rounded-md px-4 py-2.5 transition-all duration-200 data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:border data-[state=active]:border-border hover:bg-background/50"
-                  >
-                    <Settings2 className="h-4 w-4 transition-colors group-data-[state=active]:text-green-600" />
-                    <span className="hidden sm:inline font-medium">General Settings</span>
-                    <span className="sm:hidden font-medium">General</span>
-                    <div className="absolute bottom-0 left-1/2 h-0.5 w-0 -translate-x-1/2 rounded-full bg-green-600 transition-all duration-200 group-data-[state=active]:w-3/4" />
-                  </TabsTrigger>
-                  <TabsTrigger 
                     value="homepage" 
                     className="group relative gap-2 rounded-md px-4 py-2.5 transition-all duration-200 data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:border data-[state=active]:border-border hover:bg-background/50"
                   >
@@ -222,14 +212,6 @@ const TabSettingsForm = ({ setting }: { setting: ISettingInput }) => {
                     Configure your site name, logo, and URL
                   </div>
                   <SiteInfoForm id="setting-site-info" form={form} />
-                </TabsContent>
-
-                {/* General Settings */}
-                <TabsContent value="general" className="space-y-4">
-                  <div className="text-sm text-muted-foreground">
-                    Page size and other general preferences
-                  </div>
-                  <CommonForm id="setting-common" form={form} />
                 </TabsContent>
 
                 {/* Home Page */}

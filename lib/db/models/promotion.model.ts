@@ -18,6 +18,7 @@ export interface IPromotion extends Document {
   appliesTo: 'all' | 'products' | 'categories'
   applicableProducts: string[]
   applicableCategories: string[]
+  excludeSaleItems: boolean
   createdBy: string
   createdAt: Date
   updatedAt: Date
@@ -132,6 +133,10 @@ const promotionSchema = new Schema<any>(
         ref: 'Category',
       },
     ],
+    excludeSaleItems: {
+      type: Boolean,
+      default: false,
+    },
     createdBy: {
       type: Schema.Types.ObjectId,
       ref: 'User',

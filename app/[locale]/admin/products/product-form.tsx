@@ -45,6 +45,7 @@ import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
+import { UploadButton } from '@/lib/uploadthing'
 
 // Configuration Manager Component
 interface ConfigurationManagerProps {
@@ -645,18 +646,52 @@ const ProductForm = ({
 
   // Calculate form completion percentage
   const calculateProgress = () => {
-    const requiredFields = ['name', 'category', 'brand', 'price', 'countInStock', 'images', 'description', 'sku']
+    const productType = watchedFields.productType || 'simple'
+    
+    // Required fields based on product type
+    let requiredFields = ['name', 'category', 'brand', 'images', 'description', 'sku']
+    
+    // For simple products, add price and stock
+    if (productType === 'simple') {
+      requiredFields.push('price', 'countInStock')
+    }
+    
+    // For variant products, configurations must exist
+    if (productType === 'variant') {
+      requiredFields.push('configurations')
+    }
+    
+    const fieldStatus: Record<string, boolean> = {}
+    
     const completedFields = requiredFields.filter(field => {
       const value = watchedFields[field as keyof typeof watchedFields]
+      let isComplete = false
+      
       if (field === 'images') {
-        return Array.isArray(value) && value.length > 0
+        isComplete = Array.isArray(value) && value.length > 0
+      } else if (field === 'configurations') {
+        isComplete = Array.isArray(value) && value.length > 0
+      } else if (field === 'price' || field === 'countInStock') {
+        // Allow 0 as valid value, just check it's defined
+        isComplete = value !== '' && value !== undefined && value !== null
+      } else {
+        isComplete = value !== '' && value !== undefined && value !== null
       }
-      return value !== '' && value !== 0 && value !== undefined && value !== null
+      
+      fieldStatus[field] = isComplete
+      return isComplete
     })
-    return Math.round((completedFields.length / requiredFields.length) * 100)
+    
+    return {
+      percentage: Math.round((completedFields.length / requiredFields.length) * 100),
+      fieldStatus,
+      totalFields: requiredFields.length,
+      completedCount: completedFields.length
+    }
   }
 
-  const progress = calculateProgress()
+  const progressData = calculateProgress()
+  const progress = progressData.percentage
 
   return (
     <Form {...form}>
@@ -1067,39 +1102,27 @@ const ProductForm = ({
                           {images.length === 0 ? 'Add your first product image' : 'Add more images'}
                         </p>
                         <FormControl>
-                          <label className="relative cursor-pointer">
-                            <input
-                              type="file"
-                              accept="image/*"
-                              className="sr-only"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0]
-                                if (file) {
-                                  // Create a temporary URL for preview
-                                  const objectUrl = URL.createObjectURL(file)
-                                  const currentImages = form.getValues('images') || []
-                                  form.setValue('images', [...currentImages, objectUrl])
-
-                                  // Show success message
-                                  toast({
-                                    description: 'Image added successfully (preview only)',
-                                  })
-
-                                  // Clear the input so same file can be selected again
-                                  e.target.value = ''
-                                }
-                              }}
-                            />
-                            <Button type="button" variant="outline" asChild>
-                              <span>
-                                <Upload className="h-4 w-4 mr-2" />
-                                Choose File
-                              </span>
-                            </Button>
-                          </label>
+                          <UploadButton
+                            endpoint="imageUploader"
+                            onClientUploadComplete={(res) => {
+                              if (res && res.length > 0) {
+                                const currentImages = form.getValues('images') || []
+                                form.setValue('images', [...currentImages, res[0].url])
+                                toast({
+                                  description: 'Image uploaded successfully',
+                                })
+                              }
+                            }}
+                            onUploadError={(error: Error) => {
+                              toast({
+                                variant: 'destructive',
+                                description: `Upload failed: ${error.message}`,
+                              })
+                            }}
+                          />
                         </FormControl>
                         <p className="text-xs text-muted-foreground mt-2">
-                          PNG, JPG, GIF up to 10MB
+                          PNG, JPG, GIF up to 4MB
                         </p>
                       </div>
 

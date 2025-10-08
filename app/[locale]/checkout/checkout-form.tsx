@@ -646,10 +646,7 @@ const CheckoutForm = () => {
                                       }
                                     </div>
                                     <div>
-                                      {(dd.freeShippingMinPrice > 0 &&
-                                      itemsPrice >= dd.freeShippingMinPrice
-                                        ? 0
-                                        : dd.shippingPrice) === 0 ? (
+                                      {dd.shippingPrice === 0 ? (
                                         "FREE Shipping"
                                       ) : (
                                         <ProductPrice

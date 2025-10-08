@@ -18,10 +18,6 @@ interface OrderSummaryProps {
   // Items info
   itemCount?: number
   
-  // Free shipping (for cart page)
-  freeShippingMinPrice?: number
-  showFreeShippingIndicator?: boolean
-  
   // Coupon
   showCoupon?: boolean
   
@@ -55,8 +51,6 @@ export default function OrderSummary({
   totalPrice,
   discountAmount = 0,
   itemCount,
-  freeShippingMinPrice,
-  showFreeShippingIndicator = false,
   showCoupon = true,
   showCheckoutButton = false,
   checkoutButtonText = 'Proceed to Checkout',
@@ -74,8 +68,6 @@ export default function OrderSummary({
 }: OrderSummaryProps) {
   const safeItemsPrice = itemsPrice || 0
   const safeTotalPrice = totalPrice || 0
-  const remainingForFreeShipping = freeShippingMinPrice ? freeShippingMinPrice - safeItemsPrice : 0
-  const hasFreeShipping = freeShippingMinPrice ? safeItemsPrice >= freeShippingMinPrice : shippingPrice === 0
 
   return (
     <Card className={`rounded-lg border border-border ${sticky ? 'md:sticky md:top-4' : ''} ${className}`}>
@@ -108,29 +100,6 @@ export default function OrderSummary({
           <>
             <div>
               <CouponInput />
-            </div>
-            <Separator />
-          </>
-        )}
-
-        {/* Free Shipping Indicator (for cart page) */}
-        {showFreeShippingIndicator && freeShippingMinPrice && (
-          <>
-            <div className='bg-muted/50 rounded-md p-3 text-sm'>
-              {!hasFreeShipping && remainingForFreeShipping > 0 ? (
-                <p className='text-muted-foreground'>
-                  Add{' '}
-                  <span className='font-bold text-green-600'>
-                    <ProductPrice price={remainingForFreeShipping} plain />
-                  </span>{' '}
-                  more for <span className='font-bold text-green-600'>FREE Shipping</span>
-                </p>
-              ) : (
-                <p className='text-green-600 font-medium flex items-center gap-2'>
-                  <span className='text-lg'>✓</span>
-                  FREE Shipping Unlocked!
-                </p>
-              )}
             </div>
             <Separator />
           </>

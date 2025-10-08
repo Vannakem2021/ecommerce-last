@@ -321,12 +321,6 @@ export default function OrderCreateForm({ products }: Props) {
       const deliveryDateIndex = form.watch('deliveryDateIndex') || 0
       const selectedDeliveryDate = availableDeliveryDates[deliveryDateIndex]
       shippingPrice = selectedDeliveryDate?.shippingPrice || 0
-      
-      // Check for free shipping
-      const freeShippingMin = selectedDeliveryDate?.freeShippingMinPrice || 0
-      if (freeShippingMin > 0 && itemsPrice >= freeShippingMin) {
-        shippingPrice = 0
-      }
     }
     
     const taxPrice = itemsPrice * 0.1 // 10% tax

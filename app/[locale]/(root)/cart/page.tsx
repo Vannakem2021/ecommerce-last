@@ -32,7 +32,6 @@ export default function CartPage() {
   const {
     setting: {
       site,
-      common: { freeShippingMinPrice },
     },
   } = useSettingStore()
 
@@ -226,8 +225,6 @@ export default function CartPage() {
                 totalPrice={safeTotalPrice}
                 discountAmount={discountAmount}
                 itemCount={items.reduce((acc, item) => acc + item.quantity, 0)}
-                freeShippingMinPrice={freeShippingMinPrice}
-                showFreeShippingIndicator={true}
                 showCoupon={true}
                 showCheckoutButton={true}
                 checkoutButtonText={user ? t('Cart.Proceed to Checkout') : t('Cart.Sign In to Checkout')}

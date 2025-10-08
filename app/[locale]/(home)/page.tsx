@@ -6,6 +6,7 @@ import { BrandGrid } from '@/components/shared/home/brand-grid'
 import { FeaturedCollections } from '@/components/shared/home/featured-collections'
 import { CategorySection } from '@/components/shared/home/category-section'
 import Container from '@/components/shared/container'
+import PromotionBanner from '@/components/shared/promotion/promotion-banner'
 
 import {
   getNewArrivalsForCard,
@@ -113,6 +114,13 @@ export default async function HomePage() {
   return (
     <>
       <HomeCarousel items={setting.carousels} />
+
+      {/* Promotion Banner Section */}
+      <div className='bg-secondary/30'>
+        <Container className='py-4'>
+          <PromotionBanner limit={2} showDismiss={true} />
+        </Container>
+      </div>
 
       <div className='bg-background'>
         <Container className='md:py-4 md:space-y-4'>

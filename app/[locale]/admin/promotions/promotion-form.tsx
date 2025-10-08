@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Form,
   FormControl,
@@ -68,6 +69,7 @@ const promotionDefaultValues: IPromotionInput = {
   appliesTo: 'all',
   applicableProducts: [],
   applicableCategories: [],
+  excludeSaleItems: false,
 }
 
 interface PromotionFormProps {
@@ -152,32 +154,6 @@ export default function PromotionForm({
 
     return () => clearTimeout(timer)
   }, [watchedCode])
-
-  // Calculate discount preview
-  const calculatePreview = () => {
-    const sampleAmount = 100 // Sample order amount
-    let discount = 0
-
-    if (watchedType === 'percentage') {
-      discount = (sampleAmount * watchedValue) / 100
-    } else if (watchedType === 'fixed') {
-      discount = watchedValue
-    } else if (watchedType === 'free_shipping') {
-      return { original: sampleAmount, discount: 0, final: sampleAmount, freeShipping: true }
-    }
-
-    // Apply max discount cap if set
-    if (watchedMaxDiscountAmount > 0 && discount > watchedMaxDiscountAmount) {
-      discount = watchedMaxDiscountAmount
-    }
-
-    return {
-      original: sampleAmount,
-      discount,
-      final: Math.max(0, sampleAmount - discount),
-      freeShipping: false
-    }
-  }
 
   // Keep value aligned with type-specific rules via effects to avoid render-set loops
   useEffect(() => {
@@ -493,37 +469,6 @@ export default function PromotionForm({
                 />
               )}
 
-              {/* Live Preview */}
-              {watchedValue > 0 && watchedType !== 'free_shipping' && (
-                <Card className="bg-muted/30 border-2">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-sm font-medium flex items-center gap-2">
-                      <Sparkles className="h-4 w-4 text-primary" />
-                      Discount Preview (on $100 order)
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Original:</span>
-                      <span className="font-medium">${calculatePreview().original.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-green-600 font-medium">Discount:</span>
-                      <span className="text-green-600 font-bold">-${calculatePreview().discount.toFixed(2)}</span>
-                    </div>
-                    {watchedMaxDiscountAmount > 0 && calculatePreview().discount >= watchedMaxDiscountAmount && (
-                      <div className="text-xs text-amber-600 flex items-center gap-1 bg-amber-50 dark:bg-amber-950 p-2 rounded">
-                        ⚠️ Capped at ${watchedMaxDiscountAmount.toFixed(2)}
-                      </div>
-                    )}
-                    <div className="flex justify-between text-base pt-2 border-t">
-                      <span className="font-semibold">Final Price:</span>
-                      <span className="font-bold text-primary">${calculatePreview().final.toFixed(2)}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
               {watchedType === 'free_shipping' && (
                 <Card className="bg-muted/30 border-2">
                   <CardContent className="pt-6">
@@ -728,6 +673,41 @@ export default function PromotionForm({
                   </div>
                 </CollapsibleContent>
               </Collapsible>
+
+              {/* Exclude Sale Items Toggle */}
+              <div className="pt-4 border-t">
+                <FormField
+                  control={form.control}
+                  name='excludeSaleItems'
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 bg-muted/50">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel className="font-medium">
+                          Exclude Items on Sale (Hot Deals)
+                        </FormLabel>
+                        <FormDescription className="text-sm">
+                          When enabled, this promotion code <strong>cannot be applied</strong> to products that already have a sale price (listPrice {">"} price).
+                          This prevents discount stacking and protects profit margins.
+                        </FormDescription>
+                        <div className="mt-2 p-2 bg-background rounded text-xs text-muted-foreground">
+                          <strong>Example:</strong> A product originally $100, now on sale for $75 (25% off). 
+                          {field.value ? (
+                            <span className="text-orange-600"> This promo code will NOT apply to it.</span>
+                          ) : (
+                            <span className="text-green-600"> This promo code CAN stack with the sale (e.g., additional 20% off $75 = $60 final price).</span>
+                          )}
+                        </div>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+              </div>
             </CardContent>
           </Card>
 
@@ -742,12 +722,6 @@ export default function PromotionForm({
               </CardTitle>
             </CardHeader>
             <CardContent className='space-y-4'>
-              <div className='p-3 bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-md'>
-                <p className='text-sm text-yellow-800 dark:text-yellow-200'>
-                  <strong>Note:</strong> All promotions require customers to enter the coupon code at checkout to receive the discount.
-                </p>
-              </div>
-
               <FormField
                 control={form.control}
                 name='appliesTo'

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, Tag, Percent, DollarSign, Truck, Clock } from 'lucide-react'
+import { X, Tag, Percent, DollarSign, Truck, Clock, Copy, Check } from 'lucide-react'
 import { format } from 'date-fns'
 
 import { Button } from '@/components/ui/button'
@@ -23,6 +23,7 @@ export default function PromotionBanner({
 }: PromotionBannerProps) {
   const [promotions, setPromotions] = useState<IPromotionDetails[]>([])
   const [dismissedPromotions, setDismissedPromotions] = useState<string[]>([])
+  const [copiedCode, setCopiedCode] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -53,16 +54,22 @@ export default function PromotionBanner({
     localStorage.setItem('dismissedPromotions', JSON.stringify(newDismissed))
   }
 
+  const copyCode = (code: string) => {
+    navigator.clipboard.writeText(code)
+    setCopiedCode(code)
+    setTimeout(() => setCopiedCode(null), 2000)
+  }
+
   const getPromotionIcon = (type: string) => {
     switch (type) {
       case 'percentage':
-        return <Percent className="h-4 w-4" />
+        return <Percent className="h-5 w-5" />
       case 'fixed':
-        return <DollarSign className="h-4 w-4" />
+        return <DollarSign className="h-5 w-5" />
       case 'free_shipping':
-        return <Truck className="h-4 w-4" />
+        return <Truck className="h-5 w-5" />
       default:
-        return <Tag className="h-4 w-4" />
+        return <Tag className="h-5 w-5" />
     }
   }
 
@@ -73,19 +80,6 @@ export default function PromotionBanner({
       return `$${promotion.value} OFF`
     } else {
       return 'FREE SHIPPING'
-    }
-  }
-
-  const getPromotionColor = (type: string) => {
-    switch (type) {
-      case 'percentage':
-        return 'bg-blue-50 border-blue-200 dark:bg-blue-950 dark:border-blue-800'
-      case 'fixed':
-        return 'bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800'
-      case 'free_shipping':
-        return 'bg-purple-50 border-purple-200 dark:bg-purple-950 dark:border-purple-800'
-      default:
-        return 'bg-gray-50 border-gray-200 dark:bg-gray-950 dark:border-gray-800'
     }
   }
 
@@ -102,66 +96,91 @@ export default function PromotionBanner({
       {visiblePromotions.map((promotion) => (
         <Card 
           key={promotion._id} 
-          className={`${getPromotionColor(promotion.type)} border-2`}
+          className="border"
         >
           <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
-                  {getPromotionIcon(promotion.type)}
-                  <Badge variant="secondary" className="font-mono">
-                    {promotion.code}
-                  </Badge>
+            <div className="flex items-start gap-4">
+              {/* Icon */}
+              <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                {getPromotionIcon(promotion.type)}
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div>
+                    <h3 className="font-semibold text-base mb-1">{promotion.name}</h3>
+                    <p className="text-sm font-bold text-primary">
+                      {getPromotionValue(promotion)}
+                    </p>
+                  </div>
+                  
+                  {showDismiss && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDismiss(promotion._id)}
+                      className="flex-shrink-0 h-8 w-8"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
                 
-                <div className="flex-1">
+                {promotion.description && (
+                  <p className="text-sm text-muted-foreground mb-3">
+                    {promotion.description}
+                  </p>
+                )}
+
+                {/* Code and Details */}
+                <div className="flex flex-wrap items-center gap-3">
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-lg">
-                      {getPromotionValue(promotion)}
-                    </span>
-                    <span className="text-sm font-medium">
-                      {promotion.name}
+                    <Badge variant="secondary" className="font-mono text-sm px-3 py-1">
+                      {promotion.code}
+                    </Badge>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => copyCode(promotion.code)}
+                      className="h-8"
+                    >
+                      {copiedCode === promotion.code ? (
+                        <>
+                          <Check className="h-3 w-3 mr-1" />
+                          Copied
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-3 w-3 mr-1" />
+                          Copy
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Details row */}
+                <div className="flex flex-wrap items-center gap-3 mt-3 text-xs text-muted-foreground">
+                  {promotion.minOrderValue > 0 && (
+                    <span>Min. order: ${promotion.minOrderValue}</span>
+                  )}
+                  
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    <span>
+                      Until {format(new Date(promotion.endDate), 'MMM dd, yyyy')}
                     </span>
                   </div>
                   
-                  <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
-                    {promotion.minOrderValue > 0 && (
-                      <span>Min. order: ${promotion.minOrderValue}</span>
-                    )}
-                    
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      <span>
-                        Valid until {format(new Date(promotion.endDate), 'MMM dd, yyyy')}
-                      </span>
-                    </div>
-                    
-                    {promotion.usageLimit > 0 && (
-                      <span>
-                        {promotion.usageLimit - promotion.usedCount} uses left
-                      </span>
-                    )}
-                  </div>
+                  {promotion.usageLimit > 0 && (
+                    <span className="font-medium">
+                      {promotion.usageLimit - promotion.usedCount} uses left
+                    </span>
+                  )}
                 </div>
               </div>
-
-              {showDismiss && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleDismiss(promotion._id)}
-                  className="shrink-0"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              )}
             </div>
-
-            {promotion.description && (
-              <p className="text-sm text-muted-foreground mt-2">
-                {promotion.description}
-              </p>
-            )}
           </CardContent>
         </Card>
       ))}
