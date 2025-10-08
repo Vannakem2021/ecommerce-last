@@ -203,22 +203,6 @@ const ProductList = () => {
                       >
                         {product.name}
                       </Link>
-                      <div className="flex flex-wrap gap-1">
-                        {product.tags && product.tags.length > 0 ? (
-                          product.tags.slice(0, 2).map((tag) => (
-                            <Badge key={tag} variant="secondary" className="text-xs">
-                              {tag}
-                            </Badge>
-                          ))
-                        ) : (
-                          <span className="text-muted-foreground text-xs">No tags</span>
-                        )}
-                        {product.tags && product.tags.length > 2 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{product.tags.length - 2}
-                          </Badge>
-                        )}
-                      </div>
                     </div>
                   </TableCell>
 

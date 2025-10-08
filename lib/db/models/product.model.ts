@@ -30,7 +30,6 @@ export interface IProduct extends Document {
   price: number
   listPrice: number
   countInStock: number
-  tags: string[]
   colors: string[]
   sizes: string[]
   // Product type and configurations
@@ -95,7 +94,6 @@ const productSchema = new Schema<IProduct>(
       type: Number,
       required: true,
     },
-    tags: { type: [String], default: ['new-arrival'] },
     colors: { type: [String], default: ['White', 'Green', 'Black'] },
     sizes: { type: [String], default: ['S', 'M', 'L'] },
     avgRating: {

@@ -8,7 +8,6 @@ import { Badge } from '@/components/ui/badge'
 import {
   getAllCategories,
   getAllProducts,
-  getAllTags,
 } from '@/lib/actions/product.actions'
 import { IProduct } from '@/lib/db/models/product.model'
 import ProductSortSelector from '@/components/shared/product/product-sort-selector'
@@ -62,20 +61,17 @@ export async function generateMetadata(props: {
   const {
     q = 'all',
     category = 'all',
-    tag = 'all',
     price = 'all',
   } = searchParams
 
   if (
     (q !== 'all' && q !== '') ||
     category !== 'all' ||
-    tag !== 'all' ||
     price !== 'all'
   ) {
     return {
       title: `${t('Search.Search')} ${q !== 'all' ? q : ''}
           ${category !== 'all' ? ` : ${t('Search.Category')} ${category}` : ''}
-          ${tag !== 'all' ? ` : ${t('Search.Tag')} ${tag}` : ''}
           ${price !== 'all' ? ` : ${t('Search.Price')} ${price}` : ''}`,
     }
   } else {
@@ -113,7 +109,6 @@ export default async function SearchPage(props: {
   const params = { q, category, tag, price, sort, page, secondHand, discount }
 
   const categories = await getAllCategories()
-  const tags = await getAllTags()
   const data = await getAllProducts({
     category,
     tag,
@@ -130,7 +125,6 @@ export default async function SearchPage(props: {
   const hasActiveFilters =
     (q !== 'all' && q !== '') ||
     (category !== 'all' && category !== '') ||
-    (tag !== 'all' && tag !== '') ||
     price !== 'all' ||
     secondHand !== 'all' ||
     discount !== 'all'
@@ -139,7 +133,6 @@ export default async function SearchPage(props: {
   let activeFiltersCount = 0
   if (q !== 'all' && q !== '') activeFiltersCount++
   if (category !== 'all' && category !== '') activeFiltersCount++
-  if (tag !== 'all' && tag !== '') activeFiltersCount++
   if (price !== 'all') activeFiltersCount++
   if (secondHand !== 'all') activeFiltersCount++
   if (discount !== 'all') activeFiltersCount++
@@ -149,8 +142,6 @@ export default async function SearchPage(props: {
   breadcrumbItems.push({ label: t('Search.Search'), href: '/search' })
   if (category !== 'all' && category !== '') {
     breadcrumbItems.push({ label: category })
-  } else if (tag !== 'all' && tag !== '') {
-    breadcrumbItems.push({ label: tag })
   } else if (q !== 'all' && q !== '') {
     breadcrumbItems.push({ label: `"${q}"` })
   }
@@ -201,15 +192,6 @@ export default async function SearchPage(props: {
               <Badge variant='secondary' className='gap-1.5'>
                 {t('Search.Category')}: {category}
                 <Link href={getFilterUrl({ params, category: 'all' })}>
-                  <X className='h-3 w-3 cursor-pointer hover:text-destructive' />
-                </Link>
-              </Badge>
-            )}
-            
-            {tag !== 'all' && tag !== '' && (
-              <Badge variant='secondary' className='gap-1.5'>
-                {t('Search.Tag')}: {tag}
-                <Link href={getFilterUrl({ params, tag: 'all' })}>
                   <X className='h-3 w-3 cursor-pointer hover:text-destructive' />
                 </Link>
               </Badge>
@@ -494,68 +476,6 @@ export default async function SearchPage(props: {
             <div>
               <PriceRangeSlider params={params} min={0} max={2000} />
             </div>
-            <div>
-              <div className='font-semibold mb-3'>{t('Search.Tag')}</div>
-              <div className='space-y-2'>
-                <Link
-                  href={getFilterUrl({ tag: 'all', params })}
-                  className='flex items-center gap-2 hover:text-primary transition-colors'
-                >
-                  <div
-                    className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
-                      'all' === tag || '' === tag
-                        ? 'bg-primary border-primary'
-                        : 'border-muted-foreground'
-                    }`}
-                  >
-                    {('all' === tag || '' === tag) && (
-                      <svg
-                        className='w-3 h-3 text-primary-foreground'
-                        fill='none'
-                        strokeLinecap='round'
-                        strokeLinejoin='round'
-                        strokeWidth='2'
-                        viewBox='0 0 24 24'
-                        stroke='currentColor'
-                      >
-                        <path d='M5 13l4 4L19 7'></path>
-                      </svg>
-                    )}
-                  </div>
-                  <span className='text-sm'>{t('Search.All')}</span>
-                </Link>
-                {tags.map((tagItem: string) => (
-                  <Link
-                    key={tagItem}
-                    href={getFilterUrl({ tag: toSlug(tagItem) === tag ? 'all' : tagItem, params })}
-                    className='flex items-center gap-2 hover:text-primary transition-colors'
-                  >
-                    <div
-                      className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
-                        toSlug(tagItem) === tag
-                          ? 'bg-primary border-primary'
-                          : 'border-muted-foreground'
-                      }`}
-                    >
-                      {toSlug(tagItem) === tag && (
-                        <svg
-                          className='w-3 h-3 text-primary-foreground'
-                          fill='none'
-                          strokeLinecap='round'
-                          strokeLinejoin='round'
-                          strokeWidth='2'
-                          viewBox='0 0 24 24'
-                          stroke='currentColor'
-                        >
-                          <path d='M5 13l4 4L19 7'></path>
-                        </svg>
-                      )}
-                    </div>
-                    <span className='text-sm'>{tagItem}</span>
-                  </Link>
-                ))}
-              </div>
-            </div>
             </div>
           </MobileFilterDrawer>
         </div>
@@ -568,7 +488,6 @@ export default async function SearchPage(props: {
             </h3>
             {(category !== 'all' ||
               price !== 'all' ||
-              tag !== 'all' ||
               secondHand !== 'all' ||
               discount !== 'all') && (
               <Button variant='link' size='sm' asChild className='h-auto p-0'>
@@ -790,68 +709,6 @@ export default async function SearchPage(props: {
           </div>
           <div>
             <PriceRangeSlider params={params} min={0} max={2000} />
-          </div>
-          <div>
-            <div className='font-semibold mb-3'>{t('Search.Tag')}</div>
-            <div className='space-y-2'>
-              <Link
-                href={getFilterUrl({ tag: 'all', params })}
-                className='flex items-center gap-2 hover:text-primary transition-colors'
-              >
-                <div
-                  className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
-                    'all' === tag || '' === tag
-                      ? 'bg-primary border-primary'
-                      : 'border-muted-foreground'
-                  }`}
-                >
-                  {('all' === tag || '' === tag) && (
-                    <svg
-                      className='w-3 h-3 text-primary-foreground'
-                      fill='none'
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                      strokeWidth='2'
-                      viewBox='0 0 24 24'
-                      stroke='currentColor'
-                    >
-                      <path d='M5 13l4 4L19 7'></path>
-                    </svg>
-                  )}
-                </div>
-                <span className='text-sm'>{t('Search.All')}</span>
-              </Link>
-              {tags.map((tagItem: string) => (
-                <Link
-                  key={tagItem}
-                  href={getFilterUrl({ tag: toSlug(tagItem) === tag ? 'all' : tagItem, params })}
-                  className='flex items-center gap-2 hover:text-primary transition-colors'
-                >
-                  <div
-                    className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
-                      toSlug(tagItem) === tag
-                        ? 'bg-primary border-primary'
-                        : 'border-muted-foreground'
-                    }`}
-                  >
-                    {toSlug(tagItem) === tag && (
-                      <svg
-                        className='w-3 h-3 text-primary-foreground'
-                        fill='none'
-                        strokeLinecap='round'
-                        strokeLinejoin='round'
-                        strokeWidth='2'
-                        viewBox='0 0 24 24'
-                        stroke='currentColor'
-                      >
-                        <path d='M5 13l4 4L19 7'></path>
-                      </svg>
-                    )}
-                  </div>
-                  <span className='text-sm'>{tagItem}</span>
-                </Link>
-              ))}
-            </div>
           </div>
         </div>
 

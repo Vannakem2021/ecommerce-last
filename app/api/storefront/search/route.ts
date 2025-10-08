@@ -28,7 +28,6 @@ export async function GET(request: NextRequest) {
         { name: { $regex: query, $options: 'i' } },
         { sku: { $regex: query, $options: 'i' } },
         { description: { $regex: query, $options: 'i' } },
-        { tags: { $regex: query, $options: 'i' } },
       ],
     }
 
