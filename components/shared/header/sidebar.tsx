@@ -1,8 +1,7 @@
 import * as React from 'react'
 import Link from 'next/link'
-import { X, ChevronRight, MenuIcon, Search } from 'lucide-react'
+import { X, ChevronRight, MenuIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { SignOut } from '@/lib/actions/user.actions'
 import {
   Drawer,
@@ -48,17 +47,6 @@ export default async function Sidebar({
               <DrawerTitle></DrawerTitle>
               <DrawerDescription></DrawerDescription>
             </DrawerHeader>
-          </div>
-
-          {/* Search Box */}
-          <div className='p-4 border-b'>
-            <div className='relative'>
-              <Input
-                placeholder='Search Keywords'
-                className='h-10 pr-10 border-2 border-primary rounded-none focus-visible:ring-0 focus-visible:ring-offset-0'
-              />
-              <Search className='absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground' />
-            </div>
           </div>
 
           {/* Navigation Menu */}
@@ -133,7 +121,7 @@ export default async function Sidebar({
 
               {/* Customer Service Section */}
               {menuItems.filter(item => 
-                ['About Us', 'Customer Service', 'Help', 'Contact Us'].includes(item.name) ||
+                ['About Us', 'Help', 'Contact Us'].includes(item.name) ||
                 item.section === 'customer-service'
               ).length > 0 && (
                 <>
@@ -144,7 +132,7 @@ export default async function Sidebar({
                   </div>
                   {menuItems
                     .filter(item => 
-                      ['About Us', 'Customer Service', 'Help', 'Contact Us'].includes(item.name) ||
+                      ['About Us', 'Help', 'Contact Us'].includes(item.name) ||
                       item.section === 'customer-service'
                     )
                     .map((item) => (
@@ -161,41 +149,13 @@ export default async function Sidebar({
                 </>
               )}
 
-              {/* Legal Section */}
-              {menuItems.filter(item => 
-                ['Conditions of Use', 'Privacy Policy'].includes(item.name) ||
-                item.section === 'legal'
-              ).length > 0 && (
-                <>
-                  <div className='px-5 py-2 bg-muted/30 border-t'>
-                    <span className='text-xs font-bold text-primary uppercase tracking-wider'>
-                      Legal
-                    </span>
-                  </div>
-                  {menuItems
-                    .filter(item => 
-                      ['Conditions of Use', 'Privacy Policy'].includes(item.name) ||
-                      item.section === 'legal'
-                    )
-                    .map((item) => (
-                      <DrawerClose asChild key={item.href}>
-                        <Link
-                          href={item.href}
-                          className='flex items-center justify-between px-5 py-3 hover:bg-muted/50 transition-colors'
-                        >
-                          <span className='font-medium text-sm'>{item.name}</span>
-                          <ChevronRight className='h-4 w-4 text-muted-foreground' />
-                        </Link>
-                      </DrawerClose>
-                    ))}
-                </>
-              )}
+
 
               {/* Other Menu Items (fallback for items not in groups) */}
               {menuItems.filter(item => 
                 ![
                   'Today\'s Deal', 'New Arrivals', 'Featured Products', 'Best Sellers',
-                  'About Us', 'Customer Service', 'Help', 'Contact Us',
+                  'About Us', 'Help', 'Contact Us',
                   'Conditions of Use', 'Privacy Policy'
                 ].includes(item.name) &&
                 !['shop', 'customer-service', 'legal'].includes(item.section || '')
@@ -210,7 +170,7 @@ export default async function Sidebar({
                     .filter(item => 
                       ![
                         'Today\'s Deal', 'New Arrivals', 'Featured Products', 'Best Sellers',
-                        'About Us', 'Customer Service', 'Help', 'Contact Us',
+                        'About Us', 'Help', 'Contact Us',
                         'Conditions of Use', 'Privacy Policy'
                       ].includes(item.name) &&
                       !['shop', 'customer-service', 'legal'].includes(item.section || '')
@@ -229,19 +189,6 @@ export default async function Sidebar({
                 </>
               )}
             </nav>
-          </div>
-
-          {/* Bottom Contact Link */}
-          <div className='border-t'>
-            <DrawerClose asChild>
-              <Link
-                href='/page/contact-us'
-                className='flex items-center justify-between px-5 py-3.5 hover:bg-muted/50 transition-colors'
-              >
-                <span className='font-medium text-sm uppercase'>CONTACT</span>
-                <ChevronRight className='h-4 w-4 text-muted-foreground' />
-              </Link>
-            </DrawerClose>
           </div>
         </div>
       </DrawerContent>

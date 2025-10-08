@@ -39,6 +39,18 @@ export default function SettingsPageClient({ user, hasPassword }: SettingsPageCl
   const languageDisplay = user.preferredLanguage === 'en-US' ? 'English (US)' : 'ខ្មែរ (Khmer)'
   const currencyDisplay = user.preferredCurrency === 'USD' ? 'US Dollar ($)' : 'Khmer Riel (៛)'
 
+  // Generate initials based on auth method
+  // OAuth users (Google): 1 letter, Credentials users: 2 letters
+  const getInitials = () => {
+    if (!user.name) return 'U'
+    const initials = user.name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+    return hasPassword ? initials.slice(0, 2) : initials.slice(0, 1)
+  }
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -56,7 +68,7 @@ export default function SettingsPageClient({ user, hasPassword }: SettingsPageCl
           <CardContent className="p-4 flex items-center gap-4">
             <Avatar className="w-12 h-12">
               <AvatarImage src={user.image} alt={user.name} />
-              <AvatarFallback>{user.name?.[0]?.toUpperCase()}</AvatarFallback>
+              <AvatarFallback>{getInitials()}</AvatarFallback>
             </Avatar>
             <div className="flex-1">
               <p className="text-sm font-medium">Profile Picture</p>
@@ -217,6 +229,7 @@ export default function SettingsPageClient({ user, hasPassword }: SettingsPageCl
         onOpenChange={setProfilePictureDialogOpen}
         currentImage={user.image}
         userName={user.name}
+        hasPassword={hasPassword}
       />
 
       <EditNameDialog 

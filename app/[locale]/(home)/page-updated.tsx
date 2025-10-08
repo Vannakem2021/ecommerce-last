@@ -5,7 +5,6 @@ import { FlashDeals } from '@/components/shared/home/flash-deals'
 import Container from '@/components/shared/container'
 
 import {
-  getProductsForCard,
   getAllCategoriesWithCounts,
   getNewArrivalsForCard,
   getBestSellersForCard,
@@ -22,9 +21,6 @@ export default async function HomePage() {
 
   const categoriesWithCounts = (await getAllCategoriesWithCounts()).slice(0, 4)
   const newArrivals = await getNewArrivalsForCard({ limit: 4 })
-  const featureds = await getProductsForCard({
-    tag: 'featured',
-  })
   const bestSellers = await getBestSellersForCard({ limit: 4 })
   const cards = [
     {
@@ -56,14 +52,7 @@ export default async function HomePage() {
         href: '/search?sort=best-selling',
       },
     },
-    {
-      title: t('Featured Products'),
-      items: featureds,
-      link: {
-        text: t('Shop Now'),
-        href: '/search?tag=featured',
-      },
-    },
+    
   ]
 
   return (

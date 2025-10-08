@@ -118,7 +118,6 @@ export const THEMES = ['Light', 'Dark', 'System']
 // Predefined product tags - matching home page sections
 // Note: Time-based sales are now handled via saleStartDate/saleEndDate fields
 export const PRODUCT_TAGS = [
-  'featured',
   'best-seller',
   'new-arrival',
 ] as const

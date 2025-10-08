@@ -751,7 +751,8 @@ export async function updateUserImage(image: string) {
     user.image = validatedData.image;
     await user.save();
 
-    // 6. Revalidate cache
+    // 6. Revalidate cache - including all layouts to update Header
+    revalidatePath("/", "layout"); // Revalidate all layouts (Header, Account Layout, etc.)
     revalidatePath("/account");
     revalidatePath("/account/manage");
 
@@ -790,7 +791,8 @@ export async function removeUserImage() {
     user.image = undefined;
     await user.save();
 
-    // 5. Revalidate cache
+    // 5. Revalidate cache - including all layouts to update Header
+    revalidatePath("/", "layout"); // Revalidate all layouts (Header, Account Layout, etc.)
     revalidatePath("/account");
     revalidatePath("/account/manage");
 
@@ -1074,6 +1076,8 @@ export async function updateProfileImage(imageUrl: string) {
       throw new Error("Failed to update profile image");
     }
 
+    // Revalidate all layouts to update Header across the entire site
+    revalidatePath("/", "layout"); // Revalidate all layouts (Header, Account Layout, etc.)
     revalidatePath("/account/manage");
     revalidatePath("/account");
     return { success: true, message: "Profile picture updated successfully", data: { image: updatedUser.image } };
@@ -1102,6 +1106,8 @@ export async function removeProfileImage() {
       throw new Error("Failed to remove profile image");
     }
 
+    // Revalidate all layouts to update Header across the entire site
+    revalidatePath("/", "layout"); // Revalidate all layouts (Header, Account Layout, etc.)
     revalidatePath("/account/manage");
     revalidatePath("/account");
     return { success: true, message: "Profile picture removed successfully" };

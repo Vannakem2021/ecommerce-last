@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Package, MapPin, Settings } from 'lucide-react'
+import { Package, MapPin, Settings, Heart } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface NavItem {
@@ -17,6 +17,7 @@ interface AccountSidebarNavProps {
 
 const iconMap = {
   Package,
+  Heart,
   MapPin,
   Settings,
 }

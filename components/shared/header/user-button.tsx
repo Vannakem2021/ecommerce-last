@@ -26,9 +26,12 @@ export default async function UserButton() {
 
   // Fetch fresh user data from database (same pattern as Settings page)
   let userData = null
+  let hasPassword = false
   if (session?.user?.id) {
     try {
       userData = await getUserById(session.user.id)
+      // Check if user has password to determine auth method (OAuth vs Credentials)
+      hasPassword = !!userData?.password
     } catch (error) {
       console.error('[UserButton] getUserById error:', error)
     }
@@ -54,6 +57,7 @@ export default async function UserButton() {
                 }}
                 size="md"
                 className='border border-border hover:border-primary transition-colors'
+                hasPassword={hasPassword}
               />
             ) : (
               <UserRound className='h-6 w-6 text-muted-foreground' />
@@ -72,6 +76,7 @@ export default async function UserButton() {
                   }}
                   size="md"
                   className='border border-border flex-shrink-0'
+                  hasPassword={hasPassword}
                 />
                 <div className='flex flex-col min-w-0'>
                   <p className='text-base font-semibold text-foreground truncate'>
@@ -110,7 +115,7 @@ export default async function UserButton() {
                     </DropdownMenuItem>
                   </Link>
 
-                  <Link href='/favorites'>
+                  <Link href='/account/favorites'>
                     <DropdownMenuItem className='flex items-center gap-3 cursor-pointer px-3 py-2.5'>
                       <LuFolderHeart className='h-4 w-4 text-muted-foreground' />
                       <span className='text-sm'>My Favorites</span>

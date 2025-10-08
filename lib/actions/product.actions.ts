@@ -350,54 +350,7 @@ export async function getAllBrandsForFilter() {
   const brands = await Brand.find({}).select('_id name').sort({ name: 1 }).lean()
   return JSON.parse(JSON.stringify(brands))
 }
-export async function getProductsForCard({
-  tag,
-  limit = 4,
-}: {
-  tag: string
-  limit?: number
-}) {
-  await connectToDatabase()
-  const products = await Product.find(
-    { tags: { $in: [tag] }, isPublished: true },
-    {
-      name: 1,
-      href: { $concat: ['/product/', '$slug'] },
-      image: { $arrayElemAt: ['$images', 0] },
-    }
-  )
-    .sort({ createdAt: 'desc' })
-    .limit(limit)
-  return JSON.parse(JSON.stringify(products)) as {
-    name: string
-    href: string
-    image: string
-  }[]
-}
-// GET PRODUCTS BY TAG
-export async function getProductsByTag({
-  tag,
-  limit = 10,
-}: {
-  tag: string
-  limit?: number
-}) {
-  await connectToDatabase()
 
-  // Ensure models are registered
-  void Brand
-  void Category
-
-  const products = await Product.find({
-    tags: { $in: [tag] },
-    isPublished: true,
-  })
-    .populate('brand', 'name')
-    .populate('category', 'name')
-    .sort({ createdAt: 'desc' })
-    .limit(limit)
-  return JSON.parse(JSON.stringify(products)) as IProduct[]
-}
 
 // GET ONE PRODUCT BY SLUG
 export async function getProductBySlug(slug: string) {

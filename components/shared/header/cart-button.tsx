@@ -4,9 +4,8 @@ import { CgShoppingCart } from 'react-icons/cg'
 import Link from 'next/link'
 import useIsMounted from '@/hooks/use-is-mounted'
 import useShowSidebar from '@/hooks/use-cart-sidebar'
-import { cn } from '@/lib/utils'
 import useUserCart from '@/hooks/use-user-cart'
-import { useLocale, useTranslations } from 'next-intl'
+import { useLocale } from 'next-intl'
 import { getDirection } from '@/i18n-config'
 
 export default function CartButton() {
@@ -16,8 +15,6 @@ export default function CartButton() {
   } = useUserCart()
   const cartItemsCount = items.reduce((a, c) => a + c.quantity, 0)
   const showSidebar = useShowSidebar()
-  const t = useTranslations()
-
   const locale = useLocale()
   return (
     <Link href='/cart' className='flex items-center gap-2 header-button relative'>
@@ -40,11 +37,6 @@ export default function CartButton() {
           ></div>
         )}
       </div>
-
-      <span className='hidden xl:inline text-sm'>
-        <span className='text-xs text-muted-foreground block'>{t('Header.Cart')}</span>
-        <span className='font-medium'>{isMounted ? cartItemsCount : 0} items</span>
-      </span>
     </Link>
   )
 }

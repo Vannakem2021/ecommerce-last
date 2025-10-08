@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { MapPin, Phone, Heart } from 'lucide-react'
 import { FaFacebookF, FaInstagram, FaTiktok } from 'react-icons/fa'
 import { MdOutlineDateRange } from 'react-icons/md'
-import TrackOrderLink from './track-order-link'
 
 export default async function TopBar({ showPhoneOnly = false }: { showPhoneOnly?: boolean }) {
   const setting = await getSetting()
@@ -39,8 +38,6 @@ export default async function TopBar({ showPhoneOnly = false }: { showPhoneOnly?
               <MapPin className="h-3.5 w-3.5" />
               <span className="hidden lg:inline">Store Location</span>
             </Link>
-            <span className="text-gray-300 dark:text-gray-700">|</span>
-            <TrackOrderLink />
             <span className="text-gray-300 dark:text-gray-700">|</span>
             <div className="hidden md:flex items-center gap-1">
               <Heart className="h-3.5 w-3.5" />

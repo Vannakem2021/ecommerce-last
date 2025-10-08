@@ -7,7 +7,6 @@ import { FeaturedCollections } from '@/components/shared/home/featured-collectio
 import Container from '@/components/shared/container'
 
 import {
-  getProductsForCard,
   getAllCategoriesWithCounts,
   getNewArrivalsForCard,
   getBestSellersForCard,
@@ -29,9 +28,6 @@ export default async function HomePage() {
 
   const categoriesWithCounts = (await getAllCategoriesWithCounts()).slice(0, 4)
   const newArrivals = await getNewArrivalsForCard({ limit: 4 })
-  const featureds = await getProductsForCard({
-    tag: 'featured',
-  })
   const bestSellers = await getBestSellersForCard({ limit: 4 })
   const cards = [
     {
@@ -63,14 +59,7 @@ export default async function HomePage() {
         href: '/search?sort=best-selling',
       },
     },
-    {
-      title: t('Featured Products'),
-      items: featureds,
-      link: {
-        text: t('Shop Now'),
-        href: '/search?tag=featured',
-      },
-    },
+    
   ]
 
   return (
@@ -91,7 +80,7 @@ export default async function HomePage() {
             <div className='flex items-center justify-between mb-4'>
               <h2 className='h2-bold'>{t('Shop by Brand')}</h2>
             </div>
-            <BrandGrid brands={brands} maxDisplay={11} />
+            <BrandGrid brands={brands} maxDisplay={19} />
           </Container>
         </div>
       )}

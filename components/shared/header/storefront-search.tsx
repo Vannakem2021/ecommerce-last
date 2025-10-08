@@ -121,7 +121,20 @@ export default function StorefrontSearch({
     <div className="relative w-full" ref={dropdownRef}>
       <form onSubmit={handleSubmit} className="flex items-stretch h-10 md:h-12 shadow-sm">
         {/* Category Dropdown */}
-        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+        <Select 
+          value={selectedCategory} 
+          onValueChange={(value) => {
+            setSelectedCategory(value)
+            
+            // Navigate immediately when category is selected (not "all")
+            if (value !== 'all') {
+              router.push(`/search?category=${encodeURIComponent(value)}`)
+            } else if (query.trim().length === 0) {
+              // If "All Categories" is selected and no search query, go to search page without filters
+              router.push('/search')
+            }
+          }}
+        >
           <SelectTrigger className="w-32 sm:w-36 md:w-40 h-full bg-background border border-r-0 rounded-l-lg rounded-r-none hover:bg-muted/50 transition-colors text-xs md:text-sm">
             <SelectValue placeholder={allCategoriesText} />
           </SelectTrigger>

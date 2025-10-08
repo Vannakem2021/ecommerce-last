@@ -102,8 +102,19 @@ const main = async () => {
     const uniqueBrands = [...new Set(products.map(p => p.brand))]
     const uniqueCategories = [...new Set(products.map(p => p.category))]
 
-    // Create brand documents
-    const brandDocs = uniqueBrands.map(name => ({ name, active: true }))
+    // Brand logos mapping
+    const brandLogos: Record<string, string> = {
+      'Apple': 'https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg',
+      'Samsung': 'https://upload.wikimedia.org/wikipedia/commons/2/24/Samsung_Logo.svg',
+      'Oppo': 'https://upload.wikimedia.org/wikipedia/commons/9/9e/OPPO_LOGO_2019.svg'
+    }
+
+    // Create brand documents with logos
+    const brandDocs = uniqueBrands.map(name => ({ 
+      name, 
+      logo: brandLogos[name] || undefined,
+      active: true 
+    }))
     const createdBrands = await Brand.insertMany(brandDocs)
 
     // Create category documents
