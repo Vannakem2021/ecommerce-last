@@ -34,6 +34,8 @@ import { IBrand } from '@/lib/db/models/brand.model'
 import { ICategory } from '@/lib/db/models/category.model'
 import { ProductInputSchema, ProductUpdateSchema } from '@/lib/validator'
 import { Checkbox } from '@/components/ui/checkbox'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Label } from '@/components/ui/label'
 import { toSlug } from '@/lib/utils'
 import { IProductInput } from '@/types'
 import { Calendar } from '@/components/ui/calendar'
@@ -44,223 +46,380 @@ import { cn } from '@/lib/utils'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 
-// Reusable Tag Input Component (simple strings)
-const TagInput = ({ 
-  value = [], 
-  onChange, 
-  placeholder 
-}: { 
-  value?: string[]
-  onChange: (value: string[]) => void
-  placeholder: string 
-}) => {
-  const [inputValue, setInputValue] = useState('')
-  
-  const handleAdd = () => {
-    const trimmedValue = inputValue.trim()
-    if (trimmedValue && !value.includes(trimmedValue)) {
-      onChange([...value, trimmedValue])
-      setInputValue('')
-    }
-  }
-
-  const handleRemove = (item: string) => {
-    onChange(value.filter((v) => v !== item))
-  }
-
-  return (
-    <>
-      {value.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mb-2">
-          {value.map((val) => (
-            <Badge key={val} variant="secondary" className="text-xs">
-              {val}
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="h-3 w-3 p-0 ml-1"
-                onClick={() => handleRemove(val)}
-              >
-                <X className="h-2.5 w-2.5" />
-              </Button>
-            </Badge>
-          ))}
-        </div>
-      )}
-      <div className="flex gap-2">
-        <Input
-          placeholder={placeholder}
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={(e) => { 
-            if (e.key === 'Enter') { 
-              e.preventDefault()
-              handleAdd()
-            } 
-          }}
-          className="text-sm"
-        />
-        <Button 
-          type="button" 
-          variant="outline" 
-          size="sm" 
-          onClick={handleAdd} 
-          disabled={!inputValue.trim()}
-        >
-          Add
-        </Button>
-      </div>
-    </>
-  )
+// Configuration Manager Component
+interface ConfigurationManagerProps {
+  value: {
+    sku: string
+    name: string
+    price: number
+    stock: number
+    isDefault: boolean
+    attributes: Record<string, string | undefined>
+  }[]
+  onChange: (value: any[]) => void
+  baseSku: string
 }
 
-// Predefined values for quick-fill
-const STORAGE_PRESETS = ['64GB', '128GB', '256GB', '512GB', '1TB', '2TB']
-const RAM_PRESETS = ['4GB', '6GB', '8GB', '12GB', '16GB', '32GB', '64GB']
-
-// Smart price suggestions based on common patterns
-const STORAGE_PRICE_MAP: Record<string, number> = {
-  '64GB': 0,
-  '128GB': 50,
-  '256GB': 100,
-  '512GB': 200,
-  '1TB': 400,
-  '2TB': 800,
-}
-
-const RAM_PRICE_MAP: Record<string, number> = {
-  '4GB': 0,
-  '6GB': 25,
-  '8GB': 50,
-  '12GB': 100,
-  '16GB': 150,
-  '32GB': 300,
-  '64GB': 600,
-}
-
-// Variant Input with Price Modifier Component
-const VariantInput = ({ 
-  value = [], 
-  onChange, 
-  placeholder,
-  label
-}: { 
-  value?: { value: string; priceModifier: number }[]
-  onChange: (value: { value: string; priceModifier: number }[]) => void
-  placeholder: string
-  label: string
-}) => {
-  const [variantValue, setVariantValue] = useState('')
-  const [priceModifier, setPriceModifier] = useState('0')
+const ConfigurationManager = ({ value = [], onChange, baseSku }: ConfigurationManagerProps) => {
   const { toast } = useToast()
   
-  const handleAdd = () => {
-    const trimmedValue = variantValue.trim()
-    const price = parseFloat(priceModifier)
+  const [editingIndex, setEditingIndex] = useState<number | null>(null)
+  const [formData, setFormData] = useState({
+    storage: '',
+    ram: '',
+    color: '',
+    name: '',
+    price: '',
+    stock: '',
+    isDefault: false
+  })
+
+  const resetForm = () => {
+    setFormData({
+      storage: '',
+      ram: '',
+      color: '',
+      name: '',
+      price: '',
+      stock: '',
+      isDefault: false
+    })
+    setEditingIndex(null)
+  }
+
+  // Auto-generate name from selections
+  const generateName = (storage: string, ram: string, color: string) => {
+    // Memory configuration: "6GB | 128GB"
+    const memoryParts = []
+    if (ram) memoryParts.push(ram)
+    if (storage) memoryParts.push(storage)
+    const memoryConfig = memoryParts.join(' | ')
     
-    if (trimmedValue && !value.some(v => v.value === trimmedValue)) {
-      onChange([...value, { value: trimmedValue, priceModifier: isNaN(price) ? 0 : price }])
-      setVariantValue('')
-      setPriceModifier('0')
+    // Add color if present: "6GB | 128GB - Black"
+    if (color && memoryConfig) {
+      return `${memoryConfig} - ${color}`
     }
+    
+    return memoryConfig || color || ''
   }
 
-  const handleRemove = (item: string) => {
-    onChange(value.filter((v) => v.value !== item))
+  // Update name when selections change
+  const handleAttributeChange = (field: 'storage' | 'ram' | 'color', value: string) => {
+    const updated = { ...formData, [field]: value }
+    const autoName = generateName(updated.storage, updated.ram, updated.color)
+    setFormData({ ...updated, name: autoName })
   }
 
-  // Quick-fill handler with smart price suggestion
-  const handleQuickFill = (presetValue: string) => {
-    if (value.some(v => v.value === presetValue)) {
-      toast({
-        variant: 'destructive',
-        description: `${presetValue} already added`,
-      })
+  const handleAdd = () => {
+    // Validation
+    if (!formData.name.trim()) {
+      toast({ variant: 'destructive', description: 'Variant name is required' })
+      return
+    }
+    if (!formData.price || parseFloat(formData.price) <= 0) {
+      toast({ variant: 'destructive', description: 'Valid price is required' })
+      return
+    }
+    if (!formData.stock || parseInt(formData.stock) < 0) {
+      toast({ variant: 'destructive', description: 'Valid stock is required' })
       return
     }
 
-    // Auto-fill value field
-    setVariantValue(presetValue)
+    // Auto-generate SKU as BASESKU-001, BASESKU-002, etc.
+    const nextNumber = String(value.length + 1).padStart(3, '0')
+    const autoSku = `${baseSku}-${nextNumber}`.toUpperCase()
     
-    // Smart price suggestion
-    const priceMap = label === 'Storage' ? STORAGE_PRICE_MAP : RAM_PRICE_MAP
-    const suggestedPrice = priceMap[presetValue] || 0
-    setPriceModifier(suggestedPrice.toString())
+    const newConfig = {
+      sku: autoSku,
+      name: formData.name.trim(),
+      price: parseFloat(formData.price),
+      stock: parseInt(formData.stock),
+      isDefault: formData.isDefault,
+      attributes: {
+        storage: formData.storage || undefined,
+        ram: formData.ram || undefined,
+        color: formData.color || undefined,
+      }
+    }
 
-    toast({
-      description: `${presetValue} filled with suggested price +$${suggestedPrice}`,
-    })
+    if (editingIndex !== null) {
+      // Update existing
+      const updated = [...value]
+      updated[editingIndex] = { ...updated[editingIndex], ...newConfig, sku: updated[editingIndex].sku }
+      onChange(updated)
+      toast({ description: 'Variant updated' })
+    } else {
+      // Add new
+      // If this is the first config, make it default
+      if (value.length === 0) {
+        newConfig.isDefault = true
+      }
+      // If setting as default, unset others
+      if (newConfig.isDefault) {
+        const updated = value.map(c => ({ ...c, isDefault: false }))
+        onChange([...updated, newConfig])
+      } else {
+        onChange([...value, newConfig])
+      }
+      toast({ description: 'Variant added' })
+    }
+
+    resetForm()
   }
 
-  const presets = label === 'Storage' ? STORAGE_PRESETS : RAM_PRESETS
+  const handleEdit = (index: number) => {
+    const config = value[index]
+    setFormData({
+      storage: config.attributes?.storage || '',
+      ram: config.attributes?.ram || '',
+      color: config.attributes?.color || '',
+      name: config.name,
+      price: config.price.toString(),
+      stock: config.stock.toString(),
+      isDefault: config.isDefault
+    })
+    setEditingIndex(index)
+  }
+
+  const handleRemove = (index: number) => {
+    const config = value[index]
+    if (config.isDefault && value.length > 1) {
+      toast({ 
+        variant: 'destructive', 
+        description: 'Cannot remove default variant. Set another as default first.' 
+      })
+      return
+    }
+    
+    const updated = value.filter((_, i) => i !== index)
+    // If we removed the default and there are others, make first one default
+    if (config.isDefault && updated.length > 0) {
+      updated[0].isDefault = true
+    }
+    onChange(updated)
+    toast({ description: 'Variant removed' })
+  }
+
+  const handleSetDefault = (index: number) => {
+    const updated = value.map((c, i) => ({
+      ...c,
+      isDefault: i === index
+    }))
+    onChange(updated)
+    toast({ description: 'Default variant updated' })
+  }
 
   return (
-    <>
+    <div className="space-y-4">
+      {/* Configuration List */}
       {value.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mb-2">
-          {value.map((variant) => (
-            <Badge key={variant.value} variant="secondary" className="text-xs">
-              {variant.value} | {variant.priceModifier >= 0 ? '+' : ''}${variant.priceModifier}
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="h-3 w-3 p-0 ml-1"
-                onClick={() => handleRemove(variant.value)}
-              >
-                <X className="h-2.5 w-2.5" />
-              </Button>
-            </Badge>
+        <div className="space-y-2">
+          {value.map((config, index) => (
+            <Card key={config.sku} className="hover:border-primary/50 transition-colors overflow-hidden">
+              <CardContent className="p-2">
+                {/* Single Row: Name, Price, Actions */}
+                <div className="flex items-center gap-3 text-xs">
+                  {/* Name with Default Badge */}
+                  <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                    <span className="font-medium truncate" title={config.name}>{config.name}</span>
+                    {config.isDefault && (
+                      <Badge variant="default" className="text-[10px] h-4 px-1.5 flex-shrink-0">Default</Badge>
+                    )}
+                  </div>
+
+                  {/* Price */}
+                  <div className="font-bold text-sm flex-shrink-0">${config.price}</div>
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    {!config.isDefault && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleSetDefault(index)}
+                        className="h-6 text-[10px] px-2"
+                      >
+                        Default
+                      </Button>
+                    )}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEdit(index)}
+                      className="h-6 text-[10px] px-2"
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleRemove(index)}
+                      className="h-6 w-6 p-0"
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           ))}
+          
+          {/* Summary Footer */}
+          <div className="flex items-center justify-between p-2 bg-muted/20 rounded text-[10px]">
+            <div className="flex items-center gap-3">
+              <span className="font-medium">
+                {value.length} variant{value.length !== 1 ? 's' : ''}
+              </span>
+              <span className="text-muted-foreground">
+                {value.reduce((sum, config) => sum + config.stock, 0)} units
+              </span>
+            </div>
+            <span className="text-muted-foreground">
+              SKU: {baseSku}-###
+            </span>
+          </div>
         </div>
       )}
-      <div className="flex gap-2">
-        <Input
-          placeholder={placeholder}
-          value={variantValue}
-          onChange={(e) => setVariantValue(e.target.value)}
-          className="text-sm flex-1"
-        />
-        <Input
-          type="number"
-          placeholder="+$0"
-          value={priceModifier}
-          onChange={(e) => setPriceModifier(e.target.value)}
-          className="text-sm w-20"
-          step="0.01"
-        />
-        <Button 
-          type="button" 
-          variant="outline" 
-          size="sm" 
-          onClick={handleAdd} 
-          disabled={!variantValue.trim()}
-        >
-          Add
-        </Button>
-      </div>
-      
-      {/* Quick-fill buttons */}
-      <div className="mt-2">
-        <p className="text-xs text-muted-foreground mb-1.5">Quick fill:</p>
-        <div className="flex flex-wrap gap-1.5">
-          {presets.map((preset) => (
-            <Button
-              key={preset}
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="h-7 text-xs"
-              onClick={() => handleQuickFill(preset)}
-              disabled={value.some(v => v.value === preset)}
-            >
-              {preset}
-            </Button>
-          ))}
+
+      {/* Add/Edit Form */}
+      <Card>
+        <CardContent className="p-3">
+          <div className="text-xs font-semibold mb-3">
+            {editingIndex !== null ? 'Edit Variant' : 'Add Variant'}
+          </div>
+
+          <div className="space-y-3">
+            {/* Row 1: Attributes */}
+            <div className="grid grid-cols-3 gap-2">
+              <div>
+                <label className="text-[10px] font-medium block mb-1">RAM</label>
+                <Select value={formData.ram || undefined} onValueChange={(val) => handleAttributeChange('ram', val)}>
+                  <SelectTrigger className="text-xs h-8">
+                    <SelectValue placeholder="RAM" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="4GB">4GB</SelectItem>
+                    <SelectItem value="6GB">6GB</SelectItem>
+                    <SelectItem value="8GB">8GB</SelectItem>
+                    <SelectItem value="12GB">12GB</SelectItem>
+                    <SelectItem value="16GB">16GB</SelectItem>
+                    <SelectItem value="32GB">32GB</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-medium block mb-1">Storage</label>
+                <Select value={formData.storage || undefined} onValueChange={(val) => handleAttributeChange('storage', val)}>
+                  <SelectTrigger className="text-xs h-8">
+                    <SelectValue placeholder="Storage" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="64GB">64GB</SelectItem>
+                    <SelectItem value="128GB">128GB</SelectItem>
+                    <SelectItem value="256GB">256GB</SelectItem>
+                    <SelectItem value="512GB">512GB</SelectItem>
+                    <SelectItem value="1TB">1TB</SelectItem>
+                    <SelectItem value="2TB">2TB</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-medium block mb-1">Color</label>
+                <Select value={formData.color || undefined} onValueChange={(val) => handleAttributeChange('color', val)}>
+                  <SelectTrigger className="text-xs h-8">
+                    <SelectValue placeholder="Color" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Black">Black</SelectItem>
+                    <SelectItem value="White">White</SelectItem>
+                    <SelectItem value="Silver">Silver</SelectItem>
+                    <SelectItem value="Gold">Gold</SelectItem>
+                    <SelectItem value="Blue">Blue</SelectItem>
+                    <SelectItem value="Red">Red</SelectItem>
+                    <SelectItem value="Green">Green</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Auto-generated Name Display */}
+            {formData.name && (
+              <div className="text-xs text-muted-foreground px-1">
+                → Name: <span className="font-medium text-foreground">{formData.name}</span>
+              </div>
+            )}
+
+            {/* Row 2: Price, Stock, Default */}
+            <div className="grid grid-cols-12 gap-2">
+              <div className="col-span-4">
+                <label className="text-[10px] font-medium block mb-1">Price</label>
+                <div className="relative">
+                  <DollarSign className="absolute left-2 top-2 h-3 w-3 text-muted-foreground" />
+                  <Input
+                    type="number"
+                    placeholder="0"
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    className="text-xs h-8 pl-7"
+                    step="0.01"
+                  />
+                </div>
+              </div>
+
+              <div className="col-span-4">
+                <label className="text-[10px] font-medium block mb-1">Stock</label>
+                <div className="relative">
+                  <Package className="absolute left-2 top-2 h-3 w-3 text-muted-foreground" />
+                  <Input
+                    type="number"
+                    placeholder="0"
+                    value={formData.stock}
+                    onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                    className="text-xs h-8 pl-7"
+                  />
+                </div>
+              </div>
+
+              <div className="col-span-4 flex items-end pb-0.5">
+                <label className="flex items-center gap-1.5 cursor-pointer text-xs">
+                  <input
+                    type="checkbox"
+                    checked={formData.isDefault}
+                    onChange={(e) => setFormData({ ...formData, isDefault: e.target.checked })}
+                    className="h-3.5 w-3.5"
+                  />
+                  <span>Default</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Add/Update Button */}
+          <Button
+            type="button"
+            onClick={handleAdd}
+            className="w-full h-8 text-xs mt-3"
+            size="sm"
+          >
+            {editingIndex !== null ? 'Update' : 'Add'}
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Summary */}
+      {value.length > 0 && (
+        <div className="text-xs text-muted-foreground">
+          Total: {value.length} variant{value.length !== 1 ? 's' : ''} • 
+          Total Stock: {value.reduce((sum, c) => sum + c.stock, 0)} units •
+          SKU: Auto-generated ({baseSku}-001, {baseSku}-002, ...)
         </div>
-      </div>
-    </>
+      )}
+    </div>
   )
 }
 
@@ -355,11 +514,8 @@ const productDefaultValues: IProductInput = {
   saleEndDate: undefined,
   secondHand: false,
   condition: undefined,
-  variants: {
-    storage: [],
-    ram: [],
-    colors: []
-  },
+  productType: 'simple' as 'simple' | 'variant',
+  configurations: [],
 }
 
 const ProductForm = ({
@@ -399,11 +555,8 @@ const ProductForm = ({
             tags: product.tags || [],
             colors: product.colors || [],
             sizes: product.sizes || [],
-            variants: product.variants || {
-              storage: [],
-              ram: [],
-              colors: []
-            },
+            productType: product.productType || 'simple',
+            configurations: product.configurations || [],
             avgRating: product.avgRating || 0,
             numReviews: product.numReviews || 0,
             ratingDistribution: product.ratingDistribution || [],
@@ -532,9 +685,9 @@ const ProductForm = ({
         </Card>
 
         {/* Two Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - Primary Information */}
-          <div className="lg:col-span-2 space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+          {/* Left Column - Primary Information (3/5 width) */}
+          <div className="lg:col-span-3 space-y-6">
 
             {/* Basic Information */}
             <Card>
@@ -545,6 +698,67 @@ const ProductForm = ({
                 </div>
 
                 <div className="space-y-4">
+                  {/* Product Type Selector */}
+                  <FormField
+                    control={form.control}
+                    name='productType'
+                    render={({ field }) => (
+                      <FormItem className="space-y-3">
+                        <FormLabel className="text-sm font-medium">Product Type *</FormLabel>
+                        <FormControl>
+                          <RadioGroup
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            className="grid grid-cols-2 gap-4"
+                          >
+                            <div>
+                              <RadioGroupItem
+                                value="simple"
+                                id="simple"
+                                className="peer sr-only"
+                              />
+                              <Label
+                                htmlFor="simple"
+                                className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                              >
+                                <Package className="mb-3 h-6 w-6" />
+                                <div className="text-center">
+                                  <p className="font-semibold">Simple Product</p>
+                                  <p className="text-xs text-muted-foreground mt-1">
+                                    Single item with one price and stock
+                                  </p>
+                                </div>
+                              </Label>
+                            </div>
+                            <div>
+                              <RadioGroupItem
+                                value="variant"
+                                id="variant"
+                                className="peer sr-only"
+                              />
+                              <Label
+                                htmlFor="variant"
+                                className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                              >
+                                <Settings className="mb-3 h-6 w-6" />
+                                <div className="text-center">
+                                  <p className="font-semibold">Product with Variants</p>
+                                  <p className="text-xs text-muted-foreground mt-1">
+                                    Multiple options (e.g., sizes, colors, storage)
+                                  </p>
+                                </div>
+                              </Label>
+                            </div>
+                          </RadioGroup>
+                        </FormControl>
+                        <FormDescription>
+                          Choose how this product will be sold
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
@@ -693,13 +907,15 @@ const ProductForm = ({
                 </div>
               </CardContent>
             </Card>
-            {/* Pricing & Inventory */}
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <DollarSign className="h-5 w-5 text-primary" />
-                  <h3 className="text-lg font-semibold">Pricing & Inventory</h3>
-                </div>
+            
+            {/* Pricing & Inventory - Only for Simple Products */}
+            {form.watch('productType') === 'simple' && (
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <DollarSign className="h-5 w-5 text-primary" />
+                    <h3 className="text-lg font-semibold">Pricing & Inventory</h3>
+                  </div>
 
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -777,11 +993,12 @@ const ProductForm = ({
                 </div>
               </CardContent>
             </Card>
+            )}
 
           </div>
 
-          {/* Right Column - Media & Settings */}
-          <div className="space-y-6">
+          {/* Right Column - Media & Settings (2/5 width - larger) */}
+          <div className="lg:col-span-2 space-y-6">
 
             {/* Product Images */}
             <Card>
@@ -896,99 +1113,60 @@ const ProductForm = ({
               </CardContent>
             </Card>
 
-            {/* Product Variants - Electronics Attributes */}
-            <Card>
-              <CardContent className="p-6">
-                <div 
-                  className="flex items-center gap-2 mb-4 cursor-pointer select-none"
-                  onClick={() => setVariantsCollapsed(!variantsCollapsed)}
-                >
-                  <Settings className="h-5 w-5 text-primary" />
-                  <h3 className="text-lg font-semibold">Product Variants</h3>
-                  <Badge variant="outline" className="ml-auto">Optional</Badge>
-                  {variantsCollapsed ? (
-                    <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                  ) : (
-                    <ChevronUp className="h-5 w-5 text-muted-foreground" />
-                  )}
-                </div>
-
-                {!variantsCollapsed && (
-                  <div className="space-y-4">
-                  {/* Storage Options with Price Modifiers */}
-                  <FormField
-                    control={form.control}
-                    name='variants.storage'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm">Storage</FormLabel>
-                        <FormDescription className="text-xs">
-                          Add price increment for each storage option
-                        </FormDescription>
-                        <FormControl>
-                          <VariantInput
-                            value={field.value}
-                            onChange={field.onChange}
-                            placeholder="e.g., 128GB, 256GB, 512GB"
-                            label="Storage"
-                          />
-                        </FormControl>
-                      </FormItem>
+            {/* Product Variants - Only for Variant Products */}
+            {form.watch('productType') === 'variant' && (
+              <Card>
+                <CardContent className="p-6">
+                  <div 
+                    className="flex items-center gap-2 mb-4 cursor-pointer select-none"
+                    onClick={() => setVariantsCollapsed(!variantsCollapsed)}
+                  >
+                    <Settings className="h-5 w-5 text-primary" />
+                    <h3 className="text-lg font-semibold">Product Variants</h3>
+                    <Badge variant="destructive" className="ml-auto">Required</Badge>
+                    {variantsCollapsed ? (
+                      <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                    ) : (
+                      <ChevronUp className="h-5 w-5 text-muted-foreground" />
                     )}
-                  />
-
-                  {/* RAM Options with Price Modifiers */}
-                  <FormField
-                    control={form.control}
-                    name='variants.ram'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm">RAM</FormLabel>
-                        <FormDescription className="text-xs">
-                          Add price increment for each RAM option
-                        </FormDescription>
-                        <FormControl>
-                          <VariantInput
-                            value={field.value}
-                            onChange={field.onChange}
-                            placeholder="e.g., 4GB, 8GB, 16GB, 32GB"
-                            label="RAM"
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* Color Variants (no price impact) */}
-                  <FormField
-                    control={form.control}
-                    name='variants.colors'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm">Color</FormLabel>
-                        <FormDescription className="text-xs">
-                          Color options (no price change)
-                        </FormDescription>
-                        <FormControl>
-                          <TagInput
-                            value={field.value}
-                            onChange={field.onChange}
-                            placeholder="e.g., Black, Silver, Gold"
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
                   </div>
-                )}
 
-                {!variantsCollapsed && (
-                  <FormDescription className="mt-4 text-xs">
-                    Add variant options for this product. Customers can select from these when ordering.
-                  </FormDescription>
-                )}
-              </CardContent>
-            </Card>
+                  {!variantsCollapsed && (
+                    <div className="space-y-3">
+                      <div className="rounded border p-2 bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800">
+                        <p className="text-[10px] font-medium text-amber-900 dark:text-amber-100">
+                          ⚠️ Each variant has its own price & stock
+                        </p>
+                      </div>
+                      
+                      {/* Configuration Manager */}
+                      <FormField
+                        control={form.control}
+                        name='configurations'
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <ConfigurationManager
+                                value={field.value || []}
+                                onChange={field.onChange}
+                                baseSku={form.watch('sku') || 'PROD'}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  )}
+
+                  {!variantsCollapsed && (
+                    <FormDescription className="mt-4 text-xs">
+                      Define at least one variant with its own price and stock level.
+                    </FormDescription>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
             {/* Advanced Settings */}
             <Card>

@@ -1,6 +1,23 @@
 import { Document, Model, model, models, Schema } from 'mongoose'
 import { getEffectivePrice as getEffectivePriceUtil } from '@/lib/utils'
 
+// Configuration interface - pre-defined product configurations
+export interface IProductConfiguration {
+  sku: string
+  name: string
+  price: number
+  stock: number
+  isDefault: boolean
+  attributes: {
+    storage?: string
+    ram?: string
+    color?: string
+    [key: string]: string | undefined
+  }
+  images?: string[]
+  disabled?: boolean
+}
+
 export interface IProduct extends Document {
   _id: string
   name: string
@@ -16,12 +33,9 @@ export interface IProduct extends Document {
   tags: string[]
   colors: string[]
   sizes: string[]
-  // Variant pricing structure
-  variants?: {
-    storage?: { value: string; priceModifier: number }[]
-    ram?: { value: string; priceModifier: number }[]
-    colors?: string[]
-  }
+  // Product type and configurations
+  productType: 'simple' | 'variant'
+  configurations?: IProductConfiguration[]
   avgRating: number
   numReviews: number
   ratingDistribution: { rating: number; count: number }[]
@@ -141,20 +155,26 @@ const productSchema = new Schema<IProduct>(
       required: false,
       enum: ['Like New', 'Good', 'Fair', 'Poor'],
     },
-    variants: {
-      type: {
-        storage: [{
-          value: { type: String, required: true },
-          priceModifier: { type: Number, required: true, default: 0 }
-        }],
-        ram: [{
-          value: { type: String, required: true },
-          priceModifier: { type: Number, required: true, default: 0 }
-        }],
-        colors: [String]
-      },
-      required: false,
+    // Product type
+    productType: {
+      type: String,
+      enum: ['simple', 'variant'],
+      required: true,
+      default: 'simple',
     },
+    configurations: [{
+      sku: { type: String, required: true },
+      name: { type: String, required: true },
+      price: { type: Number, required: true },
+      stock: { type: Number, required: true, default: 0 },
+      isDefault: { type: Boolean, required: true, default: false },
+      attributes: {
+        type: Schema.Types.Mixed,
+        required: true,
+      },
+      images: [String],
+      disabled: { type: Boolean, default: false },
+    }],
   },
   {
     timestamps: true,

@@ -230,4 +230,157 @@ export const isProductOnSale = (product: any, date?: Date): boolean => {
   return checkDate >= startDate && checkDate <= endDate
 }
 
+// Variant pricing utilities
+export type VariantModifier = {
+  type: 'storage' | 'ram' | 'color' | 'size'
+  value: string
+  priceModifier: number
+}
+
+/**
+ * Calculate total price including variant modifiers
+ */
+export function calculateVariantPrice(
+  basePrice: number,
+  variantModifiers?: VariantModifier[]
+): number {
+  if (!variantModifiers || variantModifiers.length === 0) {
+    return round2(basePrice)
+  }
+  
+  const totalModifier = variantModifiers.reduce(
+    (sum, modifier) => sum + (modifier.priceModifier || 0),
+    0
+  )
+  
+  return round2(basePrice + totalModifier)
+}
+
+/**
+ * Calculate price range for products with variants
+ */
+export function getProductPriceRange(product: any): {
+  min: number
+  max: number
+  hasRange: boolean
+} {
+  const basePrice = product?.price
+  
+  // Safety check: ensure basePrice is valid
+  if (!basePrice || isNaN(basePrice) || basePrice <= 0) {
+    return {
+      min: product?.price || 0,
+      max: product?.price || 0,
+      hasRange: false
+    }
+  }
+  
+  // Check if product has price-modifying variants
+  const hasVariants = product.variants && (
+    (product.variants.storage && product.variants.storage.length > 0) ||
+    (product.variants.ram && product.variants.ram.length > 0)
+  )
+  
+  if (!hasVariants) {
+    return {
+      min: basePrice,
+      max: basePrice,
+      hasRange: false
+    }
+  }
+  
+  // Calculate all possible variant combinations
+  const storageModifiers = product.variants?.storage?.map((s: any) => {
+    const modifier = s?.priceModifier
+    return (typeof modifier === 'number' && !isNaN(modifier)) ? modifier : 0
+  }) || [0]
+  
+  const ramModifiers = product.variants?.ram?.map((r: any) => {
+    const modifier = r?.priceModifier
+    return (typeof modifier === 'number' && !isNaN(modifier)) ? modifier : 0
+  }) || [0]
+  
+  // Get all combinations of modifiers
+  const allModifiers: number[] = []
+  for (const storage of storageModifiers) {
+    for (const ram of ramModifiers) {
+      const combined = storage + ram
+      if (!isNaN(combined)) {
+        allModifiers.push(combined)
+      }
+    }
+  }
+  
+  // Safety check: if no valid modifiers, return base price
+  if (allModifiers.length === 0) {
+    return {
+      min: basePrice,
+      max: basePrice,
+      hasRange: false
+    }
+  }
+  
+  const minModifier = Math.min(...allModifiers)
+  const maxModifier = Math.max(...allModifiers)
+  
+  const minPrice = round2(basePrice + minModifier)
+  const maxPrice = round2(basePrice + maxModifier)
+  
+  // Final validation
+  if (isNaN(minPrice) || isNaN(maxPrice)) {
+    return {
+      min: basePrice,
+      max: basePrice,
+      hasRange: false
+    }
+  }
+  
+  return {
+    min: minPrice,
+    max: maxPrice,
+    hasRange: minModifier !== maxModifier
+  }
+}
+
+/**
+ * Validate that calculated price matches expected price
+ * Used for server-side validation to prevent price manipulation
+ */
+export function validateVariantPrice(
+  product: any,
+  selectedVariants: { storage?: string; ram?: string },
+  expectedPrice: number
+): { valid: boolean; calculatedPrice: number; difference: number } {
+  let calculatedPrice = product.price
+  
+  // Add storage modifier
+  if (selectedVariants.storage && product.variants?.storage) {
+    const storageVariant = product.variants.storage.find(
+      (s: any) => s.value === selectedVariants.storage
+    )
+    if (storageVariant) {
+      calculatedPrice += storageVariant.priceModifier || 0
+    }
+  }
+  
+  // Add RAM modifier
+  if (selectedVariants.ram && product.variants?.ram) {
+    const ramVariant = product.variants.ram.find(
+      (r: any) => r.value === selectedVariants.ram
+    )
+    if (ramVariant) {
+      calculatedPrice += ramVariant.priceModifier || 0
+    }
+  }
+  
+  calculatedPrice = round2(calculatedPrice)
+  const difference = Math.abs(calculatedPrice - expectedPrice)
+  
+  return {
+    valid: difference < 0.01, // Allow for floating point errors
+    calculatedPrice,
+    difference
+  }
+}
+
 
