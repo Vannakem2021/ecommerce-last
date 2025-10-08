@@ -11,20 +11,25 @@ interface UserAvatarProps {
   }
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
   className?: string
+  hasPassword?: boolean // true = credentials user (2 letters), false/undefined = OAuth user (1 letter)
 }
 
-export default function UserAvatar({ user, size = 'md', className }: UserAvatarProps) {
+export default function UserAvatar({ user, size = 'md', className, hasPassword }: UserAvatarProps) {
   const [imageLoaded, setImageLoaded] = useState(false)
   const [imageError, setImageError] = useState(false)
 
   const getInitials = () => {
     if (!user.name) return 'U'
-    return user.name
+    
+    // OAuth users (Google): Show 1 letter (first initial)
+    // Credentials users (Email/Password): Show 2 letters (first + last initial)
+    const initials = user.name
       .split(' ')
       .map(n => n[0])
       .join('')
       .toUpperCase()
-      .slice(0, 2)
+    
+    return hasPassword ? initials.slice(0, 2) : initials.slice(0, 1)
   }
 
   const sizeClasses = {

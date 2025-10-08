@@ -129,7 +129,7 @@ export default async function HomePage() {
               <h2 className='h2-bold mb-2'>{t('Shop by Brand')}</h2>
               <div className='h-[3px] w-16 bg-primary rounded-full'></div>
             </div>
-            <BrandGrid brands={brands} maxDisplay={11} />
+            <BrandGrid brands={brands} maxDisplay={19} />
           </Container>
         </div>
       )}

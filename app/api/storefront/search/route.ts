@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { connectToDatabase } from '@/lib/db'
 import Product from '@/lib/db/models/product.model'
 import Category from '@/lib/db/models/category.model'
+import { Types } from 'mongoose'
 
 export async function GET(request: NextRequest) {
   try {
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest) {
     await connectToDatabase()
 
     // Build product search query
-    const productSearchQuery: any = {
+    const productSearchQuery: Record<string, unknown> = {
       isPublished: true, // Only show published products
       $or: [
         { name: { $regex: query, $options: 'i' } },
@@ -33,7 +34,37 @@ export async function GET(request: NextRequest) {
 
     // Add category filter if specified
     if (category !== 'all') {
-      productSearchQuery.category = category
+      let categoryId: string | null = null
+
+      if (Types.ObjectId.isValid(category)) {
+        const existingCategory = await Category.findOne({ _id: category, active: true })
+          .select('_id')
+          .lean()
+        if (existingCategory) {
+          categoryId = String(existingCategory._id)
+        }
+      }
+
+      if (!categoryId) {
+        const categoryDoc = await Category.findOne({
+          name: { $regex: new RegExp(`^${category}$`, 'i') },
+          active: true,
+        })
+          .select('_id')
+          .lean()
+
+        if (!categoryDoc) {
+          return NextResponse.json({
+            products: [],
+            categories: [],
+            totalCount: 0,
+          })
+        }
+
+        categoryId = String(categoryDoc._id)
+      }
+
+      productSearchQuery.category = categoryId
     }
 
     // Search products (limit to top 10 for dropdown)
@@ -48,7 +79,7 @@ export async function GET(request: NextRequest) {
 
     // Search matching categories
     const categories = await Category.find({
-      isActive: true,
+      active: true,
       name: { $regex: query, $options: 'i' },
     })
       .select('name')

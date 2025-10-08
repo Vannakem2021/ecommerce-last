@@ -33,8 +33,8 @@ export default function ProfilePictureUpload({
         toast({
           description: result.message,
         })
-        // Use hard reload instead of router.refresh to avoid timing issues
-        window.location.replace(window.location.href)
+        // Refresh all server components to update Header, Sidebar, etc.
+        router.refresh()
       } else {
         toast({
           variant: 'destructive',
@@ -106,8 +106,8 @@ export default function ProfilePictureUpload({
                       toast({
                         description: result.message,
                       })
-                      // Use hard reload for consistency
-                      window.location.replace(window.location.href)
+                      // Refresh all server components to update Header, Sidebar, etc.
+                      router.refresh()
                     } else {
                       toast({
                         variant: 'destructive',

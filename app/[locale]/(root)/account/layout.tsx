@@ -19,11 +19,19 @@ export default async function AccountLayout({
   // Fetch fresh user data from database (same as Settings page)
   const userData = await getUserById(session.user.id)
 
+  // Check if user has password to determine auth method (OAuth vs Credentials)
+  const hasPassword = !!userData?.password
+
   const navItems = [
     {
       title: 'My Orders',
       href: '/account/orders',
       icon: 'Package',
+    },
+    {
+      title: 'My Favourites',
+      href: '/account/favorites',
+      icon: 'Heart',
     },
     {
       title: 'Addresses',
@@ -37,13 +45,14 @@ export default async function AccountLayout({
     },
   ]
 
-  // Create enhanced session with fresh database image
+  // Create enhanced session with fresh database image and auth method
   const enhancedSession = {
     ...session,
     user: {
       ...session.user,
       image: userData?.image || session.user.image, // Use database image (same as Settings)
       createdAt: userData?.createdAt || session.user.createdAt,
+      hasPassword, // Pass auth method for initials display
     }
   }
 

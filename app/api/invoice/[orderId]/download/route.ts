@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { renderToBuffer } from '@react-pdf/renderer'
-import { createElement } from 'react'
+// import { renderToBuffer } from '@react-pdf/renderer'
+// import { createElement } from 'react'
 import { auth } from '@/auth'
 import { getInvoiceData } from '@/lib/actions/invoice.actions'
-import InvoicePDFTemplate from '@/components/shared/invoice/invoice-pdf-template'
+// import InvoicePDFTemplate from '@/components/shared/invoice/invoice-pdf-template'
 
 export async function GET(
   request: NextRequest,
@@ -24,24 +24,27 @@ export async function GET(
       return NextResponse.json({ error: result.message || 'Invoice not found' }, { status: 404 })
     }
 
-    const invoiceData = result.data
+    // const invoiceData = result.data
 
+    // TODO: PDF template component needs to be created
     // Generate PDF using react-pdf (use createElement instead of JSX)
-    const pdfBuffer = await renderToBuffer(
-      createElement(InvoicePDFTemplate, { invoiceData })
-    )
+    // const pdfBuffer = await renderToBuffer(
+    //   createElement(InvoicePDFTemplate, { invoiceData })
+    // )
 
     // Create filename
-    const filename = `invoice-${invoiceData.invoiceNumber}.pdf`
+    // const filename = `invoice-${invoiceData.invoiceNumber}.pdf`
 
     // Return PDF as download
-    return new NextResponse(pdfBuffer, {
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${filename}"`,
-        'Content-Length': pdfBuffer.length.toString(),
-      },
-    })
+    // return new NextResponse(pdfBuffer, {
+    //   headers: {
+    //     'Content-Type': 'application/pdf',
+    //     'Content-Disposition': `attachment; filename="${filename}"`,
+    //     'Content-Length': pdfBuffer.length.toString(),
+    //   },
+    // })
+    
+    return NextResponse.json({ error: 'PDF generation temporarily disabled - invoice-pdf-template component missing' }, { status: 501 })
   } catch (error) {
     console.error('PDF generation error:', error)
     return NextResponse.json(

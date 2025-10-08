@@ -18,6 +18,7 @@ interface MobileAccountHeaderProps {
       email?: string | null
       image?: string | null
       createdAt?: Date | string
+      hasPassword?: boolean
     }
   }
   navItems: NavItem[]

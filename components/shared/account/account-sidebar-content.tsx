@@ -20,6 +20,7 @@ interface AccountSidebarContentProps {
       email?: string | null
       image?: string | null
       createdAt?: Date | string
+      hasPassword?: boolean
     }
   }
   navItems: NavItem[]
@@ -39,6 +40,7 @@ export function AccountSidebarContent({ session, navItems }: AccountSidebarConte
           }}
           size="md"
           className='flex-shrink-0 border border-border'
+          hasPassword={session.user.hasPassword}
         />
         <div className='flex-1 min-w-0'>
           <h2 className='font-semibold text-sm truncate'>{session.user.name}</h2>
