@@ -71,8 +71,8 @@ export function ChatWindow({
   if (!isOpen) return null
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 w-full max-w-md animate-in slide-in-from-bottom-8 duration-300">
-      <Card className="shadow-2xl border-2 h-[600px] flex flex-col">
+    <div className="fixed bottom-4 right-4 left-4 sm:left-auto sm:bottom-6 sm:right-6 z-50 w-auto sm:w-full sm:max-w-md animate-in slide-in-from-bottom-8 duration-300">
+      <Card className="shadow-2xl border-2 h-[calc(100vh-8rem)] sm:h-[600px] max-h-[600px] flex flex-col">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
           <CardTitle className="text-lg font-semibold">
             {t('title')}
