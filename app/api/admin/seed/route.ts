@@ -11,7 +11,6 @@ import Order from '@/lib/db/models/order.model'
 import WebPage from '@/lib/db/models/web-page.model'
 import Setting from '@/lib/db/models/setting.model'
 import {
-  calculateFutureDate,
   calculatePastDate,
   generateId,
   round2,
@@ -20,7 +19,7 @@ import { generateUniqueSKU } from '@/lib/utils/sku-generator'
 import { OrderItem, IOrderInput, ShippingAddress } from '@/types'
 
 // Security token for additional protection
-const SEED_SECRET = process.env.SEED_SECRET || 'change-this-secret-in-production'
+const SEED_SECRET = process.env.SEED_SECRET
 
 export async function POST(request: NextRequest) {
   try {
@@ -44,9 +43,9 @@ export async function POST(request: NextRequest) {
 
     // Security Check 3: Verify seed secret from request header
     const secretHeader = request.headers.get('x-seed-secret')
-    if (secretHeader !== SEED_SECRET) {
+    if (!SEED_SECRET || secretHeader !== SEED_SECRET) {
       return NextResponse.json(
-        { success: false, message: 'Invalid seed secret' },
+        { success: false, message: 'Invalid or missing seed secret. Set SEED_SECRET environment variable.' },
         { status: 403 }
       )
     }
@@ -121,9 +120,8 @@ export async function POST(request: NextRequest) {
     const productsWithRefs = await Promise.all(
       products.map(async (product) => {
         const sku = await generateUniqueSKU(
-          product.category,
-          product.name,
-          product.brand
+          product.brand || 'NOBRAND',
+          product.category || 'NOCAT'
         )
         return {
           ...product,
@@ -207,8 +205,6 @@ async function createSampleOrders(users: any[], products: any[]) {
         price: product.price,
         countInStock: product.countInStock,
         qty: 1,
-        color: product.colors?.[0],
-        size: product.sizes?.[0],
       })
     }
 
