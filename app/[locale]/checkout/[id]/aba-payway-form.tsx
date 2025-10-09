@@ -12,20 +12,39 @@ interface ABAPayWayFormProps {
 
 export default function ABAPayWayForm({ orderId, amount }: ABAPayWayFormProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [hasClicked, setHasClicked] = useState(false)
   const { toast } = useToast()
 
   const handlePayment = async () => {
+    // Prevent double-click
+    if (isLoading || hasClicked) {
+      return
+    }
+
     try {
       setIsLoading(true)
+      setHasClicked(true)
 
-      // Call the create-payment API
+      // Show loading toast immediately
+      toast({
+        title: 'Creating payment...',
+        description: 'Please wait while we prepare your payment.',
+      })
+
+      // Call the create-payment API with timeout
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 second timeout
+
       const response = await fetch('/api/aba-payway/create-payment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ orderId }),
+        signal: controller.signal,
       })
+
+      clearTimeout(timeoutId)
 
       const data = await response.json()
 
@@ -64,11 +83,24 @@ export default function ABAPayWayForm({ orderId, amount }: ABAPayWayFormProps) {
 
     } catch (error) {
       console.error('ABA PayWay payment error:', error)
-      toast({
-        title: 'Payment Error',
-        description: error instanceof Error ? error.message : 'Failed to initiate payment',
-        variant: 'destructive',
-      })
+      
+      // Handle timeout separately
+      if (error instanceof Error && error.name === 'AbortError') {
+        toast({
+          title: 'Connection Timeout',
+          description: 'The request took too long. Please check your connection and try again.',
+          variant: 'destructive',
+        })
+      } else {
+        toast({
+          title: 'Payment Error',
+          description: error instanceof Error ? error.message : 'Failed to initiate payment',
+          variant: 'destructive',
+        })
+      }
+      
+      // Allow retry after error
+      setHasClicked(false)
     } finally {
       setIsLoading(false)
     }
@@ -78,14 +110,19 @@ export default function ABAPayWayForm({ orderId, amount }: ABAPayWayFormProps) {
     <div className="space-y-4">
       <Button
         onClick={handlePayment}
-        disabled={isLoading}
+        disabled={isLoading || hasClicked}
         className="w-full"
         size="lg"
       >
         {isLoading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Processing...
+            Connecting to payment gateway...
+          </>
+        ) : hasClicked ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Opening payment page...
           </>
         ) : (
           `Pay $${amount.toFixed(2)} with ABA PayWay`
