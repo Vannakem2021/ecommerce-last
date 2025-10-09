@@ -618,7 +618,7 @@ const ProductForm = ({
     const productType = watchedFields.productType || 'simple'
     
     // Required fields based on product type
-    let requiredFields = ['name', 'category', 'brand', 'images', 'description', 'sku']
+    const requiredFields = ['name', 'category', 'brand', 'images', 'description', 'sku']
     
     // For simple products, add price and stock
     if (productType === 'simple') {

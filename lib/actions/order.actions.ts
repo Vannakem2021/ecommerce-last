@@ -1499,7 +1499,9 @@ function generateAddressKey(addr: ShippingAddress): string {
   return parts.filter(Boolean).join('-')
 }
 
-// Get unique addresses from user's orders
+// DEPRECATED: Use getUserAddresses from address.actions.ts instead
+// This function is kept for backward compatibility but should not be used in new code
+// Get unique addresses from user's orders (legacy function)
 export async function getUserAddressesFromOrders(userId: string) {
   try {
     await connectToDatabase()

@@ -28,7 +28,7 @@ export function AddressDisplay({ address, className = '' }: AddressDisplayProps)
     return (
       <div className={className}>
         {formattedAddress.split('\n').map((line, index) => (
-          <p key={index}>{line}</p>
+          <p key={`line-${index}-${line.substring(0, 10)}`}>{line}</p>
         ))}
       </div>
     )

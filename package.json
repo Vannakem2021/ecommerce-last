@@ -10,6 +10,7 @@
     "diagnose:promotions": "npx tsx ./scripts/diagnose-promotion-creator.ts",
     "fix:promotions": "npx tsx ./scripts/fix-invalid-creators.ts",
     "migrate:promotions": "npx tsx ./scripts/migrate-promotion-created-by.ts",
+    "cleanup:addresses": "npx tsx ./scripts/cleanup-duplicate-addresses.ts",
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",

@@ -122,7 +122,7 @@ export function timeUntilMidnight(): { hours: number; minutes: number } {
   return { hours, minutes }
 }
 
-export const formatDateTime = (dateString: Date) => {
+export const formatDateTime = (dateString: Date | string) => {
   const dateTimeOptions: Intl.DateTimeFormatOptions = {
     month: 'short', // abbreviated month name (e.g., 'Oct')
     year: 'numeric', // abbreviated month name (e.g., 'Oct')

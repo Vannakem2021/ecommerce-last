@@ -54,26 +54,9 @@ export default function AdminUsersPage() {
     setPage(1)
   }, [searchQuery, emailFilter, roleFilter, sortBy, activeTab])
 
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Users</h1>
-            <p className="text-muted-foreground mt-1">Loading...</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (!usersData) {
-    return <div>Error loading users</div>
-  }
-
-  // Separate customers from system users
-  const customers = usersData.data.filter(user => normalizeRole(user.role) === 'user')
-  const systemUsers = usersData.data.filter(user => normalizeRole(user.role) !== 'user')
+  // Separate customers from system users (ensure arrays exist even if data is empty/loading)
+  const customers = usersData?.data?.filter(user => normalizeRole(user.role) === 'user') || []
+  const systemUsers = usersData?.data?.filter(user => normalizeRole(user.role) !== 'user') || []
 
   // Apply filters to customers
   const filteredCustomers = useMemo(() => {
@@ -174,6 +157,34 @@ export default function AdminUsersPage() {
     setEmailFilter('all')
     setRoleFilter('all')
     setSortBy('latest')
+  }
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Users</h1>
+            <p className="text-muted-foreground mt-1">Loading...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Show error message if data failed to load
+  if (!usersData) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Users</h1>
+            <p className="text-muted-foreground mt-1 text-destructive">Error loading users</p>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (

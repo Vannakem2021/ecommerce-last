@@ -29,6 +29,7 @@ interface CambodiaAddressFormProps<T extends FieldValues> {
   setValue: (name: FieldPath<T>, value: any) => void
   namePrefix?: string
   disabled?: boolean
+  onFieldChange?: (fieldName: string, value: any) => void
 }
 
 export function CambodiaAddressForm<T extends FieldValues>({
@@ -36,6 +37,7 @@ export function CambodiaAddressForm<T extends FieldValues>({
   setValue,
   namePrefix = '',
   disabled = false,
+  onFieldChange,
 }: CambodiaAddressFormProps<T>) {
   const [provinces] = useState(() => getProvinces())
   const [districts, setDistricts] = useState<Array<{ id: number; name: string }>>([])
@@ -59,58 +61,99 @@ export function CambodiaAddressForm<T extends FieldValues>({
 
   // Initialize local state from form values and sync when form values change
   useEffect(() => {
-    if (watchedProvinceId && watchedProvinceId !== selectedProvinceId) {
+    if (watchedProvinceId) {
       const provinceId = typeof watchedProvinceId === 'string' ? parseInt(watchedProvinceId) : watchedProvinceId
-      setSelectedProvinceId(provinceId)
-      setDistricts(getDistrictsByProvinceId(provinceId).map(d => ({ id: d.id, name: d.location_en })))
+      
+      // Only update if province changed or districts are empty (component just mounted/remounted)
+      if (provinceId !== selectedProvinceId || districts.length === 0) {
+        setSelectedProvinceId(provinceId)
+        const loadedDistricts = getDistrictsByProvinceId(provinceId).map(d => ({ id: d.id, name: d.location_en }))
+        setDistricts(loadedDistricts)
 
-      // If district is also set, initialize it
-      if (watchedDistrictId && watchedDistrictId !== selectedDistrictId) {
-        const districtId = typeof watchedDistrictId === 'string' ? parseInt(watchedDistrictId) : watchedDistrictId
+        // If district is also set, initialize it
+        if (watchedDistrictId) {
+          const districtId = typeof watchedDistrictId === 'string' ? parseInt(watchedDistrictId) : watchedDistrictId
+          
+          // Only update if district changed or communes are empty
+          if (districtId !== selectedDistrictId || communes.length === 0) {
+            setSelectedDistrictId(districtId)
+            setCommunes(
+              getCommunesByDistrictId(provinceId, districtId).map(c => ({
+                code: c.code,
+                name: c.en,
+              }))
+            )
+          }
+        }
+      }
+    }
+  }, [watchedProvinceId, watchedDistrictId, selectedProvinceId, selectedDistrictId, districts.length, communes.length])
+
+  // Handle district changes when only district changes (not province)
+  useEffect(() => {
+    if (watchedDistrictId && selectedProvinceId) {
+      const districtId = typeof watchedDistrictId === 'string' ? parseInt(watchedDistrictId) : watchedDistrictId
+      
+      // Only update if district changed or communes are empty (handles separate district updates)
+      if (districtId !== selectedDistrictId || (communes.length === 0 && districts.length > 0)) {
         setSelectedDistrictId(districtId)
         setCommunes(
-          getCommunesByDistrictId(provinceId, districtId).map(c => ({
+          getCommunesByDistrictId(selectedProvinceId, districtId).map(c => ({
             code: c.code,
             name: c.en,
           }))
         )
       }
     }
-  }, [watchedProvinceId, watchedDistrictId, selectedProvinceId, selectedDistrictId])
-
-  // Handle district changes when only district changes (not province)
-  useEffect(() => {
-    if (watchedDistrictId && selectedProvinceId && watchedDistrictId !== selectedDistrictId) {
-      const districtId = typeof watchedDistrictId === 'string' ? parseInt(watchedDistrictId) : watchedDistrictId
-      setSelectedDistrictId(districtId)
-      setCommunes(
-        getCommunesByDistrictId(selectedProvinceId, districtId).map(c => ({
-          code: c.code,
-          name: c.en,
-        }))
-      )
-    }
-  }, [watchedDistrictId, selectedProvinceId, selectedDistrictId])
+  }, [watchedDistrictId, selectedProvinceId, selectedDistrictId, communes.length, districts.length])
 
   const handleProvinceChange = (provinceId: string, onChange: (value: any) => void) => {
     const id = parseInt(provinceId)
     setSelectedProvinceId(id)
     setSelectedDistrictId(null)
-    setDistricts(getDistrictsByProvinceId(id).map(d => ({ id: d.id, name: d.location_en })))
+    const loadedDistricts = getDistrictsByProvinceId(id).map(d => ({ id: d.id, name: d.location_en }))
+    setDistricts(loadedDistricts)
     setCommunes([])
     onChange(id)
+    
+    // Immediately set provinceName when province changes (for real-time payment method filtering)
+    const selectedProvince = provinces.find(p => p.id === id)
+    const provinceName = selectedProvince?.name_en || selectedProvince?.name || ''
+    
+    if (provinceName) {
+      setValue(getFieldName('provinceName'), provinceName)
+      
+      // Notify parent component of the change for real-time filtering
+      if (onFieldChange) {
+        onFieldChange('provinceName', provinceName)
+      }
+    }
+    
+    // Clear district and commune names since they're no longer valid
+    setValue(getFieldName('districtName'), '')
+    setValue(getFieldName('communeName'), '')
+    setValue(getFieldName('postalCode'), '')
   }
 
   const handleDistrictChange = (districtId: string, onChange: (value: any) => void) => {
     const id = parseInt(districtId)
     setSelectedDistrictId(id)
     if (selectedProvinceId) {
-      setCommunes(
-        getCommunesByDistrictId(selectedProvinceId, id).map(c => ({
-          code: c.code,
-          name: c.en,
-        }))
-      )
+      const loadedCommunes = getCommunesByDistrictId(selectedProvinceId, id).map(c => ({
+        code: c.code,
+        name: c.en,
+      }))
+      setCommunes(loadedCommunes)
+      
+      // Immediately set districtName when district changes
+      const selectedDistrict = districts.find(d => d.id === id)
+      if (selectedDistrict) {
+        setValue(getFieldName('districtName'), selectedDistrict.name)
+      }
+      
+      // Clear commune name and postal code since they're no longer valid
+      setValue(getFieldName('communeName'), '')
+      setValue(getFieldName('postalCode'), '')
     }
     onChange(id)
   }
@@ -184,28 +227,32 @@ export function CambodiaAddressForm<T extends FieldValues>({
         control={control}
         name={getFieldName('provinceId')}
         render={({ field }) => (
-          <FormItem>
-            <FormLabel>Province/City *</FormLabel>
-            <Select
-              onValueChange={(value) => handleProvinceChange(value, field.onChange)}
-              value={field.value?.toString() || ""}
-              disabled={disabled}
-            >
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select province/city" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {provinces.map((province) => (
-                  <SelectItem key={province.id} value={province.id.toString()}>
-                    {province.name_en || province.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
+            <FormItem>
+              <FormLabel>Province/City *</FormLabel>
+              <Select
+                onValueChange={(value) => handleProvinceChange(value, field.onChange)}
+                value={field.value ? String(field.value) : ""}
+                disabled={disabled}
+              >
+                <FormControl>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select province/city" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent className="max-h-[300px]" position="popper" sideOffset={5}>
+                  {provinces.length > 0 ? (
+                    provinces.map((province) => (
+                      <SelectItem key={province.id} value={province.id.toString()}>
+                        {province.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <div className="p-2 text-sm text-muted-foreground">No provinces available</div>
+                  )}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
         )}
       />
 
@@ -218,20 +265,24 @@ export function CambodiaAddressForm<T extends FieldValues>({
             <FormLabel>District/Srok/Khan *</FormLabel>
             <Select
               onValueChange={(value) => handleDistrictChange(value, field.onChange)}
-              value={field.value?.toString() || ""}
+              value={field.value ? String(field.value) : ""}
               disabled={disabled || !selectedProvinceId}
             >
               <FormControl>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select district" />
                 </SelectTrigger>
               </FormControl>
-              <SelectContent>
-                {districts.map((district) => (
-                  <SelectItem key={district.id} value={district.id.toString()}>
-                    {district.name}
-                  </SelectItem>
-                ))}
+              <SelectContent className="max-h-[300px]" position="popper" sideOffset={5}>
+                {districts.length > 0 ? (
+                  districts.map((district) => (
+                    <SelectItem key={district.id} value={district.id.toString()}>
+                      {district.name}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <div className="p-2 text-sm text-muted-foreground">Select a province first</div>
+                )}
               </SelectContent>
             </Select>
             <FormMessage />
@@ -382,20 +433,24 @@ function CommuneField<T extends FieldValues>({
                   setValue(getFieldName('communeName'), addressNames.communeName || '')
                 }
               }}
-              value={field.value || ""}
+              value={field.value ? String(field.value) : ""}
               disabled={disabled}
             >
               <FormControl>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select commune" />
                 </SelectTrigger>
               </FormControl>
-              <SelectContent>
-                {communes.map((commune) => (
-                  <SelectItem key={commune.code} value={commune.code}>
-                    {commune.name}
-                  </SelectItem>
-                ))}
+              <SelectContent className="max-h-[300px]" position="popper" sideOffset={5}>
+                {communes.length > 0 ? (
+                  communes.map((commune) => (
+                    <SelectItem key={commune.code} value={commune.code}>
+                      {commune.name}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <div className="p-2 text-sm text-muted-foreground">Select a district first</div>
+                )}
               </SelectContent>
             </Select>
             <FormMessage />

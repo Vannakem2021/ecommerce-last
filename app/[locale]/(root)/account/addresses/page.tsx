@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 import { auth } from '@/auth'
 import { redirect } from 'next/navigation'
-import { getUserAddressesFromOrders } from '@/lib/actions/order.actions'
+import { getUserAddresses } from '@/lib/actions/address.actions'
 import AddressesPage from './addresses-page'
 
 export const metadata: Metadata = {
@@ -14,8 +14,9 @@ export default async function AddressesPageWrapper() {
     redirect('/sign-in')
   }
 
-  const result = await getUserAddressesFromOrders(session.user.id)
+  const result = await getUserAddresses()
+  // Data is already serialized from the server action
   const addresses = result.data || []
 
-  return <AddressesPage addresses={addresses} userId={session.user.id} />
+  return <AddressesPage addresses={addresses} />
 }

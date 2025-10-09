@@ -926,7 +926,9 @@ export async function setPassword(data: {
   }
 }
 
-// SET DEFAULT ADDRESS
+// DEPRECATED: Use setAddressAsDefault from address.actions.ts instead
+// This function updates the legacy single address field and should not be used in new code
+// SET DEFAULT ADDRESS (legacy function)
 export async function setDefaultAddress(address: unknown) {
   try {
     const session = await auth();

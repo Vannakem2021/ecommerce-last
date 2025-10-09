@@ -32,6 +32,38 @@ const userSchema = new Schema<IUser>(
       required: false, // Made optional to allow registration without payment method
       default: undefined,
     },
+    
+    // Multiple addresses support (new architecture)
+    addresses: [
+      {
+        // Common fields
+        fullName: { type: String, required: true },
+        phone: { type: String, required: true },
+        postalCode: { type: String },
+
+        // Cambodia address fields
+        provinceId: { type: Number, required: true },
+        districtId: { type: Number, required: true },
+        communeCode: { type: String, required: true },
+        houseNumber: { type: String, required: true },
+        street: { type: String },
+        provinceName: { type: String, required: true },
+        districtName: { type: String, required: true },
+        communeName: { type: String, required: true },
+
+        // Legacy address fields (for backward compatibility)
+        city: { type: String },
+        province: { type: String },
+        country: { type: String },
+
+        // Address metadata
+        isDefault: { type: Boolean, default: false },
+        createdAt: { type: Date, default: Date.now },
+        updatedAt: { type: Date, default: Date.now },
+      },
+    ],
+    
+    // Legacy single address (kept for backward compatibility)
     address: {
       // Common fields - made optional for registration
       fullName: {
