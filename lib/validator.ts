@@ -53,6 +53,7 @@ export const ReviewInputSchema = z.object({
 
 // Product Configuration Schema
 export const ProductConfigurationSchema = z.object({
+  _id: z.string().optional(), // Allow _id for existing configurations (updates)
   sku: z.string().min(3, "Configuration SKU must be at least 3 characters").toUpperCase(),
   name: z.string().min(1, "Configuration name is required"),
   price: Price("Configuration price"),
