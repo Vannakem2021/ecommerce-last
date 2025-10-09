@@ -17,11 +17,11 @@ export function ChatButton({ onClick, isOpen }: ChatButtonProps) {
   return (
     <Button
       onClick={onClick}
-      size="lg"
-      className="fixed bottom-36 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 z-50"
+      size="icon"
+      className="fixed bottom-36 right-6 h-12 w-12 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 z-50 p-0"
       aria-label={t('openChat')}
     >
-      <MessageCircle className="h-6 w-6" />
+      <MessageCircle className="h-5 w-5" />
     </Button>
   )
 }
