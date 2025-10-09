@@ -656,22 +656,8 @@ const ProductForm = ({
       return isComplete
     })
     
-    const percentage = Math.round((completedFields.length / requiredFields.length) * 100)
-    
-    // Debug logging - show which fields are complete/incomplete
-    console.log('=== Product Form Completion Debug ===')
-    console.log('Product Type:', productType)
-    console.log('Progress:', `${completedFields.length}/${requiredFields.length} (${percentage}%)`)
-    console.log('Field Status:')
-    requiredFields.forEach(field => {
-      const value = watchedFields[field as keyof typeof watchedFields]
-      const status = fieldStatus[field] ? '✓' : '✗'
-      console.log(`  ${status} ${field}:`, value)
-    })
-    console.log('====================================')
-    
     return {
-      percentage,
+      percentage: Math.round((completedFields.length / requiredFields.length) * 100),
       fieldStatus,
       totalFields: requiredFields.length,
       completedCount: completedFields.length

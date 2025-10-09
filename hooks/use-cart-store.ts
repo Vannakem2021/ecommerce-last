@@ -117,7 +117,7 @@ const useCartStore = create(
             throw new Error('Not enough items in stock')
           }
         } else {
-          if (item.countInStock < item.quantity) {
+          if (item.countInStock < quantity) {
             throw new Error('Not enough items in stock')
           }
         }
