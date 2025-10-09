@@ -71,5 +71,8 @@ export default auth((req) => {
 
 export const config = {
   // Skip all paths that should not be internationalized
-  matcher: ['/((?!api|_next|.*\\..*).*)'],
+  // Exclude: api, _next, static files with extensions
+  matcher: [
+    '/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|manifest.webmanifest|manifest.json|icon.png|apple-icon.png).*)'
+  ],
 }
