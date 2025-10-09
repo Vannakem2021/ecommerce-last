@@ -10,10 +10,6 @@ export function ChatbotWidget() {
     toggleChat,
     closeChat,
     faqs,
-    searchQuery,
-    setSearchQuery,
-    clearSearch,
-    isSearching,
     locale,
   } = useChatbot()
 
@@ -24,10 +20,6 @@ export function ChatbotWidget() {
         isOpen={isOpen}
         onClose={closeChat}
         faqs={faqs}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        onClearSearch={clearSearch}
-        isSearching={isSearching}
         locale={locale}
       />
     </>

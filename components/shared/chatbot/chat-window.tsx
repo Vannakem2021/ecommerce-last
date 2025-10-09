@@ -3,7 +3,6 @@
 import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ChatSearch } from './chat-search'
 import { FAQAccordion } from './faq-accordion'
 import { useTranslations } from 'next-intl'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -26,10 +25,6 @@ interface ChatWindowProps {
   isOpen: boolean
   onClose: () => void
   faqs: FAQ[]
-  searchQuery: string
-  onSearchChange: (query: string) => void
-  onClearSearch: () => void
-  isSearching: boolean
   locale: 'en' | 'kh'
 }
 
@@ -37,10 +32,6 @@ export function ChatWindow({
   isOpen,
   onClose,
   faqs,
-  searchQuery,
-  onSearchChange,
-  onClearSearch,
-  isSearching,
   locale,
 }: ChatWindowProps) {
   const t = useTranslations('chatbot')
@@ -48,8 +39,8 @@ export function ChatWindow({
   if (!isOpen) return null
 
   return (
-    <div className="fixed bottom-4 right-4 left-4 sm:left-auto sm:bottom-6 sm:right-6 z-50 w-auto sm:w-full sm:max-w-md animate-in slide-in-from-bottom-8 duration-300">
-      <Card className="shadow-2xl border-2 h-[calc(100vh-8rem)] sm:h-[600px] max-h-[600px] flex flex-col">
+    <div className="fixed bottom-4 right-4 left-4 sm:left-auto sm:bottom-6 sm:right-6 z-50 w-auto sm:w-full sm:max-w-sm animate-in slide-in-from-bottom-8 duration-300">
+      <Card className="shadow-2xl border-2 h-[calc(100vh-8rem)] sm:h-[450px] max-h-[450px] flex flex-col">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
           <CardTitle className="text-lg font-semibold">
             {locale === 'en' ? 'Frequently Asked Questions' : 'សំណួរដែលសួរញឹកញាប់'}
@@ -66,38 +57,17 @@ export function ChatWindow({
         </CardHeader>
 
         <CardContent className="flex-1 flex flex-col gap-0 p-0 overflow-hidden">
-          {/* Search Area */}
-          <div className="p-4 border-b bg-background">
-            <ChatSearch
-              value={searchQuery}
-              onChange={onSearchChange}
-              onClear={onClearSearch}
-              isSearching={isSearching}
-            />
-          </div>
-
           {/* FAQ List Area */}
           <ScrollArea className="flex-1 px-4 pt-4 pb-4">
-            {isSearching ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="text-center space-y-2">
-                  <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-                  <p className="text-sm text-muted-foreground">
-                    {locale === 'en' ? 'Searching...' : 'កំពុងស្វែងរក...'}
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <FAQAccordion faqs={faqs} locale={locale} />
-            )}
+            <FAQAccordion faqs={faqs} locale={locale} />
           </ScrollArea>
 
           {/* Footer */}
-          <div className="p-3 border-t bg-muted/30">
+          <div className="p-2 border-t bg-muted/30">
             <p className="text-xs text-muted-foreground text-center">
               {locale === 'en' 
-                ? 'Click on a question to see the answer' 
-                : 'ចុចលើសំណួរដើម្បីមើលចម្លើយ'}
+                ? 'Click a question to see answer' 
+                : 'ចុចសំណួរដើម្បីមើលចម្លើយ'}
             </p>
           </div>
         </CardContent>
