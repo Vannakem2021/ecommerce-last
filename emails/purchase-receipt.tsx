@@ -133,7 +133,6 @@ export default async function PurchaseReceiptEmail({
               ))}
               {[
                 { name: 'Items', price: order.itemsPrice },
-                { name: 'Tax', price: order.taxPrice },
                 { name: 'Shipping', price: order.shippingPrice },
                 { name: 'Total', price: order.totalPrice },
               ].map(({ name, price }) => (
