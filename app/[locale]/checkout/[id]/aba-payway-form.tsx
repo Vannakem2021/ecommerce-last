@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 import { Loader2 } from 'lucide-react'
@@ -12,24 +13,48 @@ interface ABAPayWayFormProps {
 
 export default function ABAPayWayForm({ orderId, amount }: ABAPayWayFormProps) {
   const [isLoading, setIsLoading] = useState(false)
-  const [hasClicked, setHasClicked] = useState(false)
   const { toast } = useToast()
+  const router = useRouter()
+
+  // Check order payment status
+  const checkOrderStatus = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/orders/${orderId}/status`)
+      if (response.ok) {
+        const data = await response.json()
+        if (data.isPaid) {
+          // Payment completed! Refresh the page to show success
+          router.refresh()
+        }
+      }
+    } catch (error) {
+      console.error('Failed to check order status:', error)
+    }
+  }, [orderId, router])
+
+  // Check payment status when user returns to page (tab becomes visible)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        // User returned to this tab - check if payment was completed
+        checkOrderStatus()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [checkOrderStatus])
 
   const handlePayment = async () => {
     // Prevent double-click
-    if (isLoading || hasClicked) {
+    if (isLoading) {
       return
     }
 
     try {
       setIsLoading(true)
-      setHasClicked(true)
-
-      // Show loading toast immediately
-      toast({
-        title: 'Creating payment...',
-        description: 'Please wait while we prepare your payment.',
-      })
 
       // Call the create-payment API with timeout
       const controller = new AbortController()
@@ -77,9 +102,22 @@ export default function ABAPayWayForm({ orderId, amount }: ABAPayWayFormProps) {
       document.body.removeChild(form)
 
       toast({
-        title: 'Redirecting to ABA PayWay',
-        description: 'Please complete your payment in the new tab.',
+        title: 'Payment Window Opened',
+        description: 'Complete your payment in the new window. This page will update automatically.',
       })
+
+      // Reset loading state after form submission
+      setIsLoading(false)
+
+      // Start polling for payment completion
+      const pollInterval = setInterval(() => {
+        checkOrderStatus()
+      }, 3000) // Check every 3 seconds
+
+      // Stop polling after 5 minutes
+      setTimeout(() => {
+        clearInterval(pollInterval)
+      }, 5 * 60 * 1000)
 
     } catch (error) {
       console.error('ABA PayWay payment error:', error)
@@ -99,9 +137,6 @@ export default function ABAPayWayForm({ orderId, amount }: ABAPayWayFormProps) {
         })
       }
       
-      // Allow retry after error
-      setHasClicked(false)
-    } finally {
       setIsLoading(false)
     }
   }
@@ -110,19 +145,14 @@ export default function ABAPayWayForm({ orderId, amount }: ABAPayWayFormProps) {
     <div className="space-y-4">
       <Button
         onClick={handlePayment}
-        disabled={isLoading || hasClicked}
+        disabled={isLoading}
         className="w-full"
         size="lg"
       >
         {isLoading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Connecting to payment gateway...
-          </>
-        ) : hasClicked ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Opening payment page...
+            Processing...
           </>
         ) : (
           `Pay $${amount.toFixed(2)} with ABA PayWay`
