@@ -208,29 +208,9 @@ export default function CommerceForm({
                     name={`availablePaymentMethods.${index}.name`}
                     render={({ field }) => (
                       <FormItem className='flex-1'>
-                        {index === 0 && <FormLabel className='text-xs'>Name</FormLabel>}
+                        {index === 0 && <FormLabel className='text-xs'>Payment Method</FormLabel>}
                         <FormControl>
                           <Input {...field} value={field.value || ''} placeholder='Cash on Delivery' className='text-xs h-8' />
-                        </FormControl>
-                        <FormMessage className='text-xs' />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={control}
-                    name={`availablePaymentMethods.${index}.commission`}
-                    render={({ field }) => (
-                      <FormItem className='w-24'>
-                        {index === 0 && <FormLabel className='text-xs'>Fee %</FormLabel>}
-                        <FormControl>
-                          <Input
-                            type="number"
-                            step="0.01"
-                            value={field.value ?? ''}
-                            onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : '')}
-                            placeholder='0'
-                            className='text-xs h-8'
-                          />
                         </FormControl>
                         <FormMessage className='text-xs' />
                       </FormItem>
