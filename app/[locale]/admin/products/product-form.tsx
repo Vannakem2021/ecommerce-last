@@ -118,9 +118,9 @@ const ConfigurationManager = ({ value = [], onChange, baseSku }: ConfigurationMa
       toast({ variant: 'destructive', description: 'Valid price is required' })
       return
     }
-    // At least one attribute should be selected
-    if (!formData.storage && !formData.ram && !formData.color) {
-      toast({ variant: 'destructive', description: 'Please select at least one variant attribute (RAM, Storage, or Color)' })
+    // RAM or Storage must be selected (Color is optional)
+    if (!formData.storage && !formData.ram) {
+      toast({ variant: 'destructive', description: 'Please select at least RAM or Storage' })
       return
     }
 
@@ -287,13 +287,12 @@ const ConfigurationManager = ({ value = [], onChange, baseSku }: ConfigurationMa
             {/* Row 1: Attributes */}
             <div className="grid grid-cols-3 gap-2">
               <div>
-                <label className="text-[10px] font-medium block mb-1">RAM <span className="text-muted-foreground">(Optional)</span></label>
-                <Select value={formData.ram || undefined} onValueChange={(val) => handleAttributeChange('ram', val === 'none' ? '' : val)}>
+                <label className="text-[10px] font-medium block mb-1">RAM</label>
+                <Select value={formData.ram || undefined} onValueChange={(val) => handleAttributeChange('ram', val)}>
                   <SelectTrigger className="text-xs h-8">
-                    <SelectValue placeholder="None" />
+                    <SelectValue placeholder="Select RAM" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">None</SelectItem>
                     <SelectItem value="4GB">4GB</SelectItem>
                     <SelectItem value="6GB">6GB</SelectItem>
                     <SelectItem value="8GB">8GB</SelectItem>
@@ -305,13 +304,12 @@ const ConfigurationManager = ({ value = [], onChange, baseSku }: ConfigurationMa
               </div>
 
               <div>
-                <label className="text-[10px] font-medium block mb-1">Storage <span className="text-muted-foreground">(Optional)</span></label>
-                <Select value={formData.storage || undefined} onValueChange={(val) => handleAttributeChange('storage', val === 'none' ? '' : val)}>
+                <label className="text-[10px] font-medium block mb-1">Storage</label>
+                <Select value={formData.storage || undefined} onValueChange={(val) => handleAttributeChange('storage', val)}>
                   <SelectTrigger className="text-xs h-8">
-                    <SelectValue placeholder="None" />
+                    <SelectValue placeholder="Select Storage" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">None</SelectItem>
                     <SelectItem value="64GB">64GB</SelectItem>
                     <SelectItem value="128GB">128GB</SelectItem>
                     <SelectItem value="256GB">256GB</SelectItem>
