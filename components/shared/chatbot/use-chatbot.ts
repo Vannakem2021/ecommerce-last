@@ -56,7 +56,7 @@ export function useChatbot() {
           setCategories(uniqueCategories as string[])
         }
       } catch (error) {
-        console.error('Failed to fetch FAQs:', error)
+        // Silently handle error
       } finally {
         setIsLoading(false)
       }
@@ -93,7 +93,7 @@ export function useChatbot() {
           setFilteredFaqs(data.faqs)
         }
       } catch (error) {
-        console.error('Search failed:', error)
+        // Silently handle error
       } finally {
         setIsSearching(false)
       }

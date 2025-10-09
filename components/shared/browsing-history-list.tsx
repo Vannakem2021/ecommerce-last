@@ -97,7 +97,7 @@ export default function BrowsingHistoryList({
         }
 
       } catch (error) {
-        console.error('Failed to fetch browsing history:', error)
+        // Silently handle error
       } finally {
         setLoading(false)
       }

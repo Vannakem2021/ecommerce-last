@@ -28,7 +28,6 @@ function DiscountSummary({
   // Validate promotion data
   const promotion = cart.appliedPromotion
   if (!promotion.code || !promotion.discountAmount) {
-    console.warn('Invalid promotion data:', promotion)
     return null
   }
 
@@ -77,15 +76,7 @@ function DiscountSummary({
       </div>
     )
   } catch (error) {
-    console.error('Error rendering discount summary:', error)
-    // Fallback display for errors
-    return (
-      <div className={className}>
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">Discount unavailable</span>
-        </div>
-      </div>
-    )
+    return null
   }
 }
 

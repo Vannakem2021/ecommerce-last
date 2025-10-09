@@ -15,7 +15,6 @@ import {
   SelectValue,
 } from '../ui/select'
 import { TrashIcon } from 'lucide-react'
-import useSettingStore from '@/hooks/use-setting-store'
 import ProductPrice from './product/product-price'
 import { useLocale, useTranslations } from 'next-intl'
 import { getDirection } from '@/i18n-config'

@@ -85,7 +85,6 @@ export default function GlobalSearch() {
         const searchResults = await performSearch(query);
         setResults(searchResults);
       } catch (error) {
-        console.error('Search error:', error);
         setResults([]);
       } finally {
         setIsLoading(false);

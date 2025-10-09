@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import useSettingStore from '@/hooks/use-setting-store'
 import { ClientSetting } from '@/types'
-import { isDevelopment, logEnvironmentStatus, getClientEnvironmentInfo } from '@/lib/utils/environment'
+import { isDevelopment, logEnvironmentStatus } from '@/lib/utils/environment'
 import { validateCriticalConfiguration } from '@/lib/utils/startup-validator'
 
 export default function AppInitializer({
@@ -16,27 +16,17 @@ export default function AppInitializer({
   useEffect(() => {
     // Critical configuration validation (non-blocking)
     try {
-      const isConfigValid = validateCriticalConfiguration()
-
-      if (!isConfigValid) {
-        console.warn('⚠️  WARNING: Some application configuration is missing - app will continue with limited functionality')
-      }
+      validateCriticalConfiguration()
     } catch (error) {
-      console.warn('⚠️  WARNING: Configuration validation failed:', error)
-      console.warn('App will continue but some functionality may not work properly')
+      // Silently handle configuration validation errors
     }
 
-    // Startup environment checks
+    // Startup environment checks (only in development)
     if (isDevelopment()) {
-      console.log('🚀 App Initializer - Environment Check')
       try {
-        const envInfo = getClientEnvironmentInfo()
-        console.log('📊 Environment Info:', envInfo)
-
-        // Log environment status for development
         logEnvironmentStatus()
       } catch (error) {
-        console.warn('⚠️  Environment status check failed:', error)
+        // Silently handle environment check errors
       }
     }
 

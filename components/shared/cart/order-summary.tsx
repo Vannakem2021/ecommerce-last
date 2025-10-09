@@ -5,7 +5,6 @@ import { Separator } from '@/components/ui/separator'
 import { Button } from '@/components/ui/button'
 import ProductPrice from '@/components/shared/product/product-price'
 import CouponInput from '@/components/shared/promotion/coupon-input'
-import Link from 'next/link'
 
 interface OrderSummaryProps {
   // Prices
