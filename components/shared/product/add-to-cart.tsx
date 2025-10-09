@@ -41,7 +41,8 @@ export default function AddToCart({
   const { addItem } = useUserCart()
 
   //PROMPT: add quantity state
-  const [quantity, setQuantity] = useState(1)
+  // Initialize from item.quantity if provided (from parent component), otherwise default to 1
+  const [quantity, setQuantity] = useState(item.quantity || 1)
 
   const t = useTranslations()
 
