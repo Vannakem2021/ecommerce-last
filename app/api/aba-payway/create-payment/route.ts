@@ -124,8 +124,11 @@ export async function POST(req: NextRequest) {
     const abaMerchantRefNo = abaPayWayService.getMerchantRefNo(order._id);
 
     // Store the merchant reference number in the order for callback matching
-    await Order.findByIdAndUpdate(orderId, {
+    // Do this asynchronously (don't block the payment response)
+    Order.findByIdAndUpdate(orderId, {
       abaMerchantRefNo: abaMerchantRefNo,
+    }).catch((err) => {
+      console.error('[ABA PayWay] Failed to store merchant ref:', err);
     });
 
     // Generate payment parameters using the same merchant reference number
