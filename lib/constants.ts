@@ -73,18 +73,23 @@ export const ROLE_PERMISSIONS = {
     'reports.read'
   ],
   manager: [
-    // Product management (no delete)
-    'products.create', 'products.read', 'products.update',
-    // Order management (no delete)
-    'orders.create', 'orders.read', 'orders.update',
-    // Read-only access to categories and brands
-    'categories.read', 'brands.read',
-    // Inventory management
-    'inventory.read', 'inventory.update',
-    // Promotion management (read and update only)
-    'promotions.read', 'promotions.update',
+    // Product management (full access)
+    'products.create', 'products.read', 'products.update', 'products.delete', 'products.export',
+    // Order management (full access)
+    'orders.create', 'orders.read', 'orders.update', 'orders.delete', 'orders.export',
+    // Category management (full access)
+    'categories.create', 'categories.read', 'categories.update', 'categories.delete',
+    // Brand management (full access)
+    'brands.create', 'brands.read', 'brands.update', 'brands.delete',
+    // Inventory management (full access)
+    'inventory.read', 'inventory.update', 'inventory.export',
+    // Page management (full access)
+    'pages.create', 'pages.read', 'pages.update', 'pages.delete',
+    // Promotion management (full access)
+    'promotions.create', 'promotions.read', 'promotions.update', 'promotions.delete',
     // Reports access
     'reports.read'
+    // Note: Manager does NOT have access to user management or settings
   ],
   seller: [
     // Product management (full access)
