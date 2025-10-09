@@ -171,7 +171,7 @@ export default function CommerceForm({
                   <FormLabel className='text-xs'>Default Currency</FormLabel>
                   <FormControl>
                     <Select
-                      value={field.value}
+                      value={field.value || ''}
                       onValueChange={field.onChange}
                     >
                       <SelectTrigger className='h-8 text-xs'>
@@ -210,7 +210,7 @@ export default function CommerceForm({
                       <FormItem className='flex-1'>
                         {index === 0 && <FormLabel className='text-xs'>Name</FormLabel>}
                         <FormControl>
-                          <Input {...field} placeholder='Cash on Delivery' className='text-xs h-8' />
+                          <Input {...field} value={field.value || ''} placeholder='Cash on Delivery' className='text-xs h-8' />
                         </FormControl>
                         <FormMessage className='text-xs' />
                       </FormItem>
@@ -223,7 +223,7 @@ export default function CommerceForm({
                       <FormItem className='w-24'>
                         {index === 0 && <FormLabel className='text-xs'>Fee %</FormLabel>}
                         <FormControl>
-                          <Input {...field} placeholder='0' className='text-xs h-8' />
+                          <Input {...field} value={field.value ?? ''} placeholder='0' className='text-xs h-8' />
                         </FormControl>
                         <FormMessage className='text-xs' />
                       </FormItem>
@@ -376,7 +376,7 @@ export default function CommerceForm({
                       <FormItem className='flex-1'>
                         {index === 0 && <FormLabel className='text-xs'>Name</FormLabel>}
                         <FormControl>
-                          <Input {...field} placeholder='Standard Delivery' className='text-xs h-8' />
+                          <Input {...field} value={field.value || ''} placeholder='Standard Delivery' className='text-xs h-8' />
                         </FormControl>
                         <FormMessage className='text-xs' />
                       </FormItem>
@@ -389,7 +389,7 @@ export default function CommerceForm({
                       <FormItem className='w-20'>
                         {index === 0 && <FormLabel className='text-xs'>Days</FormLabel>}
                         <FormControl>
-                          <Input {...field} placeholder='3' className='text-xs h-8' />
+                          <Input {...field} value={field.value ?? ''} placeholder='3' className='text-xs h-8' />
                         </FormControl>
                         <FormMessage className='text-xs' />
                       </FormItem>
@@ -402,7 +402,7 @@ export default function CommerceForm({
                       <FormItem className='w-24'>
                         {index === 0 && <FormLabel className='text-xs'>Price</FormLabel>}
                         <FormControl>
-                          <Input {...field} placeholder='5.00' className='text-xs h-8' />
+                          <Input {...field} value={field.value ?? ''} placeholder='5.00' className='text-xs h-8' />
                         </FormControl>
                         <FormMessage className='text-xs' />
                       </FormItem>
