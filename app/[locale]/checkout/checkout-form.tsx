@@ -674,25 +674,6 @@ const CheckoutForm = () => {
                 </div>
                 <Card className="my-4 rounded-lg border border-border">
                   <CardContent className="p-4 md:p-6">
-                    <p className="mb-2">
-                      <span className="text-lg font-bold text-green-700">
-                        Arriving{" "}
-                        {
-                          availableDeliveryDates &&
-                          deliveryDateIndex !== undefined &&
-                          availableDeliveryDates[deliveryDateIndex] &&
-                          availableDeliveryDates[deliveryDateIndex].daysToDeliver
-                            ? formatDateTime(
-                                calculateFutureDate(
-                                  availableDeliveryDates[deliveryDateIndex].daysToDeliver
-                                )
-                              ).dateOnly
-                            : "Loading..."
-                        }
-                      </span>{" "}
-                      If you order in the next {timeUntilMidnight().hours} hours
-                      and {timeUntilMidnight().minutes} minutes.
-                    </p>
                     <div className="grid md:grid-cols-2 gap-6">
                       <div>
                         {items.map((item, _index) => (
