@@ -35,19 +35,16 @@ export default async function AdminLayout({
 
   // Check if user is authenticated
   if (!session?.user?.id) {
-    console.warn('Unauthorized admin access attempt: No session')
     redirectAuthenticationRequired('/admin')
   }
 
   // Comprehensive admin access validation - require seller or higher role
   if (!session.user.role || !isSellerOrHigher(session.user.role)) {
-    console.warn(`Unauthorized admin access attempt: User ${session.user.id} with role ${session.user.role}`)
     redirectInsufficientRole('/admin')
   }
 
   // Additional validation for session integrity
   if (typeof session.user.role !== 'string' || session.user.role.trim() === '') {
-    console.error(`Invalid role format for user ${session.user.id}: ${session.user.role}`)
     redirectInsufficientRole('/admin')
   }
 

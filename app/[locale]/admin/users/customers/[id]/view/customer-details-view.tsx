@@ -6,12 +6,8 @@ import { Badge } from '@/components/ui/badge'
 import { IUser } from '@/lib/db/models/user.model'
 import { formatDateTime, formatCurrency } from '@/lib/utils'
 import { 
-  MailIcon, 
   MapPinIcon, 
   CreditCardIcon,
-  ShoppingBagIcon,
-  KeyIcon,
-  CheckCircleIcon,
   ExternalLinkIcon
 } from 'lucide-react'
 import Link from 'next/link'
@@ -59,7 +55,7 @@ const CustomerDetailsView = ({ user }: CustomerDetailsViewProps) => {
           setRecentOrders(data.recentOrders)
         }
       } catch (error) {
-        console.error('Failed to fetch customer data:', error)
+        // Silently handle error
       } finally {
         setLoading(false)
       }

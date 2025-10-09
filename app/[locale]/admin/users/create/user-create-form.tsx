@@ -127,10 +127,6 @@ const UserCreateForm = ({ currentUserRole }: UserCreateFormProps) => {
     try {
       const res = await createUserByAdmin(values)
       
-      console.log('Create user response:', res)
-      console.log('Response data:', res.data)
-      console.log('User ID:', res.data?.id)
-      
       if (!res.success) {
         return toast({
           variant: 'destructive',
@@ -140,14 +136,11 @@ const UserCreateForm = ({ currentUserRole }: UserCreateFormProps) => {
 
       // Validate that we have the user ID
       if (!res.data?.id) {
-        console.error('Missing user ID in response:', res)
         return toast({
           variant: 'destructive',
           description: 'User created but ID not returned. Please refresh the page.',
         })
       }
-
-      console.log('Setting created user with ID:', res.data.id)
       
       // Show success modal with credentials
       setCreatedUser({

@@ -11,7 +11,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { IInventoryProduct } from '@/types'
-import { formatDateTime, formatCurrency } from '@/lib/utils'
+import { formatDateTime } from '@/lib/utils'
 import { Edit, History, Package, AlertTriangle } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import Image from 'next/image'
