@@ -122,7 +122,6 @@ export default function CategorySelector({ value, onChange }: CategorySelectorPr
           : typeof error === 'string'
             ? error
             : 'Unknown error'
-      console.error('Failed to load categories:', error)
       if (/permission|authorize|auth|401|403/i.test(msg)) {
         setError('You do not have permission to view categories.')
       } else {

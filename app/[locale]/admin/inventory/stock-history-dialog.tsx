@@ -110,7 +110,7 @@ export default function StockHistoryDialog({
         setTotalMovements(result.totalMovements)
       }
     } catch (error) {
-      console.error('Failed to load stock movements:', error)
+      // Silently handle error
     } finally {
       setLoading(false)
     }

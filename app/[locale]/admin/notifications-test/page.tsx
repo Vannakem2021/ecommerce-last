@@ -20,17 +20,8 @@ export default function NotificationsTestPage() {
       const roleResponse = await fetch('/api/notifications/check-role')
       const roleData = await roleResponse.json()
       setRoleInfo(roleData)
-      
-      // Log to console for debugging
-      console.log('=== YOUR ACCOUNT INFO ===')
-      console.log('Your User ID:', roleData.currentUser?.id)
-      console.log('Your Name:', roleData.currentUser?.name)
-      console.log('Your Email:', roleData.currentUser?.email)
-      console.log('Your Role:', roleData.currentUser?.role)
-      console.log('Will Receive Notifications:', roleData.currentUser?.willReceiveNotifications)
-      console.log('=========================')
     } catch (error) {
-      console.error('Failed to check notifications:', error)
+      // Silently handle error
     } finally {
       setLoading(false)
     }
@@ -40,13 +31,12 @@ export default function NotificationsTestPage() {
     setLoading(true)
     try {
       const response = await fetch('/api/notifications/test', { method: 'POST' })
-      const data = await response.json()
+      await response.json()
       alert('Test notification created! Check the bell icon.')
-      console.log('Created:', data)
       // Refresh debug info
       await checkNotifications()
     } catch (error) {
-      console.error('Failed to create test notification:', error)
+      // Silently handle error
       alert('Failed to create test notification')
     } finally {
       setLoading(false)

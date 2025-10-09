@@ -50,7 +50,7 @@ export default function AdminUsersPage() {
           setTopCustomer(topCustomerResult.data)
         }
       } catch (error) {
-        console.error('Failed to fetch users:', error)
+        // Silently handle error
       } finally {
         setLoading(false)
       }

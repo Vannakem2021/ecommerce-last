@@ -12,8 +12,7 @@ import {
   Users,
   FolderIcon,
   TagIcon,
-  Loader2,
-  ArrowRight
+  Loader2
 } from 'lucide-react'
 import Image from 'next/image'
 import ProductPrice from '@/components/shared/product/product-price'
@@ -86,7 +85,7 @@ export default function AdminGlobalSearch() {
           setIsOpen(true)
         }
       } catch (error) {
-        console.error('Search error:', error)
+        // Silently handle error
       } finally {
         setIsLoading(false)
       }

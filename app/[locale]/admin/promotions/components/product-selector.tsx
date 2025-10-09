@@ -140,7 +140,6 @@ export default function ProductSelector({ value, onChange }: ProductSelectorProp
           : typeof error === 'string'
             ? error
             : 'Unknown error'
-      console.error('Failed to load products:', error)
       // Surface authorization/auth issues clearly
       if (/permission|authorize|auth|401|403/i.test(msg)) {
         setError('You do not have permission to view products.')
