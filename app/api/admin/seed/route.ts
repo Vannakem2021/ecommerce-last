@@ -204,12 +204,12 @@ async function createSampleOrders(users: any[], products: any[]) {
         image: product.images[0],
         price: product.price,
         countInStock: product.countInStock,
-        qty: 1,
+        quantity: 1,
       })
     }
 
     const itemsPrice = round2(
-      orderItems.reduce((acc, item) => acc + item.price * item.qty, 0)
+      orderItems.reduce((acc, item) => acc + item.price * item.quantity, 0)
     )
     const shippingPrice = itemsPrice > 100 ? 0 : 10
     const taxPrice = round2(itemsPrice * 0.15)
