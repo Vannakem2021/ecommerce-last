@@ -518,7 +518,6 @@ const ProductForm = ({
     defaultValues:
       product && type === 'Update'
         ? {
-            _id: productId || product._id, // Include _id for ProductUpdateSchema validation
             name: product.name,
             slug: product.slug,
             category: typeof product.category === 'object' ? (product.category as unknown as { _id: string })._id : product.category,
