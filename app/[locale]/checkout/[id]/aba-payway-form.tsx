@@ -31,8 +31,8 @@ export default function ABAPayWayForm({ orderId, amount }: ABAPayWayFormProps) {
         console.log('[Payment] Order status:', data)
         
         if (data.isPaid) {
-          // Payment completed! Stop polling and redirect
-          console.log('[Payment] Payment detected! Stopping polling and redirecting...')
+          // Payment completed! Stop polling and refresh page to show confetti
+          console.log('[Payment] Payment detected! Stopping polling and refreshing page...')
           
           // Clear polling intervals
           if (pollIntervalRef.current) {
@@ -46,12 +46,12 @@ export default function ABAPayWayForm({ orderId, amount }: ABAPayWayFormProps) {
           
           toast({
             title: 'Payment Successful!',
-            description: 'Your payment has been processed. Redirecting...',
+            description: 'Your payment has been processed.',
           })
-          // Small delay to show the toast
-          setTimeout(() => {
-            router.push(`/account/orders/${orderId}`)
-          }, 1000)
+          
+          // Refresh the page - this will show confetti and then auto-redirect to order details
+          // The payment-form.tsx component will handle the confetti animation and redirect
+          router.refresh()
         } else if (data.paymentResult?.status === 'CANCELLED') {
           // Payment was cancelled - stop polling
           console.log('[Payment] Payment cancelled by user, stopping polling')
