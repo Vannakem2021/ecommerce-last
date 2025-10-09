@@ -85,7 +85,7 @@ export default function ABAPayWayForm({ orderId, amount }: ABAPayWayFormProps) {
       const form = document.createElement('form')
       form.method = 'POST'
       form.action = data.paymentUrl
-      form.target = '_blank' // Open in new tab
+      form.target = '_self' // Open in same window (ABA will show popup/bottom sheet)
 
       // Add all payment parameters as hidden inputs
       Object.entries(data.paymentParams).forEach(([key, value]) => {
@@ -103,7 +103,7 @@ export default function ABAPayWayForm({ orderId, amount }: ABAPayWayFormProps) {
 
       toast({
         title: 'Payment Window Opened',
-        description: 'Complete your payment in the new window. This page will update automatically.',
+        description: 'Complete your payment in the popup. This page will update automatically.',
       })
 
       // Reset loading state after form submission

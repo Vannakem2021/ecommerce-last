@@ -236,7 +236,7 @@ class ABAPayWayService {
       return_deeplink: "",
       custom_fields: customFields,
       return_params: merchantRefNo, // Also include in return_params
-      view_type: "hosted_view", // Redirect to new tab
+      view_type: "popup", // Show as modal popup (desktop) or bottom sheet (mobile)
       payment_gate: "0", // Use checkout service
       payout: "",
       lifetime: "", // Use default lifetime
