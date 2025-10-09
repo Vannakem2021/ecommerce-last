@@ -13,6 +13,7 @@ interface ABAPayWayFormProps {
 
 export default function ABAPayWayForm({ orderId, amount }: ABAPayWayFormProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [paymentInProgress, setPaymentInProgress] = useState(false)
   const { toast } = useToast()
   const router = useRouter()
 
@@ -35,7 +36,7 @@ export default function ABAPayWayForm({ orderId, amount }: ABAPayWayFormProps) {
   // Check payment status when user returns to page (tab becomes visible)
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (!document.hidden) {
+      if (!document.hidden && paymentInProgress) {
         // User returned to this tab - check if payment was completed
         checkOrderStatus()
       }
@@ -45,11 +46,11 @@ export default function ABAPayWayForm({ orderId, amount }: ABAPayWayFormProps) {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
-  }, [checkOrderStatus])
+  }, [checkOrderStatus, paymentInProgress])
 
   const handlePayment = async () => {
-    // Prevent double-click
-    if (isLoading) {
+    // Prevent double-click - check both loading states
+    if (isLoading || paymentInProgress) {
       return
     }
 
@@ -106,8 +107,9 @@ export default function ABAPayWayForm({ orderId, amount }: ABAPayWayFormProps) {
         description: 'Complete your payment in the new tab. This page will update automatically when payment is completed.',
       })
 
-      // Reset loading state after form submission
+      // Mark payment as in progress (keeps button disabled)
       setIsLoading(false)
+      setPaymentInProgress(true)
 
       // Start polling for payment completion
       const pollInterval = setInterval(() => {
@@ -145,7 +147,7 @@ export default function ABAPayWayForm({ orderId, amount }: ABAPayWayFormProps) {
     <div className="space-y-4">
       <Button
         onClick={handlePayment}
-        disabled={isLoading}
+        disabled={isLoading || paymentInProgress}
         className="w-full"
         size="lg"
       >
@@ -153,6 +155,11 @@ export default function ABAPayWayForm({ orderId, amount }: ABAPayWayFormProps) {
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             Processing...
+          </>
+        ) : paymentInProgress ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Payment in Progress...
           </>
         ) : (
           `Pay $${amount.toFixed(2)} with ABA PayWay`
