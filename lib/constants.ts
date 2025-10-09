@@ -91,16 +91,8 @@ export const ROLE_PERMISSIONS = {
     'products.create', 'products.read', 'products.update', 'products.delete', 'products.export',
     // Order management (full access)
     'orders.create', 'orders.read', 'orders.update', 'orders.delete', 'orders.export',
-    // Category management (full access)
-    'categories.create', 'categories.read', 'categories.update', 'categories.delete',
-    // Brand management (full access)
-    'brands.create', 'brands.read', 'brands.update', 'brands.delete',
     // Inventory management (full access)
     'inventory.read', 'inventory.update', 'inventory.export',
-    // Page management (full access)
-    'pages.create', 'pages.read', 'pages.update', 'pages.delete',
-    // Promotion read access (read-only)
-    'promotions.read',
     // Reports access
     'reports.read'
   ],
