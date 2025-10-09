@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { hasPermission } from '@/lib/rbac-utils'
-import { forgotPassword } from '@/lib/actions/user.actions'
+import { requestPasswordReset } from '@/lib/actions/user.actions'
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,8 +23,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Use existing forgotPassword action
-    const result = await forgotPassword({ email })
+    // Use existing requestPasswordReset action
+    const result = await requestPasswordReset({ email })
 
     if (!result.success) {
       return NextResponse.json(

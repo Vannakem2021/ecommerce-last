@@ -23,7 +23,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 
-interface AddressItem extends ShippingAddress {
+type AddressItem = ShippingAddress & {
   _id: string
   isDefault: boolean
   createdAt: string

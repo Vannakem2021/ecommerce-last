@@ -34,7 +34,7 @@ export default async function AdminInventoryPage(props: {
     query: searchText,
     brand: selectedBrand,
     category: selectedCategory,
-    stockStatus: selectedStockStatus,
+    stockStatus: selectedStockStatus as "all" | "in-stock" | "low-stock" | "out-of-stock" | undefined,
     page,
     sort: sort as 'latest' | 'oldest' | 'name-asc' | 'name-desc' | 'stock-low' | 'stock-high',
   })

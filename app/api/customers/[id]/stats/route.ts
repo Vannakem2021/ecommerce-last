@@ -49,7 +49,7 @@ export async function GET(
     // Get recent orders (last 5)
     const recentOrders = orders.slice(0, 5).map((order) => ({
       _id: order._id.toString(),
-      orderNumber: order.orderNumber,
+      orderNumber: (order as any).orderId || order._id.toString(),
       totalPrice: order.totalPrice,
       deliveryStatus: getOrderStatus(order),
       createdAt: order.createdAt.toISOString(),

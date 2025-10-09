@@ -44,8 +44,8 @@ import { Badge } from "@/components/ui/badge";
 const emptyAddressValues = {
   fullName: "",
   phone: "",
-  provinceId: "",
-  districtId: "",
+  provinceId: 0,
+  districtId: 0,
   communeCode: "",
   houseNumber: "",
   street: "",
@@ -97,8 +97,8 @@ const CheckoutForm = () => {
     return {
       fullName: address?.fullName || "",
       phone: address?.phone || "",
-      provinceId: address?.provinceId || "",
-      districtId: address?.districtId || "",
+      provinceId: address?.provinceId || 0,
+      districtId: address?.districtId || 0,
       communeCode: address?.communeCode || "",
       houseNumber: address?.houseNumber || "",
       street: address?.street || "",
@@ -128,7 +128,7 @@ const CheckoutForm = () => {
 
   // Filter payment methods based on shipping address province
   const filteredPaymentMethods = useMemo(() => {
-    const provinceName = shippingAddress?.provinceName;
+    const provinceName = shippingAddress && 'provinceName' in shippingAddress ? shippingAddress.provinceName : (shippingAddress && 'province' in shippingAddress ? shippingAddress.province : null);
     
     if (!provinceName) {
       // No address yet, show all methods
@@ -153,7 +153,7 @@ const CheckoutForm = () => {
     });
     
     return filtered;
-  }, [availablePaymentMethods, shippingAddress?.provinceName, abaPayWay]);
+  }, [availablePaymentMethods, shippingAddress, abaPayWay]);
   const isMounted = useIsMounted();
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
@@ -615,7 +615,7 @@ const CheckoutForm = () => {
                         </div>
                         <p className="text-sm text-muted-foreground">
                           No payment methods are configured for your shipping address. 
-                          {!shippingAddress?.provinceName && " Please ensure your address includes a valid province."}
+                          {!(shippingAddress && ('provinceName' in shippingAddress ? shippingAddress.provinceName : ('province' in shippingAddress ? shippingAddress.province : null))) && " Please ensure your address includes a valid province."}
                         </p>
                         <Button
                           variant="outline"

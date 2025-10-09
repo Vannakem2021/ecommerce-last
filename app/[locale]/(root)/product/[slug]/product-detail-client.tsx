@@ -97,8 +97,8 @@ export default function ProductDetailClient({
   }, [hasConfigurations, product.configurations, selectedMemory, selectedColor])
 
   // Legacy system support
-  const storage = searchParams.get('storage') || product.variants?.storage?.[0]?.value || ''
-  const ram = searchParams.get('ram') || product.variants?.ram?.[0]?.value || ''
+  const storage = searchParams.get('storage') || product.variants?.storage?.[0] || ''
+  const ram = searchParams.get('ram') || product.variants?.ram?.[0] || ''
   const color = searchParams.get('color') || 
     (hasLegacyVariants ? product.variants?.colors?.[0] : product.colors[0]) || ''
   const size = searchParams.get('size') || product.sizes[0] || ''
@@ -109,7 +109,7 @@ export default function ProductDetailClient({
     : product.price
   
   const currentStock = hasConfigurations && currentConfiguration
-    ? currentConfiguration.stock
+    ? (currentConfiguration.stock ?? product.countInStock)
     : product.countInStock
 
   const [quantity, setQuantity] = useState(1)
@@ -188,7 +188,7 @@ export default function ProductDetailClient({
           {/* Color Selector - Use existing color circle UI */}
           {availableColors.length > 0 && (
             <SelectVariant
-              product={{ ...product, colors: availableColors }}
+              product={{ ...product, colors: availableColors } as any}
               size=""
               color={selectedColor}
               onColorChange={setSelectedColor}
@@ -251,7 +251,7 @@ export default function ProductDetailClient({
               price: round2(currentPrice),
               listPrice: product.listPrice,
               // Configuration details
-              configurationSku: hasConfigurations && currentConfiguration ? currentConfiguration.sku : undefined,
+              sku: hasConfigurations && currentConfiguration ? currentConfiguration.sku : product.sku,
               basePrice: hasConfigurations && currentConfiguration ? currentConfiguration.price : product.price,
               variantModifiers: undefined,
               quantity: quantity,

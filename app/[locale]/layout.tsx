@@ -30,15 +30,69 @@ const hanuman = Kantumruy_Pro({
 
 export async function generateMetadata() {
   const {
-    site: { slogan, name, description, url },
+    site: { name, description, url, logo },
   } = await getSetting();
+  
   return {
     title: {
       template: `%s | ${name}`,
-      default: `${name}. ${slogan}`,
+      default: `${name}. ${description}`,
     },
     description: description,
     metadataBase: new URL(url),
+    
+    // Application info
+    applicationName: name,
+    authors: [{ name: name }],
+    generator: 'Next.js',
+    keywords: ['electronics', 'e-commerce', 'online shopping', 'smartphones', 'laptops', 'tablets'],
+    
+    // Open Graph (Facebook, LinkedIn, WhatsApp)
+    openGraph: {
+      type: 'website',
+      locale: 'en_US',
+      url: url,
+      title: name,
+      description: description,
+      siteName: name,
+      images: [
+        {
+          url: `${url}${logo}`,
+          width: 1200,
+          height: 630,
+          alt: `${name} - ${description}`,
+        },
+      ],
+    },
+    
+    // Twitter Card
+    twitter: {
+      card: 'summary_large_image',
+      title: name,
+      description: description,
+      images: [`${url}${logo}`],
+      creator: '@bcs',
+    },
+    
+    // Robots
+    robots: {
+      index: true,
+      follow: true,
+      nocache: false,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-video-preview': -1,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
+      },
+    },
+    
+    // Verification (add your verification codes after deployment)
+    // verification: {
+    //   google: 'your-google-verification-code',
+    //   yandex: 'your-yandex-verification-code',
+    // },
   };
 }
 

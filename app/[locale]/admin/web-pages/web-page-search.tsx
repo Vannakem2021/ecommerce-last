@@ -13,7 +13,7 @@ export default function WebPageSearch({ initialQuery = '' }: WebPageSearchProps)
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [searchValue, setSearchValue] = useState(initialQuery)
-  const timerRef = useRef<NodeJS.Timeout>()
+  const timerRef = useRef<NodeJS.Timeout | null>(null)
 
   // Debounced search - update URL after user stops typing
   useEffect(() => {

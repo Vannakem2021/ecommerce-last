@@ -43,9 +43,9 @@ export default function OrderActivityTimeline({
     },
     {
       label: 'Processing',
-      date: isPaid && !isDelivered ? paidAt : null,
+      date: isPaid && !isDelivered ? paidAt : undefined,
       completed: isPaid && !isDelivered,
-      description: isPaid && !isDelivered ? 'Order is being prepared' : null,
+      description: isPaid && !isDelivered ? 'Order is being prepared' : undefined,
     },
     {
       label: 'Delivered',

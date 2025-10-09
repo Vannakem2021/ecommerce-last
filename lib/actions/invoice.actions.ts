@@ -80,7 +80,7 @@ export async function getInvoiceData(orderId: string) {
         email: settings.site.email,
         phone: settings.site.phone,
         address: settings.site.address,
-        slogan: settings.site.slogan,
+        description: settings.site.description,
       },
 
       // Customer information

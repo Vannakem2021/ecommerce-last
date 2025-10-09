@@ -115,7 +115,7 @@ export async function getNotifications(limit: number = 50) {
       .lean()
 
     // Convert MongoDB _id to string and format dates
-    const formattedNotifications = notifications.map((notification) => ({
+    const formattedNotifications = notifications.map((notification: any) => ({
       ...notification,
       id: notification._id.toString(),
       _id: notification._id.toString(),

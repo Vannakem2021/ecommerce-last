@@ -192,7 +192,7 @@ export default function OrderDetailsForm({
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Shipping to</span>
                   <span className="font-medium text-right">
-                    {shippingAddress.fullName}, {shippingAddress.communeName}
+                    {shippingAddress.fullName}, {'communeName' in shippingAddress ? shippingAddress.communeName : ('city' in shippingAddress ? shippingAddress.city : '')}
                   </span>
                 </div>
               </div>
@@ -371,7 +371,7 @@ export default function OrderDetailsForm({
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Shipping to</span>
                   <span className="font-medium text-right">
-                    {shippingAddress.fullName}, {shippingAddress.communeName}
+                    {shippingAddress.fullName}, {'communeName' in shippingAddress ? shippingAddress.communeName : ('city' in shippingAddress ? shippingAddress.city : '')}
                   </span>
                 </div>
               </div>

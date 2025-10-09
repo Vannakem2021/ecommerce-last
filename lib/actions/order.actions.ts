@@ -1453,7 +1453,7 @@ export async function addInternalNote(
 
     await connectToDatabase()
 
-    const order = await Order.findById(orderId)
+    const order = await Order.findById(orderId) as any
     if (!order) {
       throw new Error('Order not found')
     }
@@ -1486,7 +1486,7 @@ export async function getOrderWithNotes(orderId: string) {
 
     const order = await Order.findById(orderId)
       .populate('user', 'name email')
-      .populate('internalNotes.createdBy', 'name')
+      .populate('internalNotes.createdBy', 'name') as any
 
     if (!order) {
       return null

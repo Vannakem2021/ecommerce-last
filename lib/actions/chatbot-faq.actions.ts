@@ -27,11 +27,11 @@ export async function getFAQs(options?: {
 
     const faqs = await ChatbotFAQ.find(query)
       .sort({ order: 1, createdAt: -1 })
-      .lean()
+      .lean() as any[]
 
     return {
       success: true,
-      faqs: faqs.map((faq) => ({
+      faqs: faqs.map((faq: any) => ({
         id: faq._id.toString(),
         category: faq.category,
         question: faq.question,
@@ -54,7 +54,7 @@ export async function getFAQById(id: string) {
   try {
     await connectToDatabase()
 
-    const faq = await ChatbotFAQ.findById(id).lean()
+    const faq = await ChatbotFAQ.findById(id).lean() as any
 
     if (!faq) {
       return { success: false, error: 'FAQ not found' }
@@ -110,7 +110,7 @@ export async function createFAQ(data: {
     const faq = await ChatbotFAQ.create({
       ...data,
       createdBy: new mongoose.Types.ObjectId(session.user.id),
-    })
+    }) as any
 
     revalidatePath('/admin/chatbot')
     revalidatePath('/api/chatbot/faqs')
@@ -162,7 +162,7 @@ export async function updateFAQ(
       id,
       { $set: data },
       { new: true, runValidators: true }
-    )
+    ) as any
 
     if (!faq) {
       return { success: false, error: 'FAQ not found' }
@@ -204,7 +204,7 @@ export async function deleteFAQ(id: string) {
 
     await connectToDatabase()
 
-    const faq = await ChatbotFAQ.findByIdAndDelete(id)
+    const faq = await ChatbotFAQ.findByIdAndDelete(id) as any
 
     if (!faq) {
       return { success: false, error: 'FAQ not found' }
@@ -274,11 +274,11 @@ export async function searchFAQs(query: string, locale: 'en' | 'kh' = 'en') {
     })
       .sort({ order: 1 })
       .limit(10)
-      .lean()
+      .lean() as any[]
 
     return {
       success: true,
-      faqs: faqs.map((faq) => ({
+      faqs: faqs.map((faq: any) => ({
         id: faq._id.toString(),
         category: faq.category,
         question: faq.question,
@@ -325,7 +325,7 @@ export async function toggleFAQActive(id: string) {
 
     await connectToDatabase()
 
-    const faq = await ChatbotFAQ.findById(id)
+    const faq = await ChatbotFAQ.findById(id) as any
 
     if (!faq) {
       return { success: false, error: 'FAQ not found' }

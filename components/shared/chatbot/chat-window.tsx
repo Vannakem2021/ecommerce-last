@@ -144,7 +144,7 @@ export function ChatWindow({
                 <SuggestionChips
                   faqs={faqs}
                   locale={locale}
-                  onSelect={onSelectFAQ}
+                  onSelect={onSelectFAQ as any}
                 />
               )}
             </div>

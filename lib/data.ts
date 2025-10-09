@@ -317,10 +317,12 @@ const products: IProductInput[] = [
   {
     name: "Apple iPhone 16 Pro Max",
     slug: toSlug("Apple iPhone 16 Pro Max"),
+    productType: "simple" as const,
+    configurations: [],
     sku: "APPLE-SMARTPHONES-001",
     category: "Smartphones",
     images: ["/images/iPhone16pro max.png"],
-    tags: ["new-arrival", "best-seller"],
+
     isPublished: true,
     price: 1299,
     brand: "Apple",
@@ -339,14 +341,17 @@ const products: IProductInput[] = [
     sizes: ["256GB", "512GB", "1TB"],
     colors: ["Natural Titanium", "Blue Titanium", "White Titanium", "Black Titanium"],
     reviews: [],
+    secondHand: false,
   },
   {
     name: "Apple iPhone 16",
     slug: toSlug("Apple iPhone 16"),
+    productType: "simple" as const,
+    configurations: [],
     sku: "APPLE-SMARTPHONES-002",
     category: "Smartphones",
     images: ["/images/iPhone16.png"],
-    tags: ["new-arrival"],
+
     isPublished: true,
     price: 899,
     brand: "Apple",
@@ -365,14 +370,17 @@ const products: IProductInput[] = [
     sizes: ["128GB", "256GB", "512GB"],
     colors: ["Black", "White", "Pink", "Teal", "Ultramarine"],
     reviews: [],
+    secondHand: false,
   },
   {
     name: "Apple iPhone 15 Pro Max",
     slug: toSlug("Apple iPhone 15 Pro Max"),
+    productType: "simple" as const,
+    configurations: [],
     sku: "APPLE-SMARTPHONES-003",
     category: "Smartphones",
     images: ["/images/iPhone15Pro Max.png"],
-    tags: ["new-arrival"],
+
     isPublished: true,
     price: 1199,
     brand: "Apple",
@@ -397,10 +405,12 @@ const products: IProductInput[] = [
   {
     name: "Apple iPhone 15",
     slug: toSlug("Apple iPhone 15"),
+    productType: "simple" as const,
+    configurations: [],
     sku: "APPLE-SMARTPHONES-004",
     category: "Smartphones",
     images: ["/images/iPhone15.png"],
-    tags: ["bestseller"],
+
     isPublished: true,
     price: 799,
     brand: "Apple",
@@ -425,10 +435,12 @@ const products: IProductInput[] = [
   {
     name: "Samsung Galaxy S25 Ultra",
     slug: toSlug("Samsung Galaxy S25 Ultra"),
+    productType: "simple" as const,
+    configurations: [],
     sku: "SAMSUNG-SMARTPHONES-001",
     category: "Smartphones",
     images: ["/images/GalaxyS25Ultra.png"],
-    tags: ["new-arrival"],
+
     isPublished: true,
     price: 1299,
     brand: "Samsung",
@@ -447,14 +459,17 @@ const products: IProductInput[] = [
     sizes: ["256GB", "512GB", "1TB"],
     colors: ["Titanium Black", "Titanium Gray", "Titanium Blue", "Titanium Silver"],
     reviews: [],
+    secondHand: false,
   },
   {
     name: "Samsung Galaxy S25 Plus",
     slug: toSlug("Samsung Galaxy S25 Plus"),
+    productType: "simple" as const,
+    configurations: [],
     sku: "SAMSUNG-SMARTPHONES-002",
     category: "Smartphones",
     images: ["/images/GalaxyS25plus.png"],
-    tags: ["new-arrival", "todays-deal"],
+
     isPublished: true,
     price: 999,
     listPrice: 1099,
@@ -474,14 +489,17 @@ const products: IProductInput[] = [
     sizes: ["256GB", "512GB"],
     colors: ["Navy", "Silver", "Mint", "Coral"],
     reviews: [],
+    secondHand: false,
   },
   {
     name: "Samsung Galaxy S25",
     slug: toSlug("Samsung Galaxy S25"),
+    productType: "simple" as const,
+    configurations: [],
     sku: "SAMSUNG-SMARTPHONES-003",
     category: "Smartphones",
     images: ["/images/GalaxyS25.png"],
-    tags: ["new-arrival"],
+
     isPublished: true,
     price: 799,
     brand: "Samsung",
@@ -500,14 +518,17 @@ const products: IProductInput[] = [
     sizes: ["128GB", "256GB", "512GB"],
     colors: ["Phantom Black", "Cream", "Violet", "Green"],
     reviews: [],
+    secondHand: false,
   },
   {
     name: "Samsung Galaxy Z Fold6",
     slug: toSlug("Samsung Galaxy Z Fold6"),
+    productType: "simple" as const,
+    configurations: [],
     sku: "SAMSUNG-SMARTPHONES-004",
     category: "Smartphones",
     images: ["/images/GalaxyZFold6.png"],
-    tags: ["new-arrival", "foldable"],
+
     isPublished: true,
     price: 1899,
     brand: "Samsung",
@@ -526,14 +547,17 @@ const products: IProductInput[] = [
     sizes: ["256GB", "512GB", "1TB"],
     colors: ["Silver Shadow", "Pink", "Navy", "Crafted Black"],
     reviews: [],
+    secondHand: false,
   },
   {
     name: "Samsung Galaxy Z Flip6",
     slug: toSlug("Samsung Galaxy Z Flip6"),
+    productType: "simple" as const,
+    configurations: [],
     sku: "SAMSUNG-SMARTPHONES-005",
     category: "Smartphones",
     images: ["/images/GalaxyZFlip6.png"],
-    tags: ["new-arrival", "foldable"],
+
     isPublished: true,
     price: 1099,
     brand: "Samsung",
@@ -558,10 +582,12 @@ const products: IProductInput[] = [
   {
     name: "Samsung Galaxy S24 FE",
     slug: toSlug("Samsung Galaxy S24 FE"),
+    productType: "simple" as const,
+    configurations: [],
     sku: "SAMSUNG-SMARTPHONES-006",
     category: "Smartphones",
     images: ["/images/GalaxyS24FE.png"],
-    tags: ["bestseller"],
+
     isPublished: true,
     price: 649,
     brand: "Samsung",
@@ -586,10 +612,12 @@ const products: IProductInput[] = [
   {
     name: "Oppo Find X8 Pro",
     slug: toSlug("Oppo Find X8 Pro"),
+    productType: "simple" as const,
+    configurations: [],
     sku: "OPPO-SMARTPHONES-001",
     category: "Smartphones",
     images: ["/images/OppoFindX8Pro.png"],
-    tags: ["new-arrival", "camera"],
+
     isPublished: true,
     price: 1199,
     brand: "Oppo",
@@ -614,10 +642,12 @@ const products: IProductInput[] = [
   {
     name: "Oppo Find X8",
     slug: toSlug("Oppo Find X8"),
+    productType: "simple" as const,
+    configurations: [],
     sku: "OPPO-SMARTPHONES-002",
     category: "Smartphones",
     images: ["/images/OppoFindX8.png"],
-    tags: ["new-arrival"],
+
     isPublished: true,
     price: 899,
     brand: "Oppo",
@@ -636,14 +666,17 @@ const products: IProductInput[] = [
     sizes: ["128GB", "256GB", "512GB"],
     colors: ["Star Grey", "Shell Pink", "Blue"],
     reviews: [],
+    secondHand: false,
   },
   {
     name: "Oppo Reno13 Pro 5G",
     slug: toSlug("Oppo Reno13 Pro 5G"),
+    productType: "simple" as const,
+    configurations: [],
     sku: "OPPO-SMARTPHONES-003",
     category: "Smartphones",
     images: ["/images/OppoReno13 Pro5G.png"],
-    tags: ["camera", "5g"],
+
     isPublished: true,
     price: 649,
     brand: "Oppo",
@@ -662,15 +695,18 @@ const products: IProductInput[] = [
     sizes: ["128GB", "256GB"],
     colors: ["Midnight Black", "Butterfly Purple", "Gold"],
     reviews: [],
+    secondHand: false,
   },
   // MacBook Series
   {
     name: "MacBook Pro 16-inch M3 Max",
     slug: toSlug("MacBook Pro 16-inch M3 Max"),
+    productType: "simple" as const,
+    configurations: [],
     sku: "APPLE-LAPTOPS-001",
     category: "Laptops",
     images: ["/images/macbook1.png"],
-    tags: ["new-arrival", "professional"],
+
     isPublished: true,
     price: 3499,
     brand: "Apple",
@@ -689,14 +725,17 @@ const products: IProductInput[] = [
     sizes: ["512GB", "1TB", "2TB", "4TB"],
     colors: ["Space Black", "Silver"],
     reviews: [],
+    secondHand: false,
   },
   {
     name: "MacBook Pro 14-inch M3 Pro",
     slug: toSlug("MacBook Pro 14-inch M3 Pro"),
+    productType: "simple" as const,
+    configurations: [],
     sku: "APPLE-LAPTOPS-002",
     category: "Laptops",
     images: ["/images/macbook2.png"],
-    tags: ["todays-deal"],
+
     isPublished: true,
     price: 2499,
     listPrice: 2699,
@@ -716,14 +755,17 @@ const products: IProductInput[] = [
     sizes: ["512GB", "1TB", "2TB"],
     colors: ["Space Black", "Silver"],
     reviews: [],
+    secondHand: false,
   },
   {
     name: "MacBook Air 15-inch M3",
     slug: toSlug("MacBook Air 15-inch M3"),
+    productType: "simple" as const,
+    configurations: [],
     sku: "APPLE-LAPTOPS-003",
     category: "Laptops",
     images: ["/images/macbook3.png"],
-    tags: ["best-seller"],
+
     isPublished: true,
     price: 1499,
     brand: "Apple",
@@ -742,14 +784,17 @@ const products: IProductInput[] = [
     sizes: ["256GB", "512GB", "1TB", "2TB"],
     colors: ["Midnight", "Starlight", "Silver", "Space Gray"],
     reviews: [],
+    secondHand: false,
   },
   {
     name: "MacBook Air 13-inch M3",
     slug: toSlug("MacBook Air 13-inch M3"),
+    productType: "simple" as const,
+    configurations: [],
     sku: "APPLE-LAPTOPS-004",
     category: "Laptops",
     images: ["/images/macbook4.png"],
-    tags: ["bestseller"],
+
     isPublished: true,
     price: 1199,
     brand: "Apple",
@@ -775,10 +820,12 @@ const products: IProductInput[] = [
   {
     name: "iPad Pro 12.9-inch M4",
     slug: toSlug("iPad Pro 12.9-inch M4"),
+    productType: "simple" as const,
+    configurations: [],
     sku: "APPLE-TABLETS-001",
     category: "Tablets",
     images: ["/images/ipad1.png"],
-    tags: ["new-arrival", "professional"],
+
     isPublished: true,
     price: 1299,
     brand: "Apple",
@@ -803,10 +850,12 @@ const products: IProductInput[] = [
   {
     name: "iPad Pro 11-inch M4",
     slug: toSlug("iPad Pro 11-inch M4"),
+    productType: "simple" as const,
+    configurations: [],
     sku: "APPLE-TABLETS-002",
     category: "Tablets",
     images: ["/images/ipad2.png"],
-    tags: ["new-arrival", "professional"],
+
     isPublished: true,
     price: 999,
     brand: "Apple",
@@ -825,14 +874,17 @@ const products: IProductInput[] = [
     sizes: ["128GB", "256GB", "512GB", "1TB", "2TB"],
     colors: ["Silver", "Space Black"],
     reviews: [],
+    secondHand: false,
   },
   {
     name: "iPad Air 11-inch M2",
     slug: toSlug("iPad Air 11-inch M2"),
+    productType: "simple" as const,
+    configurations: [],
     sku: "APPLE-TABLETS-003",
     category: "Tablets",
     images: ["/images/ipad3.png"],
-    tags: ["best-seller"],
+
     isPublished: true,
     price: 699,
     listPrice: 799,
@@ -852,6 +904,7 @@ const products: IProductInput[] = [
     sizes: ["128GB", "256GB", "512GB", "1TB"],
     colors: ["Blue", "Purple", "Starlight", "Space Gray"],
     reviews: [],
+    secondHand: false,
   }
 ];
 // Review data
@@ -897,6 +950,7 @@ const data: Data = {
     {
       title: "About Us",
       slug: "about-us",
+      section: "more" as const,
       content: `Welcome to BCS, your trusted destination for the latest electronics and cutting-edge technology. Our journey began with a mission to bring you the best electronic devices at competitive prices, all in one convenient platform.
 
 At BCS, we specialize in premium smartphones, laptops, tablets, and accessories from top brands like Apple, Samsung, and Oppo. We prioritize customer satisfaction and innovation, working tirelessly to curate the latest devices and exclusive deals, ensuring there's something for every tech enthusiast.
@@ -907,6 +961,7 @@ As we continue to grow, our commitment to quality and service remains unwavering
     {
       title: "Contact Us",
       slug: "contact-us",
+      section: "customer-service" as const,
       content: `We're here to help! If you have any questions, concerns, or feedback about our electronic products, please don't hesitate to reach out to us. Our tech-savvy team is ready to assist you and ensure you have the best shopping experience.
 
 **Customer Support**
@@ -926,6 +981,7 @@ We look forward to assisting you! Your satisfaction is our priority.`,
     {
       title: "Help",
       slug: "help",
+      section: "customer-service" as const,
       content: `Welcome to our Help Center! We're here to assist you with any questions or concerns you may have while shopping for electronics with us.`,
       isPublished: true,
     },
@@ -1144,3 +1200,4 @@ export const getSeedPasswords = () => seedPasswords;
 export const hasServerDependencies = () => hasServerDeps;
 
 export default data;
+

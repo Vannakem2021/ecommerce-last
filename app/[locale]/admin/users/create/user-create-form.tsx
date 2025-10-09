@@ -135,7 +135,7 @@ const UserCreateForm = ({ currentUserRole }: UserCreateFormProps) => {
       }
 
       // Validate that we have the user ID
-      if (!res.data?.id) {
+      if (!('data' in res) || !res.data?.id) {
         return toast({
           variant: 'destructive',
           description: 'User created but ID not returned. Please refresh the page.',

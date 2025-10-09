@@ -36,7 +36,7 @@ export default function CommonForm({
       />
       <FormField
         control={control}
-        name='common.freeShippingMinPrice'
+        name={'common.freeShippingMinPrice' as any}
         render={({ field }) => (
           <FormItem>
             <FormLabel>Free Shipping Minimum Price</FormLabel>

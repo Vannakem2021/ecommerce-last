@@ -512,7 +512,6 @@ const ProductForm = ({
     defaultValues:
       product && type === 'Update'
         ? {
-            _id: product._id,
             name: product.name,
             slug: product.slug,
             category: typeof product.category === 'object' ? (product.category as unknown as { _id: string })._id : product.category,
@@ -531,10 +530,9 @@ const ProductForm = ({
             numReviews: product.numReviews || 0,
             ratingDistribution: product.ratingDistribution || [],
             numSales: product.numSales || 0,
-            reviews: product.reviews || [],
             isPublished: product.isPublished || false,
             secondHand: product.secondHand || false,
-            condition: product.condition,
+            condition: product.condition as "Like New" | "Good" | "Fair" | "Poor" | undefined,
             saleStartDate: product.saleStartDate ? new Date(product.saleStartDate) : undefined,
             saleEndDate: product.saleEndDate ? new Date(product.saleEndDate) : undefined
           }

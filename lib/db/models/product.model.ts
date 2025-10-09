@@ -6,6 +6,7 @@ export interface IProductConfiguration {
   sku: string
   name: string
   price: number
+  stock?: number
   isDefault: boolean
   attributes: {
     storage?: string
@@ -34,6 +35,12 @@ export interface IProduct extends Document {
   // Product type and configurations
   productType: 'simple' | 'variant'
   configurations?: IProductConfiguration[]
+  // Legacy variant system (optional for backward compatibility)
+  variants?: {
+    storage?: string[]
+    ram?: string[]
+    colors?: string[]
+  }
   avgRating: number
   numReviews: number
   ratingDistribution: { rating: number; count: number }[]

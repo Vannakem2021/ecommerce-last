@@ -29,12 +29,12 @@ const hanuman = Kantumruy_Pro({
 
 export async function generateMetadata() {
   const {
-    site: { slogan, name, description, url },
+    site: { name, description, url },
   } = await getSetting();
   return {
     title: {
       template: `%s | ${name}`,
-      default: `${name}. ${slogan}`,
+      default: `${name}. ${description}`,
     },
     description: description,
     metadataBase: new URL(url),

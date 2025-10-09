@@ -34,7 +34,7 @@ export function ChatbotWidget() {
         isSearching={isSearching}
         locale={locale}
         chatHistory={chatHistory}
-        onSelectFAQ={handleSelectFAQ}
+        onSelectFAQ={handleSelectFAQ as any}
         onResetChat={resetChat}
         showSuggestions={showSuggestions}
       />

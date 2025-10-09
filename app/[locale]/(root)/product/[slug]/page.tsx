@@ -188,7 +188,7 @@ export default async function ProductDetails(props: {
                       specs: [
                         { label: 'Brand', value: typeof product.brand === 'object' ? (product.brand as unknown as { name: string }).name : product.brand },
                         { label: 'Category', value: typeof product.category === 'object' ? (product.category as unknown as { name: string }).name : product.category },
-                        { label: 'Condition', value: product.isSecondHand ? t('Condition.Second Hand') : t('Condition.New') },
+                        { label: 'Condition', value: product.secondHand ? t('Condition.Second Hand') : t('Condition.New') },
                       ],
                     },
                   ]}

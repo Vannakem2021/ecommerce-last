@@ -18,7 +18,7 @@ import { IOrder } from "@/lib/db/models/order.model";
 import { AddressDisplay } from "@/components/shared/address/address-display";
 
 // Extended order type with ABA PayWay fields and internal notes
-interface OrderWithABAPayWay extends Omit<IOrder, 'abaLastStatusCheck' | 'abaPaymentStatus' | 'abaStatusHistory'> {
+interface OrderWithABAPayWay extends Omit<IOrder, 'abaLastStatusCheck' | 'abaPaymentStatus' | 'abaStatusHistory' | 'internalNotes'> {
   abaPaymentStatus?: string;
   abaStatusCode?: number;
   abaLastStatusCheck?: string;
@@ -89,7 +89,7 @@ export default function OrderDetailsForm({
               <MarkPaidDialog
                 orderId={order._id}
                 orderNumber={generateOrderNumber(order._id, order.createdAt!, (order as any).orderId)}
-                customerName={order.user?.name}
+                customerName={typeof order.user === 'object' ? order.user?.name : order.user}
                 totalPrice={totalPrice}
                 variant="default"
                 size="sm"
@@ -116,7 +116,7 @@ export default function OrderDetailsForm({
               <MarkDeliveredDialog
                 orderId={order._id}
                 orderNumber={generateOrderNumber(order._id, order.createdAt!, (order as any).orderId)}
-                customerName={order.user?.name}
+                customerName={typeof order.user === 'object' ? order.user?.name : order.user}
                 totalPrice={totalPrice}
                 variant="default"
                 size="sm"

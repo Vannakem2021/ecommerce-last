@@ -55,11 +55,11 @@ export function HomeCardEnhanced({ cards }: { cards: CardItem[] }) {
                 {card.items.map((item) => (
                   <Link
                     key={item.name}
-                    href={item.href}
+                    href={'href' in item ? item.href : `/product/${(item as any).slug}`}
                     className='flex flex-col'
                   >
                     <Image
-                      src={item.image}
+                      src={'image' in item ? item.image : (item as any).images?.[0]}
                       alt={item.name}
                       className='aspect-square object-scale-down max-w-full h-auto mx-auto'
                       height={120}
@@ -68,7 +68,7 @@ export function HomeCardEnhanced({ cards }: { cards: CardItem[] }) {
                     <p className='text-center text-sm whitespace-nowrap overflow-hidden text-ellipsis'>
                       {item.name}
                     </p>
-                    {item.count !== undefined && (
+                    {'count' in item && item.count !== undefined && (
                       <p className='text-center text-xs text-muted-foreground mt-1'>
                         ({item.count})
                       </p>

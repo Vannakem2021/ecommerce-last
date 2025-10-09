@@ -20,7 +20,7 @@ export default function StickyPromoBar() {
     // Load the highest priority site-wide promotion
     getActivePromotions().then(promos => {
       // Prioritize: free_shipping > percentage > fixed
-      const siteWide = promos.find(p => p.appliesTo === 'all')
+      const siteWide = promos.find((p: any) => p.appliesTo === 'all')
       if (siteWide) setPromo(siteWide)
     })
   }, [])

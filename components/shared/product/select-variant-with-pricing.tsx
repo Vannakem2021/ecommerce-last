@@ -56,10 +56,10 @@ export default function SelectVariantWithPricing({
   
   // Get initial selections from URL or defaults
   const [selectedStorage, setSelectedStorage] = useState(
-    searchParams.get('storage') || product.variants?.storage?.[0]?.value || ''
+    searchParams.get('storage') || product.variants?.storage?.[0] || ''
   )
   const [selectedRam, setSelectedRam] = useState(
-    searchParams.get('ram') || product.variants?.ram?.[0]?.value || ''
+    searchParams.get('ram') || product.variants?.ram?.[0] || ''
   )
   const [selectedColor, setSelectedColor] = useState(
     searchParams.get('color') || product.variants?.colors?.[0] || ''
@@ -67,25 +67,10 @@ export default function SelectVariantWithPricing({
 
   // Calculate total price
   const calculatePrice = () => {
-    let priceModifier = 0
-    
-    // Add storage modifier
-    const storageOption = product.variants?.storage?.find(
-      (s) => s.value === selectedStorage
-    )
-    if (storageOption) {
-      priceModifier += storageOption.priceModifier
-    }
-    
-    // Add RAM modifier
-    const ramOption = product.variants?.ram?.find((r) => r.value === selectedRam)
-    if (ramOption) {
-      priceModifier += ramOption.priceModifier
-    }
-    
-    const finalPrice = round2(product.price + priceModifier)
+    // For legacy variant system, no price modifiers - just return base price
+    const finalPrice = round2(product.price)
     const finalListPrice = product.listPrice 
-      ? round2(product.listPrice + priceModifier)
+      ? round2(product.listPrice)
       : finalPrice
     
     return { price: finalPrice, listPrice: finalListPrice }
@@ -139,22 +124,17 @@ export default function SelectVariantWithPricing({
           <div className="flex flex-wrap gap-2">
             {product.variants.storage.map((storage) => (
               <Button
-                key={storage.value}
+                key={storage}
                 variant="outline"
                 size="sm"
                 className={
-                  selectedStorage === storage.value
+                  selectedStorage === storage
                     ? 'border-2 border-primary'
                     : 'border-2'
                 }
-                onClick={() => handleStorageChange(storage.value)}
+                onClick={() => handleStorageChange(storage)}
               >
-                {storage.value}
-                {storage.priceModifier > 0 && (
-                  <span className="ml-1 text-xs text-muted-foreground">
-                    +${storage.priceModifier}
-                  </span>
-                )}
+                {storage}
               </Button>
             ))}
           </div>
@@ -168,22 +148,17 @@ export default function SelectVariantWithPricing({
           <div className="flex flex-wrap gap-2">
             {product.variants.ram.map((ram) => (
               <Button
-                key={ram.value}
+                key={ram}
                 variant="outline"
                 size="sm"
                 className={
-                  selectedRam === ram.value
+                  selectedRam === ram
                     ? 'border-2 border-primary'
                     : 'border-2'
                 }
-                onClick={() => handleRamChange(ram.value)}
+                onClick={() => handleRamChange(ram)}
               >
-                {ram.value}
-                {ram.priceModifier > 0 && (
-                  <span className="ml-1 text-xs text-muted-foreground">
-                    +${ram.priceModifier}
-                  </span>
-                )}
+                {ram}
               </Button>
             ))}
           </div>
@@ -233,24 +208,17 @@ export default function SelectVariantWithPricing({
 export function useVariantPricing(product: IProduct) {
   const searchParams = useSearchParams()
   
-  const storage = searchParams.get('storage') || product.variants?.storage?.[0]?.value || ''
-  const ram = searchParams.get('ram') || product.variants?.ram?.[0]?.value || ''
+  const storage = searchParams.get('storage') || product.variants?.storage?.[0] || ''
+  const ram = searchParams.get('ram') || product.variants?.ram?.[0] || ''
   const color = searchParams.get('color') || product.variants?.colors?.[0] || ''
   
-  let priceModifier = 0
-  
-  const storageOption = product.variants?.storage?.find((s) => s.value === storage)
-  if (storageOption) priceModifier += storageOption.priceModifier
-  
-  const ramOption = product.variants?.ram?.find((r) => r.value === ram)
-  if (ramOption) priceModifier += ramOption.priceModifier
-  
+  // For legacy variant system, no price modifiers
   return {
     storage,
     ram,
     color,
-    price: round2(product.price + priceModifier),
-    listPrice: product.listPrice ? round2(product.listPrice + priceModifier) : round2(product.price + priceModifier),
-    priceModifier
+    price: round2(product.price),
+    listPrice: product.listPrice ? round2(product.listPrice) : round2(product.price),
+    priceModifier: 0
   }
 }

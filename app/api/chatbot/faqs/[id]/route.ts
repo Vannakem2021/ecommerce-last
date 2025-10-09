@@ -8,10 +8,11 @@ import {
 // GET /api/chatbot/faqs/[id] - Get single FAQ
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const result = await getFAQById(params.id)
+    const { id } = await params
+    const result = await getFAQById(id)
 
     if (!result.success) {
       return NextResponse.json(
@@ -26,7 +27,7 @@ export async function GET(
       },
     })
   } catch (error) {
-    console.error(`GET /api/chatbot/faqs/${params.id} error:`, error)
+    console.error('GET /api/chatbot/faqs/[id] error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -37,12 +38,13 @@ export async function GET(
 // PATCH /api/chatbot/faqs/[id] - Update FAQ (admin only)
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const body = await request.json()
 
-    const result = await updateFAQ(params.id, body)
+    const result = await updateFAQ(id, body)
 
     if (!result.success) {
       const status = result.error?.includes('Unauthorized') ? 401 
@@ -58,7 +60,8 @@ export async function PATCH(
 
     return NextResponse.json(result)
   } catch (error) {
-    console.error(`PATCH /api/chatbot/faqs/${params.id} error:`, error)
+    const { id } = await params
+    console.error(`PATCH /api/chatbot/faqs/${id} error:`, error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -69,10 +72,11 @@ export async function PATCH(
 // DELETE /api/chatbot/faqs/[id] - Delete FAQ (admin only)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const result = await deleteFAQ(params.id)
+    const { id } = await params
+    const result = await deleteFAQ(id)
 
     if (!result.success) {
       const status = result.error?.includes('Unauthorized') ? 401 
@@ -88,7 +92,8 @@ export async function DELETE(
 
     return NextResponse.json(result)
   } catch (error) {
-    console.error(`DELETE /api/chatbot/faqs/${params.id} error:`, error)
+    const { id } = await params
+    console.error(`DELETE /api/chatbot/faqs/${id} error:`, error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

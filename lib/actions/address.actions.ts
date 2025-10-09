@@ -16,7 +16,7 @@ export async function getUserAddresses() {
 
     await connectToDatabase()
     
-    const user = await User.findById(session.user.id).select('addresses address').lean()
+    const user = await User.findById(session.user.id).select('addresses address').lean() as any
     if (!user) {
       return { success: false, message: 'User not found', data: [] }
     }
@@ -109,7 +109,7 @@ export async function getDefaultAddress() {
 
     await connectToDatabase()
     
-    const user = await User.findById(session.user.id).select('addresses address').lean()
+    const user = await User.findById(session.user.id).select('addresses address').lean() as any
     if (!user) {
       return { success: false, message: 'User not found', data: null }
     }
@@ -161,7 +161,7 @@ export async function addAddress(address: ShippingAddress, setAsDefault: boolean
 
     await connectToDatabase()
     
-    const user = await User.findById(session.user.id).lean()
+    const user = await User.findById(session.user.id).lean() as any
     if (!user) {
       return { success: false, message: 'User not found' }
     }
@@ -207,7 +207,7 @@ export async function addAddress(address: ShippingAddress, setAsDefault: boolean
       message: 'Address added successfully',
       data: {
         ...newAddress,
-        _id: newAddress._id?.toString(),
+        _id: (newAddress as any)._id?.toString(),
         createdAt: newAddress.createdAt?.toISOString?.() || newAddress.createdAt,
         updatedAt: newAddress.updatedAt?.toISOString?.() || newAddress.updatedAt,
       }
@@ -228,7 +228,7 @@ export async function updateAddress(addressId: string, address: ShippingAddress)
 
     await connectToDatabase()
     
-    const user = await User.findById(session.user.id).lean()
+    const user = await User.findById(session.user.id).lean() as any
     if (!user) {
       return { success: false, message: 'User not found' }
     }
@@ -269,8 +269,8 @@ export async function updateAddress(addressId: string, address: ShippingAddress)
       message: 'Address updated successfully',
       data: {
         ...updatedAddress,
-        _id: updatedAddress._id?.toString(),
-        createdAt: updatedAddress.createdAt?.toISOString?.() || updatedAddress.createdAt,
+        _id: (updatedAddress as any)._id?.toString(),
+        createdAt: (updatedAddress.createdAt as any)?.toISOString?.() || updatedAddress.createdAt,
         updatedAt: updatedAddress.updatedAt?.toISOString?.() || updatedAddress.updatedAt,
       }
     }
@@ -290,7 +290,7 @@ export async function deleteAddress(addressId: string) {
 
     await connectToDatabase()
     
-    const user = await User.findById(session.user.id)
+    const user = await User.findById(session.user.id) as any
     if (!user) {
       return { success: false, message: 'User not found' }
     }
@@ -336,7 +336,7 @@ export async function setAddressAsDefault(addressId: string) {
 
     await connectToDatabase()
     
-    const user = await User.findById(session.user.id).lean()
+    const user = await User.findById(session.user.id).lean() as any
     if (!user) {
       return { success: false, message: 'User not found' }
     }

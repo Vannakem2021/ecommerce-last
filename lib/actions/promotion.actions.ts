@@ -292,9 +292,9 @@ export async function getAllPromotions({
 
     // Handle cases where users might be deleted
     const processedPromotions = promotions.map(promo => {
-      const obj = promo.toObject()
-      if (obj.createdBy && typeof obj.createdBy === 'object' && !obj.createdBy.name) {
-        obj.createdBy = obj.createdBy._id || obj.createdBy
+      const obj = promo.toObject() as any
+      if (obj.createdBy && typeof obj.createdBy === 'object' && !(obj.createdBy as any).name) {
+        obj.createdBy = (obj.createdBy as any)._id || obj.createdBy
       }
       return obj
     })
@@ -327,10 +327,10 @@ export async function getPromotionById(id: string) {
     }
 
     // Check if createdBy populate failed (user was deleted)
-    const result = promotion.toObject()
-    if (result.createdBy && typeof result.createdBy === 'object' && !result.createdBy.name) {
+    const result = promotion.toObject() as any
+    if (result.createdBy && typeof result.createdBy === 'object' && !(result.createdBy as any).name) {
       // User was deleted or doesn't exist
-      result.createdBy = result.createdBy._id || result.createdBy
+      result.createdBy = (result.createdBy as any)._id || result.createdBy
     }
 
     return JSON.parse(JSON.stringify(result))

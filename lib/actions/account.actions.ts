@@ -54,8 +54,8 @@ export async function getAccountStats(): Promise<{
       totalSpent: orders
         .filter((o: any) => o.isPaid)
         .reduce((sum: number, o: any) => sum + (o.totalPrice || 0), 0),
-      savedAddresses: user?.addresses?.length || 0,
-      hasDefaultAddress: user?.addresses?.some((a: any) => a.isDefault) || false,
+      savedAddresses: user?.address ? 1 : 0,
+      hasDefaultAddress: user?.address ? true : false,
     }
 
     return {

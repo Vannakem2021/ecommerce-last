@@ -36,8 +36,8 @@ interface AddressFormDialogProps {
 const emptyAddressValues: ShippingAddress = {
   fullName: '',
   phone: '',
-  provinceId: '',
-  districtId: '',
+  provinceId: 0,
+  districtId: 0,
   communeCode: '',
   houseNumber: '',
   street: '',

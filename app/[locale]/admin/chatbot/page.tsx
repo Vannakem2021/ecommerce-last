@@ -26,7 +26,7 @@ export default async function ChatbotPage() {
         </div>
       </div>
 
-      <FAQListClient initialFaqs={faqs} categories={categories} />
+      <FAQListClient initialFaqs={faqs || []} categories={categories || []} />
     </div>
   )
 }

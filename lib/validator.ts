@@ -522,6 +522,12 @@ export const OrderInputSchema = z.object({
     freeShipping: z.boolean().optional(),
   })),
   discountAmount: z.optional(z.number().min(0)),
+  // Internal notes (admin only)
+  internalNotes: z.optional(z.array(z.object({
+    note: z.string(),
+    createdBy: MongoId,
+    createdAt: z.date(),
+  }))),
 });
 // Cart
 
@@ -660,6 +666,27 @@ export const UserInputSchema = z.object({
   phone: z.string().optional(),
   preferredLanguage: z.enum(['en-US', 'kh']).optional(),
   preferredCurrency: z.enum(['USD', 'KHR']).optional(),
+  
+  // Multiple addresses support
+  addresses: z.optional(z.array(z.object({
+    fullName: z.string(),
+    phone: z.string(),
+    postalCode: z.string().optional(),
+    provinceId: z.number(),
+    districtId: z.number(),
+    communeCode: z.string(),
+    houseNumber: z.string(),
+    street: z.string().optional(),
+    provinceName: z.string(),
+    districtName: z.string(),
+    communeName: z.string(),
+    city: z.string().optional(),
+    province: z.string().optional(),
+    country: z.string().optional(),
+    isDefault: z.boolean().optional(),
+    createdAt: z.date().optional(),
+    updatedAt: z.date().optional(),
+  }))),
   
   address: z.union([
     // Cambodia address format

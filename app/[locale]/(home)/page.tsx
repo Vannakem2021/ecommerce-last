@@ -41,7 +41,7 @@ export default async function HomePage() {
   // Fetch data for each section based on its type
   const sectionData = await Promise.all(
     sections.map(async (section) => {
-      let products = []
+      let products: any[] = []
       
       switch (section.id) {
         case 'hot-deals':

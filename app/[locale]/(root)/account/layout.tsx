@@ -51,7 +51,7 @@ export default async function AccountLayout({
     user: {
       ...session.user,
       image: userData?.image || session.user.image, // Use database image (same as Settings)
-      createdAt: userData?.createdAt || session.user.createdAt,
+      createdAt: userData?.createdAt,
       hasPassword, // Pass auth method for initials display
     }
   }

@@ -43,55 +43,11 @@ export async function migrateProductSales(dryRun: boolean = false): Promise<Migr
   try {
     await connectToDatabase()
 
-    // Find all products with 'todays-deal' tag
-    const productsWithTodaysDeal = await Product.find({
-      tags: { $in: ['todays-deal'] }
-    })
-
-    console.log(`Found ${productsWithTodaysDeal.length} products with 'todays-deal' tag`)
-
-    if (productsWithTodaysDeal.length === 0) {
-      result.success = true
-      result.message = 'No products found with todays-deal tag'
-      return result
-    }
-
-    if (dryRun) {
-      result.success = true
-      result.message = `DRY RUN: Would migrate ${productsWithTodaysDeal.length} products`
-      result.migratedCount = productsWithTodaysDeal.length
-      return result
-    }
-
-    // Set sale period for each product (simplified approach - no salePrice needed)
-    const now = new Date()
-    const saleEndDate = new Date(now.getTime() + (30 * 24 * 60 * 60 * 1000)) // 30 days from now
-
-    for (const product of productsWithTodaysDeal) {
-      try {
-        // Remove 'todays-deal' from tags array
-        const updatedTags = product.tags.filter((tag: string) => tag !== 'todays-deal')
-
-        // Update the product with time-based sale logic (no salePrice needed)
-        await Product.findByIdAndUpdate(
-          product._id,
-          {
-            $set: {
-              saleStartDate: now,
-              saleEndDate: saleEndDate,
-              tags: updatedTags
-            }
-          }
-        )
-
-        result.migratedCount++
-        console.log(`Migrated product: ${product.name} (${product._id})`)
-      } catch (error) {
-        const errorMsg = `Failed to migrate product ${product.name}: ${error}`
-        result.errors.push(errorMsg)
-        console.error(errorMsg)
-      }
-    }
+    // Migration is no longer needed - tags have been removed from the product model
+    // Products now use saleStartDate/saleEndDate and listPrice > price for hot deals
+    result.success = true
+    result.message = 'Migration no longer needed - tags system has been removed. Products with listPrice > price are automatically shown as hot deals.'
+    return result
 
     result.success = result.errors.length === 0
     result.message = result.success 
@@ -129,51 +85,10 @@ export async function rollbackProductSalesMigration(): Promise<MigrationResult> 
   try {
     await connectToDatabase()
     
-    // Find all products with sale dates set
-    const productsWithSaleDates = await Product.find({
-      $or: [
-        { saleStartDate: { $exists: true } },
-        { saleEndDate: { $exists: true } }
-      ]
-    })
-
-    console.log(`Found ${productsWithSaleDates.length} products with sale dates`)
-
-    if (productsWithSaleDates.length === 0) {
-      result.success = true
-      result.message = 'No products found with sale dates'
-      return result
-    }
-
-    for (const product of productsWithSaleDates) {
-      try {
-        // Add 'todays-deal' back to tags if it's not already there
-        const updatedTags = product.tags.includes('todays-deal') 
-          ? product.tags 
-          : [...product.tags, 'todays-deal']
-        
-        // Remove sale dates and restore todays-deal tag
-        await Product.findByIdAndUpdate(
-          product._id,
-          {
-            $unset: {
-              saleStartDate: 1,
-              saleEndDate: 1
-            },
-            $set: {
-              tags: updatedTags
-            }
-          }
-        )
-
-        result.migratedCount++
-        console.log(`Rolled back product: ${product.name} (${product._id})`)
-      } catch (error) {
-        const errorMsg = `Failed to rollback product ${product.name}: ${error}`
-        result.errors.push(errorMsg)
-        console.error(errorMsg)
-      }
-    }
+    // Rollback is no longer applicable - tags system has been removed
+    result.success = true
+    result.message = 'Rollback no longer applicable - tags system has been removed from the product model'
+    return result
 
     result.success = result.errors.length === 0
     result.message = result.success 
