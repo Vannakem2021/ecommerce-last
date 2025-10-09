@@ -482,7 +482,7 @@ export const OrderInputSchema = z.object({
     .optional(),
   itemsPrice: Price("Items price"),
   shippingPrice: Price("Shipping price"),
-  taxPrice: Price("Tax price"),
+  taxPrice: z.optional(Price("Tax price")),
   totalPrice: Price("Total price"),
   expectedDeliveryDate: z
     .date()

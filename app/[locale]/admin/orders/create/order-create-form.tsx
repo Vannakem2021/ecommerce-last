@@ -323,8 +323,8 @@ export default function OrderCreateForm({ products }: Props) {
       shippingPrice = selectedDeliveryDate?.shippingPrice || 0
     }
     
-    const taxPrice = itemsPrice * 0.1 // 10% tax
-    const totalPrice = itemsPrice + shippingPrice + taxPrice
+    const taxPrice = 0 // No tax
+    const totalPrice = itemsPrice + shippingPrice
 
     return { itemsPrice, shippingPrice, taxPrice, totalPrice }
   }
@@ -742,10 +742,7 @@ export default function OrderCreateForm({ products }: Props) {
               <span>Shipping:</span>
               <span>${shippingPrice.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between">
-              <span>Tax (10%):</span>
-              <span>${taxPrice.toFixed(2)}</span>
-            </div>
+
             <hr />
             <div className="flex justify-between font-bold text-lg">
               <span>Total:</span>

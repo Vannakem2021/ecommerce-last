@@ -390,10 +390,7 @@ export default function OrderDetailsForm({
                   <span className="text-muted-foreground">Items Subtotal</span>
                   <ProductPrice price={itemsPrice} plain />
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Tax</span>
-                  <ProductPrice price={taxPrice} plain />
-                </div>
+
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Shipping</span>
                   <ProductPrice price={shippingPrice} plain />
