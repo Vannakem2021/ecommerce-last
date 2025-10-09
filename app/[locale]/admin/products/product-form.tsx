@@ -512,6 +512,7 @@ const ProductForm = ({
     defaultValues:
       product && type === 'Update'
         ? {
+            _id: productId || product._id, // Include _id for ProductUpdateSchema validation
             name: product.name,
             slug: product.slug,
             category: typeof product.category === 'object' ? (product.category as unknown as { _id: string })._id : product.category,
@@ -585,6 +586,7 @@ const ProductForm = ({
         router.push(`/admin/products`)
         return
       }
+      // _id is already in values from form defaultValues, but ensure it's set
       const res = await updateProduct({ ...values, _id: productId })
       if (!res.success) {
         toast({
