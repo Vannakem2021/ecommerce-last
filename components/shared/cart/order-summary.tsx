@@ -136,15 +136,7 @@ export default function OrderSummary({
             </div>
           )}
 
-          {/* Tax (for checkout) */}
-          {taxPrice !== undefined && (
-            <div className='flex justify-between text-sm'>
-              <span className='text-muted-foreground'>Tax</span>
-              <span className='font-medium'>
-                <ProductPrice price={taxPrice} plain />
-              </span>
-            </div>
-          )}
+
 
           {/* Discount */}
           {discountAmount > 0 && (

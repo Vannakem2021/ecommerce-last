@@ -143,14 +143,7 @@ export default function OrderDetailsForm({
                       )}
                     </span>
                   </div>
-                  {taxPrice !== undefined && taxPrice > 0 && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Tax</span>
-                      <span className="font-medium">
-                        <ProductPrice price={taxPrice} plain />
-                      </span>
-                    </div>
-                  )}
+
                 </div>
               </div>
             </CardContent>
@@ -330,15 +323,7 @@ export default function OrderDetailsForm({
                 </span>
               </div>
 
-              {/* Tax */}
-              {taxPrice !== undefined && taxPrice > 0 && (
-                <div className="flex justify-between text-sm md:text-base">
-                  <span className="text-muted-foreground">Tax</span>
-                  <span className="font-semibold">
-                    <ProductPrice price={taxPrice} plain />
-                  </span>
-                </div>
-              )}
+
 
               {/* Total */}
               <div className="flex justify-between items-center pt-3 border-t">

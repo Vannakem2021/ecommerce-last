@@ -121,7 +121,7 @@ export const createOrderFromCart = async (
   )
 
   // Calculate base total before discount
-  const baseTotal = serverItemsPrice + (cart.shippingPrice || 0) + (cart.taxPrice || 0)
+  const baseTotal = serverItemsPrice + (cart.shippingPrice || 0)
 
   // Apply existing discount amount (promotion discounts are calculated separately and should remain the same)
   const finalTotal = cart.appliedPromotion
@@ -946,11 +946,10 @@ export const calcDeliveryDateAndPrice = async ({
         ? undefined
         : deliveryDate.shippingPrice
 
-    const taxPrice = !shippingAddress ? undefined : round2(itemsPrice * 0.15)
+    const taxPrice = undefined
     const totalPrice = round2(
       itemsPrice +
-        (shippingPrice ? round2(shippingPrice) : 0) +
-        (taxPrice ? round2(taxPrice) : 0)
+        (shippingPrice ? round2(shippingPrice) : 0)
     )
 
     const result = {

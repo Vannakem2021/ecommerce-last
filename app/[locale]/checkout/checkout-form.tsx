@@ -428,7 +428,7 @@ const CheckoutForm = () => {
   // Helper text based on checkout step
   const getHelpText = () => {
     if (!isAddressSelected) {
-      return "Choose a shipping address and payment method to calculate shipping, handling, and tax."
+      return "Choose a shipping address and payment method to calculate shipping and handling."
     }
     if (isAddressSelected && !isPaymentMethodSelected) {
       return "Choose a payment method to continue. You'll review your order before it's final."
