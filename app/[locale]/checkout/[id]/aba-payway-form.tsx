@@ -119,7 +119,14 @@ export default function ABAPayWayForm({ orderId, amount }: ABAPayWayFormProps) {
       console.log('[Payment] Submitting form...')
       form.submit()
       console.log('[Payment] Form submitted successfully')
-      document.body.removeChild(form)
+      
+      // Remove form after a delay to allow browser to process the submission
+      setTimeout(() => {
+        if (document.body.contains(form)) {
+          document.body.removeChild(form)
+          console.log('[Payment] Form cleaned up')
+        }
+      }, 1000) // 1 second delay
 
       toast({
         title: 'Payment Window Opened',
