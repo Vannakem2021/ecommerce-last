@@ -101,7 +101,8 @@ export default function ProductDetailClient({
   const ram = searchParams.get('ram') || product.variants?.ram?.[0] || ''
   const color = searchParams.get('color') || 
     (hasLegacyVariants ? product.variants?.colors?.[0] : product.colors[0]) || ''
-  const size = searchParams.get('size') || product.sizes[0] || ''
+  // Size is not used anymore - we use memory configurations instead
+  const size = ''
 
   // Calculate price and stock based on configuration
   const currentPrice = hasConfigurations && currentConfiguration 
@@ -188,7 +189,7 @@ export default function ProductDetailClient({
           {/* Color Selector - Use existing color circle UI */}
           {availableColors.length > 0 && (
             <SelectVariant
-              product={{ ...product, colors: availableColors } as any}
+              product={{ ...product, colors: availableColors, sizes: [] } as any}
               size=""
               color={selectedColor}
               onColorChange={setSelectedColor}
@@ -211,11 +212,14 @@ export default function ProductDetailClient({
           onPriceChange={(price) => {}}
         />
       ) : (
-        <SelectVariant
-          product={product}
-          size={size}
-          color={color}
-        />
+        // Simple product - only show colors, no sizes
+        product.colors.length > 0 && (
+          <SelectVariant
+            product={{ ...product, sizes: [] } as any}
+            size=""
+            color={color}
+          />
+        )
       )}
 
       {/* Quantity Selector */}
