@@ -118,6 +118,11 @@ const ConfigurationManager = ({ value = [], onChange, baseSku }: ConfigurationMa
       toast({ variant: 'destructive', description: 'Valid price is required' })
       return
     }
+    // At least one attribute should be selected
+    if (!formData.storage && !formData.ram && !formData.color) {
+      toast({ variant: 'destructive', description: 'Please select at least one variant attribute (RAM, Storage, or Color)' })
+      return
+    }
 
     // Auto-generate SKU as BASESKU-001, BASESKU-002, etc.
     const nextNumber = String(value.length + 1).padStart(3, '0')
@@ -282,12 +287,13 @@ const ConfigurationManager = ({ value = [], onChange, baseSku }: ConfigurationMa
             {/* Row 1: Attributes */}
             <div className="grid grid-cols-3 gap-2">
               <div>
-                <label className="text-[10px] font-medium block mb-1">RAM</label>
-                <Select value={formData.ram || undefined} onValueChange={(val) => handleAttributeChange('ram', val)}>
+                <label className="text-[10px] font-medium block mb-1">RAM <span className="text-muted-foreground">(Optional)</span></label>
+                <Select value={formData.ram || undefined} onValueChange={(val) => handleAttributeChange('ram', val === 'none' ? '' : val)}>
                   <SelectTrigger className="text-xs h-8">
-                    <SelectValue placeholder="RAM" />
+                    <SelectValue placeholder="None" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
                     <SelectItem value="4GB">4GB</SelectItem>
                     <SelectItem value="6GB">6GB</SelectItem>
                     <SelectItem value="8GB">8GB</SelectItem>
@@ -299,12 +305,13 @@ const ConfigurationManager = ({ value = [], onChange, baseSku }: ConfigurationMa
               </div>
 
               <div>
-                <label className="text-[10px] font-medium block mb-1">Storage</label>
-                <Select value={formData.storage || undefined} onValueChange={(val) => handleAttributeChange('storage', val)}>
+                <label className="text-[10px] font-medium block mb-1">Storage <span className="text-muted-foreground">(Optional)</span></label>
+                <Select value={formData.storage || undefined} onValueChange={(val) => handleAttributeChange('storage', val === 'none' ? '' : val)}>
                   <SelectTrigger className="text-xs h-8">
-                    <SelectValue placeholder="Storage" />
+                    <SelectValue placeholder="None" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
                     <SelectItem value="64GB">64GB</SelectItem>
                     <SelectItem value="128GB">128GB</SelectItem>
                     <SelectItem value="256GB">256GB</SelectItem>
@@ -316,12 +323,13 @@ const ConfigurationManager = ({ value = [], onChange, baseSku }: ConfigurationMa
               </div>
 
               <div>
-                <label className="text-[10px] font-medium block mb-1">Color</label>
-                <Select value={formData.color || undefined} onValueChange={(val) => handleAttributeChange('color', val)}>
+                <label className="text-[10px] font-medium block mb-1">Color <span className="text-muted-foreground">(Optional)</span></label>
+                <Select value={formData.color || undefined} onValueChange={(val) => handleAttributeChange('color', val === 'none' ? '' : val)}>
                   <SelectTrigger className="text-xs h-8">
-                    <SelectValue placeholder="Color" />
+                    <SelectValue placeholder="None" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
                     <SelectItem value="Black">Black</SelectItem>
                     <SelectItem value="White">White</SelectItem>
                     <SelectItem value="Silver">Silver</SelectItem>
