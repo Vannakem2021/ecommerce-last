@@ -3,9 +3,16 @@ import { IOrderList } from '@/types'
 
 /**
  * Generate formatted order number from MongoDB ObjectId and date
+ * Uses custom orderId if available, otherwise generates from _id
  * Format: ORD-YYMMDD-XXXX
  */
-function generateOrderNumber(id: string, createdAt: Date): string {
+function generateOrderNumber(id: string, createdAt: Date, orderId?: string): string {
+  // If custom orderId is provided, use it
+  if (orderId) {
+    return orderId
+  }
+  
+  // Fallback: Generate from MongoDB _id and date
   const date = new Date(createdAt)
   const year = date.getFullYear().toString().slice(-2)
   const month = (date.getMonth() + 1).toString().padStart(2, '0')
@@ -85,7 +92,7 @@ export async function generateOrdersExcel(orders: IOrderList[]): Promise<Buffer>
   // Add data rows
   orders.forEach((order) => {
     const row = worksheet.addRow({
-      orderId: generateOrderNumber(order._id, order.createdAt),
+      orderId: generateOrderNumber(order._id, order.createdAt, (order as any).orderId),
       date: new Date(order.createdAt),
       customerName: order.user?.name || 'N/A',
       customerEmail: order.user?.email || 'N/A',
@@ -168,7 +175,7 @@ export async function generateOrdersExcel(orders: IOrderList[]): Promise<Buffer>
   
   // Add item data
   orders.forEach((order) => {
-    const orderId = generateOrderNumber(order._id, order.createdAt)
+    const orderId = generateOrderNumber(order._id, order.createdAt, (order as any).orderId)
     order.items.forEach((item) => {
       const row = itemsSheet.addRow({
         orderId,

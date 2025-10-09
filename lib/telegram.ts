@@ -8,9 +8,10 @@ export interface TelegramMessage {
   orderId: string
   customerName: string
   customerEmail: string
+  customerPhone: string
   totalAmount: number
   items: OrderItem[]
-  type: 'paid' | 'delivered'
+  type: 'paid' | 'delivered' | 'cod'
   createdAt: Date
 }
 
@@ -38,6 +39,9 @@ export async function sendTelegramNotification(message: TelegramMessage): Promis
     switch (message.type) {
       case 'paid':
         shouldSend = notificationTypes.orderPaid
+        break
+      case 'cod':
+        shouldSend = notificationTypes.orderPaid // Use same setting for COD
         break
       case 'delivered':
         shouldSend = notificationTypes.orderDelivered
@@ -83,19 +87,27 @@ export async function sendTelegramNotification(message: TelegramMessage): Promis
  * @returns Formatted HTML message string
  */
 function formatTelegramMessage(message: TelegramMessage): string {
-  const { orderId, customerName, customerEmail, totalAmount, items, type, createdAt } = message
+  const { orderId, customerName, customerEmail, customerPhone, totalAmount, items, type, createdAt } = message
 
   let title = ''
   let emoji = ''
+  let statusMessage = ''
 
   switch (type) {
     case 'paid':
       title = 'Order Payment Confirmed'
       emoji = '💳'
+      statusMessage = '✅ Payment confirmed - ready for processing!'
+      break
+    case 'cod':
+      title = 'New Cash on Delivery Order'
+      emoji = '💵'
+      statusMessage = '⏳ Payment pending - will be collected on delivery'
       break
     case 'delivered':
       title = 'Order Delivered'
       emoji = '📦'
+      statusMessage = '🎉 Order successfully delivered!'
       break
   }
 
@@ -109,14 +121,14 @@ function formatTelegramMessage(message: TelegramMessage): string {
 <b>Order ID:</b> ${orderId}
 <b>Customer:</b> ${customerName}
 <b>Email:</b> ${customerEmail}
+<b>Phone:</b> ${customerPhone}
 <b>Date:</b> ${date}
 <b>Total:</b> ${formatCurrency(totalAmount)}
 
 <b>Items:</b>
 ${itemsList}
 
-${type === 'paid' ? '✅ Payment confirmed - ready for processing!' : ''}
-${type === 'delivered' ? '🎉 Order successfully delivered!' : ''}`
+${statusMessage}`
 }
 
 /**
@@ -206,14 +218,15 @@ If you receive this message, your Telegram bot is configured correctly!
  */
 export function createTelegramMessageFromOrder(
   order: IOrder,
-  type: 'paid' | 'delivered'
+  type: 'paid' | 'delivered' | 'cod'
 ): TelegramMessage {
   const user = order.user as { name: string; email: string }
   
   return {
-    orderId: order._id.toString(),
+    orderId: (order as any).orderId || order._id.toString(), // Use custom orderId if available
     customerName: user.name,
     customerEmail: user.email,
+    customerPhone: order.shippingAddress?.phone || 'N/A',
     totalAmount: order.totalPrice,
     items: order.items,
     type,
@@ -224,12 +237,22 @@ export function createTelegramMessageFromOrder(
 
 
 /**
- * Send order paid notification
+ * Send order paid notification (for online payments like ABA PayWay)
  * @param order - The order object
  * @returns Promise<boolean>
  */
 export async function sendOrderPaidNotification(order: IOrder): Promise<boolean> {
   const message = createTelegramMessageFromOrder(order, 'paid')
+  return await sendTelegramNotification(message)
+}
+
+/**
+ * Send COD order notification (payment pending)
+ * @param order - The order object
+ * @returns Promise<boolean>
+ */
+export async function sendOrderCODNotification(order: IOrder): Promise<boolean> {
+  const message = createTelegramMessageFromOrder(order, 'cod')
   return await sendTelegramNotification(message)
 }
 

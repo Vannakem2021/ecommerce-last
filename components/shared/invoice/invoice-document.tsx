@@ -1,10 +1,8 @@
 'use client'
 
 import Image from 'next/image'
-import { useEffect, useState } from 'react'
 import { formatDateTime } from '@/lib/utils'
 import { formatInvoiceCurrency } from '@/lib/utils/invoice-utils'
-import QRCode from 'qrcode'
 import { Badge } from '@/components/ui/badge'
 import { CheckCircle2, Package } from 'lucide-react'
 
@@ -98,29 +96,6 @@ export default function InvoiceDocument({ invoiceData, className = '' }: Invoice
     paidAt,
   } = invoiceData
 
-  const [qrCodeUrl, setQrCodeUrl] = useState<string>('')
-
-  // Generate QR code on mount
-  useEffect(() => {
-    const generateQR = async () => {
-      try {
-        const trackingUrl = `${window.location.origin}/account/orders/${orderId}`
-        const qr = await QRCode.toDataURL(trackingUrl, {
-          width: 120,
-          margin: 1,
-          color: {
-            dark: '#0D9488', // Teal color
-            light: '#FFFFFF',
-          },
-        })
-        setQrCodeUrl(qr)
-      } catch (error) {
-        console.error('QR Code generation error:', error)
-      }
-    }
-    generateQR()
-  }, [orderId])
-
   return (
     <div className={`max-w-5xl mx-auto bg-white dark:bg-white shadow-lg border rounded-lg print:shadow-none print:border-none print:rounded-none print:m-0 print:max-w-none ${className}`}>
 
@@ -166,20 +141,6 @@ export default function InvoiceDocument({ invoiceData, className = '' }: Invoice
                   )}
                 </div>
               </div>
-              
-              {/* QR Code */}
-              {qrCodeUrl && (
-                <div className="flex-shrink-0 text-center">
-                  <Image
-                    src={qrCodeUrl}
-                    alt="Order QR Code"
-                    width={100}
-                    height={100}
-                    className="w-20 h-20 sm:w-24 sm:h-24 border-2 border-teal-600 rounded-lg p-1"
-                  />
-                  <p className="text-xs text-gray-600 mt-1">Scan to track</p>
-                </div>
-              )}
             </div>
           </div>
 

@@ -458,6 +458,7 @@ export const ShippingAddressSchema = z.union([
 
 // Order
 export const OrderInputSchema = z.object({
+  orderId: z.string().optional(), // Auto-generated if not provided
   user: z.union([
     MongoId,
     z.object({

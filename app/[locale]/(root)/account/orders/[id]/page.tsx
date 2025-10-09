@@ -22,7 +22,7 @@ export async function generateMetadata(props: {
   }
 
   return {
-    title: `Order ${generateOrderNumber(order._id, order.createdAt!)}`,
+    title: `Order ${generateOrderNumber(order._id, order.createdAt!, (order as any).orderId)}`,
   }
 }
 
@@ -40,7 +40,7 @@ export default async function OrderDetailsPage(props: {
 
   const session = await auth()
 
-  const formattedOrderId = generateOrderNumber(order._id, order.createdAt!)
+  const formattedOrderId = generateOrderNumber(order._id, order.createdAt!, (order as any).orderId)
 
   return (
     <>

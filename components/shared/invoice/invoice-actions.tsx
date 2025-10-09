@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { PrinterIcon, DownloadIcon, EyeIcon } from 'lucide-react'
+import { PrinterIcon, DownloadIcon } from 'lucide-react'
 import { FaFileInvoice } from 'react-icons/fa'
 import { useToast } from '@/hooks/use-toast'
 
@@ -83,16 +83,6 @@ export default function InvoiceActions({
     }
   }
 
-  const handleView = () => {
-    // Determine the correct route based on admin status
-    const invoiceRoute = isAdmin
-      ? `/admin/orders/${orderId}/invoice`
-      : `/account/orders/${orderId}/invoice`
-
-    // Open invoice in new tab for viewing
-    window.open(invoiceRoute, '_blank')
-  }
-
   return (
     <div className={`flex flex-col sm:flex-row gap-2 w-full sm:w-auto ${className}`}>
       {/* Print Button - Primary Action */}
@@ -117,18 +107,6 @@ export default function InvoiceActions({
       >
         <DownloadIcon className="h-4 w-4" />
         {showLabels && <span>Download PDF</span>}
-      </Button>
-
-      {/* View Invoice Button - Secondary */}
-      <Button
-        variant="outline"
-        size={size}
-        onClick={handleView}
-        disabled={isLoading}
-        className="flex items-center justify-center gap-2 flex-1 sm:flex-initial"
-      >
-        <EyeIcon className="h-4 w-4" />
-        {showLabels && <span>Preview</span>}
       </Button>
     </div>
   )

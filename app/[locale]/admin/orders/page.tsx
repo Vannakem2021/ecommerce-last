@@ -25,18 +25,10 @@ import { MarkDeliveredDialog } from '@/components/shared/order/mark-delivered-di
 import { MarkPaidDialog } from '@/components/shared/order/mark-paid-dialog'
 import { Eye, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { generateOrderNumber } from '@/lib/utils/order-utils'
 
 export const metadata: Metadata = {
   title: 'Admin Orders',
-}
-// Helper function to generate user-friendly order numbers
-const generateOrderNumber = (id: string, createdAt: Date) => {
-  const date = new Date(createdAt)
-  const year = date.getFullYear().toString().slice(-2)
-  const month = (date.getMonth() + 1).toString().padStart(2, '0')
-  const day = date.getDate().toString().padStart(2, '0')
-  const shortId = id.slice(-4).toUpperCase()
-  return `ORD-${year}${month}${day}-${shortId}`
 }
 
 // Helper component for ORDER FULFILLMENT status badges (not payment status)
@@ -177,7 +169,7 @@ export default async function OrdersPage(props: {
               <TableRow key={order._id} className="hover:bg-muted/30 transition-colors">
                 <TableCell className="font-mono text-sm">
                   <span className="font-semibold" title={order._id}>
-                    {generateOrderNumber(order._id, order.createdAt!)}
+                    {generateOrderNumber(order._id, order.createdAt!, (order as any).orderId)}
                   </span>
                 </TableCell>
                 <TableCell>
@@ -231,7 +223,7 @@ export default async function OrdersPage(props: {
                             <div>
                               <MarkPaidDialog
                                 orderId={order._id}
-                                orderNumber={generateOrderNumber(order._id, order.createdAt!)}
+                                orderNumber={generateOrderNumber(order._id, order.createdAt!, (order as any).orderId)}
                                 customerName={order.user?.name || 'Customer'}
                                 totalPrice={order.totalPrice}
                                 variant="outline"
@@ -266,7 +258,7 @@ export default async function OrdersPage(props: {
                             <div>
                               <MarkDeliveredDialog
                                 orderId={order._id}
-                                orderNumber={generateOrderNumber(order._id, order.createdAt!)}
+                                orderNumber={generateOrderNumber(order._id, order.createdAt!, (order as any).orderId)}
                                 customerName={order.user?.name || 'Customer'}
                                 totalPrice={order.totalPrice}
                                 variant="outline"

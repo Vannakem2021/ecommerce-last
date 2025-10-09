@@ -88,7 +88,7 @@ export default function OrderDetailsForm({
               </div>
               <MarkPaidDialog
                 orderId={order._id}
-                orderNumber={generateOrderNumber(order._id, order.createdAt!)}
+                orderNumber={generateOrderNumber(order._id, order.createdAt!, (order as any).orderId)}
                 customerName={order.user?.name}
                 totalPrice={totalPrice}
                 variant="default"
@@ -115,7 +115,7 @@ export default function OrderDetailsForm({
               </div>
               <MarkDeliveredDialog
                 orderId={order._id}
-                orderNumber={generateOrderNumber(order._id, order.createdAt!)}
+                orderNumber={generateOrderNumber(order._id, order.createdAt!, (order as any).orderId)}
                 customerName={order.user?.name}
                 totalPrice={totalPrice}
                 variant="default"
@@ -200,7 +200,10 @@ export default function OrderDetailsForm({
               {isPaid && (
                 <div className="mt-4 pt-4 border-t">
                   <Button variant="outline" size="sm" className="w-full" asChild>
-                    <Link href={`/admin/orders/${order._id}/invoice`} target="_blank">
+                    <Link 
+                      href={isAdmin ? `/admin/orders/${order._id}/invoice` : `/account/orders/${order._id}/invoice`} 
+                      target="_blank"
+                    >
                       <PrinterIcon className="h-4 w-4 mr-2" />
                       View Invoice
                     </Link>

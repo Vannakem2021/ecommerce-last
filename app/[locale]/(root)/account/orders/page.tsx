@@ -97,7 +97,7 @@ export default async function OrdersPage(props: {
                   >
                     <div className="flex items-center">
                       <span className="font-semibold text-green-600 font-mono text-sm">
-                        {generateOrderNumber(order._id.toString(), order.createdAt!)}
+                        {generateOrderNumber(order._id.toString(), order.createdAt!, (order as any).orderId)}
                       </span>
                     </div>
 
@@ -157,7 +157,7 @@ export default async function OrdersPage(props: {
                       {/* Order Number & Status */}
                       <div className="flex items-center justify-between">
                         <span className="font-semibold text-green-600 font-mono text-sm">
-                          {generateOrderNumber(order._id.toString(), order.createdAt!)}
+                          {generateOrderNumber(order._id.toString(), order.createdAt!, (order as any).orderId)}
                         </span>
                         <span className={cn('px-3 py-1 rounded-full text-xs font-medium', statusColor)}>
                           {status}

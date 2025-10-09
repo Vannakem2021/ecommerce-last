@@ -68,7 +68,7 @@ export async function getInvoiceData(orderId: string) {
 
       // Order information
       orderId: order._id.toString(), // Keep MongoDB ID for internal use
-      orderNumber: generateOrderNumber(order._id.toString(), order.createdAt), // User-friendly order number
+      orderNumber: generateOrderNumber(order._id.toString(), order.createdAt, (order as any).orderId), // User-friendly order number
       orderDate: order.createdAt,
       paymentMethod: order.paymentMethod,
       expectedDeliveryDate: order.expectedDeliveryDate,

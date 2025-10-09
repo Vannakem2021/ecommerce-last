@@ -106,7 +106,7 @@ export default function OrderDetailsForm({
             {/* Order Number */}
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted text-sm font-mono">
               <span className="text-muted-foreground">Order #</span>
-              <span className="font-semibold">{generateOrderNumber(order._id.toString(), order.createdAt)}</span>
+              <span className="font-semibold">{generateOrderNumber(order._id.toString(), order.createdAt, (order as any).orderId)}</span>
             </div>
           </div>
 
@@ -177,7 +177,7 @@ export default function OrderDetailsForm({
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Order Number</span>
-                  <span className="font-medium font-mono">{generateOrderNumber(order._id.toString(), order.createdAt)}</span>
+                  <span className="font-medium font-mono">{generateOrderNumber(order._id.toString(), order.createdAt, (order as any).orderId)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Payment Method</span>
@@ -243,7 +243,7 @@ export default function OrderDetailsForm({
           {/* Order Number */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted text-sm font-mono">
             <span className="text-muted-foreground">Order #</span>
-            <span className="font-semibold">{generateOrderNumber(order._id.toString(), order.createdAt)}</span>
+            <span className="font-semibold">{generateOrderNumber(order._id.toString(), order.createdAt, (order as any).orderId)}</span>
           </div>
         </div>
 

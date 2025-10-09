@@ -8,7 +8,7 @@ import { OrderInputSchema } from '../validator'
 import Order, { IOrder } from '../db/models/order.model'
 import { revalidatePath } from 'next/cache'
 import { sendAskReviewOrderItems, sendPurchaseReceipt } from '@/emails'
-import { sendOrderPaidNotification, sendOrderDeliveredNotification } from '../telegram'
+import { sendOrderPaidNotification, sendOrderDeliveredNotification, sendOrderCODNotification } from '../telegram'
 import { DateRange } from 'react-day-picker'
 import Product from '../db/models/product.model'
 import User from '../db/models/user.model'
@@ -19,6 +19,7 @@ import { recordPromotionUsage } from './promotion.actions'
 import StockMovement from '@/lib/db/models/stock-movement.model'
 import { requirePermission } from '../rbac'
 import { createNotificationForRoles } from './notification.actions'
+import { generateOrderId } from '../utils/order-id'
 
 // CREATE
 export const createOrder = async (clientSideCart: Cart) => {
@@ -128,6 +129,7 @@ export const createOrderFromCart = async (
     : baseTotal
 
   const order = OrderInputSchema.parse({
+    orderId: generateOrderId(), // Generate custom order ID
     user: userId,
     items: serverTrustedItems,
     shippingAddress: cart.shippingAddress,
@@ -181,6 +183,20 @@ export const createOrderFromCart = async (
     } catch (error) {
       console.error('Failed to create order notification:', error)
     }
+
+    // Send Telegram notification for COD orders (with populated user)
+    if (cart.paymentMethod === 'CashOnDelivery' || cart.paymentMethod === 'Cash On Delivery') {
+      try {
+        const orderWithUser = await Order.findById(createdOrder._id).populate<{
+          user: { email: string; name: string }
+        }>('user', 'name email')
+        if (orderWithUser) {
+          await sendOrderCODNotification(orderWithUser as any)
+        }
+      } catch (telegramError) {
+        console.error('Failed to send Telegram notification for COD order:', telegramError)
+      }
+    }
     
     return createdOrder
   } catch {
@@ -220,6 +236,20 @@ export const createOrderFromCart = async (
       })
     } catch (error) {
       console.error('Failed to create order notification:', error)
+    }
+
+    // Send Telegram notification for COD orders (fallback path)
+    if (cart.paymentMethod === 'CashOnDelivery' || cart.paymentMethod === 'Cash On Delivery') {
+      try {
+        const orderWithUser = await Order.findById(createdOrder._id).populate<{
+          user: { email: string; name: string }
+        }>('user', 'name email')
+        if (orderWithUser) {
+          await sendOrderCODNotification(orderWithUser as any)
+        }
+      } catch (telegramError) {
+        console.error('Failed to send Telegram notification for COD order:', telegramError)
+      }
     }
 
     return createdOrder

@@ -19,7 +19,7 @@ interface OrderOverviewHeaderProps {
 }
 
 export default function OrderOverviewHeader({ order }: OrderOverviewHeaderProps) {
-  const orderNumber = generateOrderNumber(order._id, order.createdAt!)
+  const orderNumber = generateOrderNumber(order._id, order.createdAt!, (order as any).orderId)
   const itemCount = order.items.reduce((total, item) => total + item.quantity, 0)
 
   // Status indicator component

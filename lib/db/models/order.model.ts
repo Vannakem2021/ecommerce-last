@@ -9,6 +9,11 @@ export interface IOrder extends Document, IOrderInput {
 
 const orderSchema = new Schema<IOrder>(
   {
+    orderId: {
+      type: String,
+      unique: true,
+      required: true,
+    },
     user: {
       type: Schema.Types.ObjectId as unknown as typeof String,
       ref: "User",

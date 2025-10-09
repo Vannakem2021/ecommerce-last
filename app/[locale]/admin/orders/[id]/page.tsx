@@ -27,7 +27,7 @@ const AdminOrderDetailsPage = async (props: {
   if (!order) notFound()
 
   const session = await auth()
-  const orderNumber = generateOrderNumber(order._id, order.createdAt!)
+  const orderNumber = generateOrderNumber(order._id, order.createdAt!, (order as any).orderId)
 
   return (
     <main className='max-w-7xl mx-auto p-4 space-y-6'>
