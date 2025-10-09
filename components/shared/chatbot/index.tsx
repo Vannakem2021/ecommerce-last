@@ -15,10 +15,6 @@ export function ChatbotWidget() {
     clearSearch,
     isSearching,
     locale,
-    chatHistory,
-    handleSelectFAQ,
-    resetChat,
-    showSuggestions,
   } = useChatbot()
 
   return (
@@ -33,10 +29,6 @@ export function ChatbotWidget() {
         onClearSearch={clearSearch}
         isSearching={isSearching}
         locale={locale}
-        chatHistory={chatHistory}
-        onSelectFAQ={handleSelectFAQ as any}
-        onResetChat={resetChat}
-        showSuggestions={showSuggestions}
       />
     </>
   )
