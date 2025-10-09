@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
@@ -16,6 +16,10 @@ export default function ABAPayWayForm({ orderId, amount }: ABAPayWayFormProps) {
   const [paymentInProgress, setPaymentInProgress] = useState(false)
   const { toast } = useToast()
   const router = useRouter()
+  
+  // Use refs to persist across hot reloads
+  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const pollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Check order payment status
   const checkOrderStatus = useCallback(async () => {
@@ -27,8 +31,19 @@ export default function ABAPayWayForm({ orderId, amount }: ABAPayWayFormProps) {
         console.log('[Payment] Order status:', data)
         
         if (data.isPaid) {
-          // Payment completed! Redirect to order success page
-          console.log('[Payment] Payment detected! Redirecting to success page...')
+          // Payment completed! Stop polling and redirect
+          console.log('[Payment] Payment detected! Stopping polling and redirecting...')
+          
+          // Clear polling intervals
+          if (pollIntervalRef.current) {
+            clearInterval(pollIntervalRef.current)
+            pollIntervalRef.current = null
+          }
+          if (pollTimeoutRef.current) {
+            clearTimeout(pollTimeoutRef.current)
+            pollTimeoutRef.current = null
+          }
+          
           toast({
             title: 'Payment Successful!',
             description: 'Your payment has been processed. Redirecting...',
@@ -38,8 +53,19 @@ export default function ABAPayWayForm({ orderId, amount }: ABAPayWayFormProps) {
             router.push(`/account/orders/${orderId}`)
           }, 1000)
         } else if (data.paymentResult?.status === 'CANCELLED') {
-          // Payment was cancelled
-          console.log('[Payment] Payment cancelled by user')
+          // Payment was cancelled - stop polling
+          console.log('[Payment] Payment cancelled by user, stopping polling')
+          
+          // Clear polling intervals
+          if (pollIntervalRef.current) {
+            clearInterval(pollIntervalRef.current)
+            pollIntervalRef.current = null
+          }
+          if (pollTimeoutRef.current) {
+            clearTimeout(pollTimeoutRef.current)
+            pollTimeoutRef.current = null
+          }
+          
           setPaymentInProgress(false)
           setIsLoading(false)
           toast({
@@ -48,8 +74,19 @@ export default function ABAPayWayForm({ orderId, amount }: ABAPayWayFormProps) {
             variant: 'destructive',
           })
         } else if (data.paymentResult?.status === 'FAILED') {
-          // Payment failed
-          console.log('[Payment] Payment failed')
+          // Payment failed - stop polling
+          console.log('[Payment] Payment failed, stopping polling')
+          
+          // Clear polling intervals
+          if (pollIntervalRef.current) {
+            clearInterval(pollIntervalRef.current)
+            pollIntervalRef.current = null
+          }
+          if (pollTimeoutRef.current) {
+            clearTimeout(pollTimeoutRef.current)
+            pollTimeoutRef.current = null
+          }
+          
           setPaymentInProgress(false)
           setIsLoading(false)
           toast({
@@ -68,7 +105,7 @@ export default function ABAPayWayForm({ orderId, amount }: ABAPayWayFormProps) {
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (!document.hidden && paymentInProgress) {
-        // User returned to this tab - check if payment was completed
+        console.log('[Payment] Tab became visible, checking status...')
         checkOrderStatus()
       }
     }
@@ -78,6 +115,21 @@ export default function ABAPayWayForm({ orderId, amount }: ABAPayWayFormProps) {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
   }, [checkOrderStatus, paymentInProgress])
+
+  // Cleanup intervals on unmount
+  useEffect(() => {
+    return () => {
+      console.log('[Payment] Component unmounting, cleaning up intervals...')
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current)
+        pollIntervalRef.current = null
+      }
+      if (pollTimeoutRef.current) {
+        clearTimeout(pollTimeoutRef.current)
+        pollTimeoutRef.current = null
+      }
+    }
+  }, [])
 
   const handlePayment = async () => {
     // Prevent double-click - check both loading states
@@ -168,14 +220,29 @@ export default function ABAPayWayForm({ orderId, amount }: ABAPayWayFormProps) {
       setIsLoading(false)
       setPaymentInProgress(true)
 
+      // Clear any existing intervals first
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current)
+      }
+      if (pollTimeoutRef.current) {
+        clearTimeout(pollTimeoutRef.current)
+      }
+
       // Start polling for payment completion
-      const pollInterval = setInterval(() => {
+      console.log('[Payment] Starting polling interval...')
+      pollIntervalRef.current = setInterval(() => {
         checkOrderStatus()
       }, 3000) // Check every 3 seconds
 
       // Stop polling after 5 minutes
-      setTimeout(() => {
-        clearInterval(pollInterval)
+      pollTimeoutRef.current = setTimeout(() => {
+        console.log('[Payment] Polling timeout reached (5 minutes)')
+        if (pollIntervalRef.current) {
+          clearInterval(pollIntervalRef.current)
+          pollIntervalRef.current = null
+        }
+        setPaymentInProgress(false)
+        setIsLoading(false)
       }, 5 * 60 * 1000)
 
     } catch (error) {
