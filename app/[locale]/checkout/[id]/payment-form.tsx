@@ -110,20 +110,6 @@ export default function OrderDetailsForm({
             </div>
           </div>
 
-          {/* Payment Notice */}
-          <Card className="rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-950/20">
-            <CardContent className="p-4 md:p-6">
-              <div className="flex gap-3">
-                <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-sm text-amber-800 dark:text-amber-200">
-                    Please complete your payment using ABA PayWay to confirm your order. Your order will be processed once payment is received.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Payment Card */}
           <Card className="rounded-lg border-2 border-primary">
             <CardContent className="p-6 md:p-8">
