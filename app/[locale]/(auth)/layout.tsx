@@ -1,6 +1,4 @@
 import { getSetting } from '@/lib/actions/setting.actions'
-import Image from 'next/image'
-import Link from 'next/link'
 import React from 'react'
 import Container from '@/components/shared/container'
 
@@ -9,7 +7,7 @@ export default async function AuthLayout({
 }: {
   children: React.ReactNode
 }) {
-  const { site } = await getSetting()
+  await getSetting()
   return (
     <div className='min-h-screen bg-background overflow-y-auto'>
       <Container size='default' className='flex justify-center w-full py-4 md:py-8 lg:py-12'>

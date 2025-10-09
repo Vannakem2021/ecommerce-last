@@ -65,7 +65,6 @@ export default function StorefrontSearch({
         setResults(data)
         setShowDropdown(true)
       } catch (error) {
-        console.error('Search error:', error)
         setResults({ products: [], categories: [], totalCount: 0 })
       } finally {
         setIsLoading(false)

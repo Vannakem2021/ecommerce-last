@@ -11,8 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Badge } from '@/components/ui/badge'
-import { ChevronDownIcon, UserRound, User, Shield, Eye, LogOut } from 'lucide-react'
+import { UserRound, User, Shield, Eye, LogOut } from 'lucide-react'
 import { FiShoppingCart } from 'react-icons/fi'
 import { LuFolderHeart } from 'react-icons/lu'
 import { getTranslations } from 'next-intl/server'
@@ -33,7 +32,7 @@ export default async function UserButton() {
       // Check if user has password to determine auth method (OAuth vs Credentials)
       hasPassword = !!userData?.password
     } catch (error) {
-      console.error('[UserButton] getUserById error:', error)
+      // Silently handle error
     }
   }
 

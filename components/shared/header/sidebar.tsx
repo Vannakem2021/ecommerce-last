@@ -2,7 +2,6 @@ import * as React from 'react'
 import Link from 'next/link'
 import { X, ChevronRight, MenuIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { SignOut } from '@/lib/actions/user.actions'
 import {
   Drawer,
   DrawerClose,

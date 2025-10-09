@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import Container from '@/components/shared/container'
-import { Flame, Sparkles, TrendingUp, RefreshCcw } from 'lucide-react'
 import { auth } from '@/auth'
 import { Button } from '@/components/ui/button'
 import { getAllCategories } from '@/lib/actions/product.actions'

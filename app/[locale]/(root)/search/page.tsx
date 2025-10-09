@@ -11,15 +11,13 @@ import {
 } from '@/lib/actions/product.actions'
 import { IProduct } from '@/lib/db/models/product.model'
 import ProductSortSelector from '@/components/shared/product/product-sort-selector'
-import { getFilterUrl, toSlug } from '@/lib/utils'
+import { getFilterUrl } from '@/lib/utils'
 import { X } from 'lucide-react'
 
 import { getTranslations } from 'next-intl/server'
 import Breadcrumbs from '@/components/shared/breadcrumbs'
 import MobileFilterDrawer from '@/components/shared/search/mobile-filter-drawer'
 import PriceRangeSlider from '@/components/shared/search/price-range-slider'
-import ProductCardSkeleton from '@/components/shared/product/product-card-skeleton'
-import { Suspense } from 'react'
 
 const sortOrders = [
   { value: 'price-low-to-high', name: 'Price: Low to high' },

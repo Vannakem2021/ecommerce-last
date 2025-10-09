@@ -53,7 +53,7 @@ export default function NotificationBell() {
       // Refresh notifications
       mutate();
     } catch (error) {
-      console.error('Failed to mark notification as read:', error);
+      // Silently handle error
     }
   };
 
@@ -67,7 +67,7 @@ export default function NotificationBell() {
       // Refresh notifications
       mutate();
     } catch (error) {
-      console.error('Failed to mark all notifications as read:', error);
+      // Silently handle error
     }
   };
 
