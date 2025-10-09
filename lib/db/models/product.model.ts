@@ -166,18 +166,22 @@ const productSchema = new Schema<IProduct>(
       required: true,
       default: 'simple',
     },
-    configurations: [{
-      sku: { type: String, required: true },
-      name: { type: String, required: true },
-      price: { type: Number, required: true },
-      isDefault: { type: Boolean, required: true, default: false },
-      attributes: {
-        type: Schema.Types.Mixed,
-        required: true,
-      },
-      images: [String],
-      disabled: { type: Boolean, default: false },
-    }],
+    configurations: {
+      type: [{
+        _id: false, // Disable auto _id for subdocuments
+        sku: { type: String, required: true },
+        name: { type: String, required: true },
+        price: { type: Number, required: true },
+        isDefault: { type: Boolean, required: true, default: false },
+        attributes: {
+          type: Schema.Types.Mixed,
+          required: true,
+        },
+        images: [String],
+        disabled: { type: Boolean, default: false },
+      }],
+      default: []
+    },
   },
   {
     timestamps: true,
