@@ -11,7 +11,7 @@ import { useTranslations } from 'next-intl'
 import Container from '@/components/shared/container'
 
 export default function Footer() {
-  useSettingStore()
+  const { setting } = useSettingStore()
   const t = useTranslations()
   const [showBackToTop, setShowBackToTop] = useState(false)
 
@@ -44,25 +44,24 @@ export default function Footer() {
           <div>
             <h3 className='font-bold mb-4'>{t('Footer.Address')}</h3>
             <div className='space-y-3 text-sm'>
-              <div>
-                <h4 className='font-semibold mb-1'>{t('Footer.Head Office')}</h4>
-                <p className='text-gray-300'>{t('Footer.Head Office Address')}</p>
-              </div>
-              <div>
-                <h4 className='font-semibold mb-1'>{t('Footer.Branch Office')}</h4>
-                <p className='text-gray-300'>{t('Footer.Branch Office Address')}</p>
-              </div>
-              <div>
-                <h4 className='font-semibold mb-1'>{t('Footer.Phone')}</h4>
-                <p className='text-gray-300'>
-                  {t('Footer.Phone Number 1')}<br />
-                  {t('Footer.Phone Number 2')}
-                </p>
-              </div>
-              <div>
-                <h4 className='font-semibold mb-1'>{t('Footer.Email')}</h4>
-                <p className='text-gray-300'>{t('Footer.Email Address')}</p>
-              </div>
+              {setting.site.address && (
+                <div>
+                  <h4 className='font-semibold mb-1'>{t('Footer.Shop')}</h4>
+                  <p className='text-gray-300'>{setting.site.address}</p>
+                </div>
+              )}
+              {setting.site.phone && (
+                <div>
+                  <h4 className='font-semibold mb-1'>{t('Footer.Phone')}</h4>
+                  <p className='text-gray-300'>{setting.site.phone}</p>
+                </div>
+              )}
+              {setting.site.email && (
+                <div>
+                  <h4 className='font-semibold mb-1'>{t('Footer.Email')}</h4>
+                  <p className='text-gray-300'>{setting.site.email}</p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -78,11 +77,6 @@ export default function Footer() {
               <li>
                 <Link href='/page/contact-us' className='text-gray-300 hover:text-white transition-colors'>
                   {t('Footer.Contact Us')}
-                </Link>
-              </li>
-              <li>
-                <Link href='/page/customer-service' className='text-gray-300 hover:text-white transition-colors'>
-                  {t('Footer.Customer Service')}
                 </Link>
               </li>
             </ul>
@@ -128,7 +122,7 @@ export default function Footer() {
       <div className='border-t border-gray-800'>
         <Container className='py-4'>
           <div className='flex justify-center text-sm'>
-            <p>© 2025 BouchhunStore . All Rights Reserved.</p>
+            <p>{setting.site.copyright || '© 2025 BouchhunStore . All Rights Reserved.'}</p>
           </div>
         </Container>
       </div>

@@ -53,7 +53,6 @@ interface ConfigurationManagerProps {
     sku: string
     name: string
     price: number
-    stock: number
     isDefault: boolean
     attributes: Record<string, string | undefined>
   }[]
@@ -71,7 +70,6 @@ const ConfigurationManager = ({ value = [], onChange, baseSku }: ConfigurationMa
     color: '',
     name: '',
     price: '',
-    stock: '',
     isDefault: false
   })
 
@@ -82,7 +80,6 @@ const ConfigurationManager = ({ value = [], onChange, baseSku }: ConfigurationMa
       color: '',
       name: '',
       price: '',
-      stock: '',
       isDefault: false
     })
     setEditingIndex(null)
@@ -121,10 +118,6 @@ const ConfigurationManager = ({ value = [], onChange, baseSku }: ConfigurationMa
       toast({ variant: 'destructive', description: 'Valid price is required' })
       return
     }
-    if (!formData.stock || parseInt(formData.stock) < 0) {
-      toast({ variant: 'destructive', description: 'Valid stock is required' })
-      return
-    }
 
     // Auto-generate SKU as BASESKU-001, BASESKU-002, etc.
     const nextNumber = String(value.length + 1).padStart(3, '0')
@@ -134,7 +127,6 @@ const ConfigurationManager = ({ value = [], onChange, baseSku }: ConfigurationMa
       sku: autoSku,
       name: formData.name.trim(),
       price: parseFloat(formData.price),
-      stock: parseInt(formData.stock),
       isDefault: formData.isDefault,
       attributes: {
         storage: formData.storage || undefined,
@@ -176,7 +168,6 @@ const ConfigurationManager = ({ value = [], onChange, baseSku }: ConfigurationMa
       color: config.attributes?.color || '',
       name: config.name,
       price: config.price.toString(),
-      stock: config.stock.toString(),
       isDefault: config.isDefault
     })
     setEditingIndex(index)
@@ -270,14 +261,9 @@ const ConfigurationManager = ({ value = [], onChange, baseSku }: ConfigurationMa
           
           {/* Summary Footer */}
           <div className="flex items-center justify-between p-2 bg-muted/20 rounded text-[10px]">
-            <div className="flex items-center gap-3">
-              <span className="font-medium">
-                {value.length} variant{value.length !== 1 ? 's' : ''}
-              </span>
-              <span className="text-muted-foreground">
-                {value.reduce((sum, config) => sum + config.stock, 0)} units
-              </span>
-            </div>
+            <span className="font-medium">
+              {value.length} variant{value.length !== 1 ? 's' : ''}
+            </span>
             <span className="text-muted-foreground">
               SKU: {baseSku}-###
             </span>
@@ -355,9 +341,9 @@ const ConfigurationManager = ({ value = [], onChange, baseSku }: ConfigurationMa
               </div>
             )}
 
-            {/* Row 2: Price, Stock, Default */}
-            <div className="grid grid-cols-12 gap-2">
-              <div className="col-span-4">
+            {/* Row 2: Price & Default */}
+            <div className="grid grid-cols-2 gap-2">
+              <div>
                 <label className="text-[10px] font-medium block mb-1">Price</label>
                 <div className="relative">
                   <DollarSign className="absolute left-2 top-2 h-3 w-3 text-muted-foreground" />
@@ -372,21 +358,7 @@ const ConfigurationManager = ({ value = [], onChange, baseSku }: ConfigurationMa
                 </div>
               </div>
 
-              <div className="col-span-4">
-                <label className="text-[10px] font-medium block mb-1">Stock</label>
-                <div className="relative">
-                  <Package className="absolute left-2 top-2 h-3 w-3 text-muted-foreground" />
-                  <Input
-                    type="number"
-                    placeholder="0"
-                    value={formData.stock}
-                    onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-                    className="text-xs h-8 pl-7"
-                  />
-                </div>
-              </div>
-
-              <div className="col-span-4 flex items-end pb-0.5">
+              <div className="flex items-end pb-0.5">
                 <label className="flex items-center gap-1.5 cursor-pointer text-xs">
                   <input
                     type="checkbox"
@@ -416,7 +388,6 @@ const ConfigurationManager = ({ value = [], onChange, baseSku }: ConfigurationMa
       {value.length > 0 && (
         <div className="text-xs text-muted-foreground">
           Total: {value.length} variant{value.length !== 1 ? 's' : ''} • 
-          Total Stock: {value.reduce((sum, c) => sum + c.stock, 0)} units •
           SKU: Auto-generated ({baseSku}-001, {baseSku}-002, ...)
         </div>
       )}
@@ -500,7 +471,7 @@ const productDefaultValues: IProductInput = {
   brand: '',
   description: '',
   price: 0,
-  listPrice: 0,
+  listPrice: undefined,
   countInStock: 0,
   numReviews: 0,
   avgRating: 0,
@@ -1154,9 +1125,9 @@ const ProductForm = ({
 
                   {!variantsCollapsed && (
                     <div className="space-y-3">
-                      <div className="rounded border p-2 bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800">
-                        <p className="text-[10px] font-medium text-amber-900 dark:text-amber-100">
-                          ⚠️ Each variant has its own price & stock
+                      <div className="rounded border p-2 bg-blue-50/50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
+                        <p className="text-[10px] font-medium text-blue-900 dark:text-blue-100">
+                          💡 Each variant has its own price. Stock is tracked at product level.
                         </p>
                       </div>
                       
@@ -1182,7 +1153,7 @@ const ProductForm = ({
 
                   {!variantsCollapsed && (
                     <FormDescription className="mt-4 text-xs">
-                      Define at least one variant with its own price and stock level.
+                      Define at least one variant with its own price. Manage stock at product level.
                     </FormDescription>
                   )}
                 </CardContent>

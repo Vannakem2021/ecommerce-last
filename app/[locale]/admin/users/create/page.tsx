@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { ChevronLeft, UserPlus } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Create System User',
+  title: 'Create User',
 }
 
 export default async function CreateUserPage() {
@@ -31,7 +31,7 @@ export default async function CreateUserPage() {
             </Link>
           </Button>
           <span>/</span>
-          <span className="text-foreground">Create System User</span>
+          <span className="text-foreground">Create User</span>
         </div>
 
         {/* Page Header */}
@@ -42,9 +42,9 @@ export default async function CreateUserPage() {
                 <UserPlus className="h-6 w-6 text-violet-600" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-foreground">Create System User</h1>
+                <h1 className="text-3xl font-bold text-foreground">Create User</h1>
                 <p className="text-muted-foreground mt-1">
-                  Add a new system user with administrative privileges
+                  Add a new user with administrative privileges
                 </p>
               </div>
             </div>

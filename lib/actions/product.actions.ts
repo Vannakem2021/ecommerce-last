@@ -29,6 +29,12 @@ export async function createProduct(data: IProductInput) {
     await requirePermission('products.create')
 
     const product = ProductInputSchema.parse(data)
+    
+    // Remove listPrice if it's undefined, null, or 0 (don't store unnecessary field)
+    if (product.listPrice === undefined || product.listPrice === null || product.listPrice === 0) {
+      delete product.listPrice
+    }
+    
     await connectToDatabase()
     await Product.create(product)
     revalidatePath('/admin/products')
@@ -49,7 +55,24 @@ export async function updateProduct(data: z.infer<typeof ProductUpdateSchema>) {
 
     const product = ProductUpdateSchema.parse(data)
     await connectToDatabase()
-    await Product.findByIdAndUpdate(product._id, product)
+    
+    // Prepare update operations
+    const updateData: any = { ...product }
+    const unsetData: any = {}
+    
+    // Handle listPrice: if undefined/null/0, remove it from database
+    if (product.listPrice === undefined || product.listPrice === null || product.listPrice === 0) {
+      delete updateData.listPrice
+      unsetData.listPrice = ""
+    }
+    
+    // Build update query
+    const updateQuery: any = { $set: updateData }
+    if (Object.keys(unsetData).length > 0) {
+      updateQuery.$unset = unsetData
+    }
+    
+    await Product.findByIdAndUpdate(product._id, updateQuery)
     revalidatePath('/admin/products')
     return {
       success: true,

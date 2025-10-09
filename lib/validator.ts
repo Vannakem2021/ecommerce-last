@@ -56,10 +56,6 @@ export const ProductConfigurationSchema = z.object({
   sku: z.string().min(3, "Configuration SKU must be at least 3 characters").toUpperCase(),
   name: z.string().min(1, "Configuration name is required"),
   price: Price("Configuration price"),
-  stock: z.coerce
-    .number()
-    .int()
-    .nonnegative("Configuration stock must be non-negative"),
   isDefault: z.boolean(),
   attributes: z.record(z.string(), z.string().optional()),
   images: z.array(z.string()).optional(),
@@ -76,7 +72,10 @@ const ProductBaseSchema = z.object({
   description: z.string().min(1, "Description is required"),
   isPublished: z.boolean(),
   price: Price("Price"),
-  listPrice: Price("List price").optional(),
+  listPrice: z.preprocess(
+    (val) => val === "" || val === null || val === undefined ? undefined : val,
+    Price("List price").optional()
+  ),
   countInStock: z.coerce
     .number()
     .int()
@@ -297,7 +296,10 @@ export const ProductInputLegacySchema = z.object({
   description: z.string().min(1, "Description is required"),
   isPublished: z.boolean(),
   price: Price("Price"),
-  listPrice: Price("List price").optional(),
+  listPrice: z.preprocess(
+    (val) => val === "" || val === null || val === undefined ? undefined : val,
+    Price("List price").optional()
+  ),
   countInStock: z.coerce
     .number()
     .int()

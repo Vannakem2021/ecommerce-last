@@ -73,15 +73,15 @@ const ProductCard = ({
             useInternalToggle={!favoriteButtonControlled}
           />
         </div>
-        {/* Badges: Second Hand or Promotion (not both) */}
-        <div className='absolute top-2 left-2 z-10'>
+        {/* Badges: Second Hand or Promotion (not both) - Bottom left position */}
+        <div className='absolute top-0 left-0 z-10 flex flex-row flex-wrap gap-1.5 max-w-[90%]'>
           {product.secondHand ? (
-            <Badge className='bg-orange-500 hover:bg-orange-600 text-white font-medium text-xs px-2 py-0.5'>
+            <Badge className='bg-orange-500 hover:bg-orange-600 text-white font-medium text-[10px] px-1.5 py-0.5 shadow-md rounded'>
               {t('Second Hand')}
             </Badge>
           ) : (
             product.listPrice && product.listPrice > product.price && (
-              <Badge className='bg-destructive text-destructive-foreground font-medium text-xs px-2 py-0.5'>
+              <Badge className='bg-destructive text-destructive-foreground font-medium text-[10px] px-1.5 py-0.5 shadow-md rounded'>
                 {Math.round(((product.listPrice - product.price) / product.listPrice) * 100)}% OFF
               </Badge>
             )

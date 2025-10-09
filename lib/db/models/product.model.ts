@@ -6,7 +6,6 @@ export interface IProductConfiguration {
   sku: string
   name: string
   price: number
-  stock: number
   isDefault: boolean
   attributes: {
     storage?: string
@@ -164,7 +163,6 @@ const productSchema = new Schema<IProduct>(
       sku: { type: String, required: true },
       name: { type: String, required: true },
       price: { type: Number, required: true },
-      stock: { type: Number, required: true, default: 0 },
       isDefault: { type: Boolean, required: true, default: false },
       attributes: {
         type: Schema.Types.Mixed,

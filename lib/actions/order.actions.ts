@@ -286,7 +286,7 @@ export async function updateOrderToPaid(
         for (const plan of stockPlans) {
           await Product.updateOne(
             { _id: plan.productId },
-            { countInStock: plan.newStock }
+            { $inc: { countInStock: -plan.quantity, numSales: plan.quantity } }
           )
           await StockMovement.create({
             product: plan.productId,
@@ -382,7 +382,7 @@ const updateProductStock = async (
       product.countInStock = newStock
       await Product.updateOne(
         { _id: product._id },
-        { $inc: { countInStock: -item.quantity } },
+        { $inc: { countInStock: -item.quantity, numSales: item.quantity } },
         opts
       )
 

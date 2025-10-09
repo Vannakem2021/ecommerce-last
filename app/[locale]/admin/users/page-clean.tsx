@@ -183,7 +183,7 @@ export default function AdminUsersPage() {
         <div>
           <h1 className="text-3xl font-bold text-foreground">Users</h1>
           <p className="text-muted-foreground mt-1">
-            Manage customers and system users
+            Manage customers and users
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -191,14 +191,6 @@ export default function AdminUsersPage() {
             <Download className="h-4 w-4" />
             Export
           </Button>
-          {usersData.permissions.canCreate && (
-            <Button asChild className="flex items-center gap-2">
-              <Link href="/admin/users/create">
-                <Plus className="h-4 w-4" />
-                Create System User
-              </Link>
-            </Button>
-          )}
         </div>
       </div>
 
@@ -281,6 +273,18 @@ export default function AdminUsersPage() {
 
         {/* System Users Tab */}
         <TabsContent value="system" className="space-y-4">
+          {/* Header with Create Button */}
+          <div className="flex items-center justify-end">
+            {usersData.permissions.canCreate && (
+              <Button asChild className="flex items-center gap-2">
+                <Link href="/admin/users/create">
+                  <Plus className="h-4 w-4" />
+                  Create User
+                </Link>
+              </Button>
+            )}
+          </div>
+          
           {/* System User Overview Cards */}
           <UserOverviewCards type="system" systemMetrics={systemMetrics} />
 

@@ -7,7 +7,7 @@ import Rating from './rating'
 import { formatNumber } from '@/lib/utils'
 import { getRelativeTimeString, isNew, formatSalesCount } from '@/lib/utils/date'
 import ProductPrice from './product-price'
-import { Trophy } from 'lucide-react'
+
 import { useTranslations } from 'next-intl'
 
 interface ProductCardHorizontalProps {
@@ -49,36 +49,22 @@ const ProductCardHorizontal = ({
             className='object-contain group-hover:scale-105 transition-transform duration-300'
           />
 
-          {/* Badges on Image */}
-          <div className='absolute top-0 left-0 flex flex-col gap-1'>
+          {/* Badges on Image - Bottom left position */}
+          <div className='absolute -top-1 left-0 flex flex-row flex-wrap gap-1 max-w-[90%]'>
             {/* Second Hand Badge */}
             {product.secondHand && (
-              <Badge className='bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs px-1.5 py-0.5'>
+              <Badge className='bg-orange-500 hover:bg-orange-600 text-white font-bold text-[10px] px-1 py-0 shadow-md rounded'>
                 {t('Second Hand')}
               </Badge>
             )}
             
-            {/* Ranking Badge for Best Sellers */}
-            {ranking && ranking <= 3 && (
-              <Badge
-                variant={ranking === 1 ? 'default' : 'secondary'}
-                className={`
-                  ${ranking === 1 ? 'bg-yellow-500 hover:bg-yellow-600 text-white' : ''}
-                  flex items-center gap-1 font-bold text-xs px-1.5 py-0.5
-                `}
-              >
-                {ranking === 1 && <Trophy className='h-2.5 w-2.5' />}
-                #{ranking}
-              </Badge>
-            )}
-
             {/* NEW Badge for New Arrivals */}
             {showNewBadge && product.createdAt && isNew(product.createdAt) && (
               <Badge
                 variant='secondary'
-                className='bg-green-500 hover:bg-green-600 text-white font-bold text-xs px-1.5 py-0.5'
+                className='bg-green-500 hover:bg-green-600 text-white font-bold text-[10px] px-1 py-0 shadow-md rounded'
               >
-                NEW
+                {t('NEW')}
               </Badge>
             )}
           </div>

@@ -39,7 +39,8 @@
     "Help": "ជំនួយ",
     "Site Menu": "ម៉ឺនុយគេហទំព័រ",
     "Subtotal": "សរុបបណ្តោះអាសន្ន",
-    "Go to cart": "ទៅកាន់កន្ត្រកទំនិញ"
+    "Go to cart": "ទៅកាន់កន្ត្រកទំនិញ",
+    "Your favorites": "សំណព្វរបស់អ្នក"
   },
   "Home": {
     "Categories to explore": "ប្រភេទផលិតផលដែលត្រូវស្វែងរក",
@@ -154,6 +155,10 @@
     "Rating": "ការវាយតម្លៃ",
     "No reviews yet": "មិនទាន់មានការវាយតម្លៃ",
     "Submitting": "កំពុងបញ្ជូន...",
+    "Add to Favorites": "បន្ថែមទៅសំណព្វ",
+    "Remove from Favorites": "លុបចេញពីសំណព្វ",
+    "Added to Favorites": "បានបន្ថែមទៅសំណព្វ",
+    "Removed from Favorites": "បានលុបចេញពីសំណព្វ",
     "Overview": "ទិដ្ឋភាពទូទៅ",
     "Specifications": "លក្ខណៈបច្ចេកទេស",
     "Shipping & Returns": "ការដឹកជញ្ជូន និងការត្រឡប់",
@@ -263,19 +268,16 @@
   "Footer": {
     "Back to top": "ត្រឡប់ទៅខាងលើ",
     "Address": "អាសយដ្ឋាន",
-    "Head Office": "ការិយាល័យកណ្តាល",
-    "Branch Office": "ការិយាល័យសាខា",
+    "Shop": "ហាង",
     "Phone": "ទូរស័ព្ទ",
     "Email": "អ៊ីមែល",
-    "Head Office Address": "#603AE02, St.310, Boeng Keng Kang Tir Pir, Boeng Keng Kang, Phnom Penh, Cambodia, 121302",
-    "Branch Office Address": "#03, St.600, Boeng Kak Tir Pir, Tuol Kouk, Phnom Penh, Cambodia, 120408",
+    "Shop Address": "#603AE02, St.310, Boeng Keng Kang Tir Pir, Boeng Keng Kang, Phnom Penh, Cambodia, 121302",
     "Phone Number 1": "+855 12 57 57 78",
     "Phone Number 2": "+855 69 57 57 78",
     "Email Address": "info@emallcambodia.com",
     "Supports": "ការគាំទ្រ",
     "About Us": "អំពីពួកយើង",
     "Contact Us": "ទាក់ទងពួកយើង",
-    "Customer Service": "សេវាកម្មអតិថិជន",
     "Follow Us": "តាមដានពួកយើង",
     "We Accept": "យើងទទួលយក"
   },

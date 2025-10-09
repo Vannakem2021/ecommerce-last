@@ -145,6 +145,7 @@ const main = async () => {
         sku,
         brand: brandId,
         category: categoryId,
+        numSales: 0, // Reset sales count to 0, will be updated by real orders
         _id: undefined
       })
       createdProducts.push(createdProduct)
@@ -185,6 +186,18 @@ const main = async () => {
       )
     }
     const createdOrders = await Order.insertMany(orders)
+    
+    // Update numSales for each product based on seeded orders
+    console.log('📊 Updating product sales counts from seeded orders...')
+    for (const order of createdOrders) {
+      for (const item of order.items) {
+        await Product.findByIdAndUpdate(
+          item.product,
+          { $inc: { numSales: item.quantity } }
+        )
+      }
+    }
+    
     console.log({
       createdUser,
       createdBrands,
