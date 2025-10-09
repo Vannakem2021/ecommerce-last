@@ -20,18 +20,49 @@ export default function ABAPayWayForm({ orderId, amount }: ABAPayWayFormProps) {
   // Check order payment status
   const checkOrderStatus = useCallback(async () => {
     try {
+      console.log('[Payment] Checking order status...')
       const response = await fetch(`/api/orders/${orderId}/status`)
       if (response.ok) {
         const data = await response.json()
+        console.log('[Payment] Order status:', data)
+        
         if (data.isPaid) {
-          // Payment completed! Refresh the page to show success
-          router.refresh()
+          // Payment completed! Redirect to order success page
+          console.log('[Payment] Payment detected! Redirecting to success page...')
+          toast({
+            title: 'Payment Successful!',
+            description: 'Your payment has been processed. Redirecting...',
+          })
+          // Small delay to show the toast
+          setTimeout(() => {
+            router.push(`/account/orders/${orderId}`)
+          }, 1000)
+        } else if (data.paymentResult?.status === 'CANCELLED') {
+          // Payment was cancelled
+          console.log('[Payment] Payment cancelled by user')
+          setPaymentInProgress(false)
+          setIsLoading(false)
+          toast({
+            title: 'Payment Cancelled',
+            description: 'You cancelled the payment. You can try again.',
+            variant: 'destructive',
+          })
+        } else if (data.paymentResult?.status === 'FAILED') {
+          // Payment failed
+          console.log('[Payment] Payment failed')
+          setPaymentInProgress(false)
+          setIsLoading(false)
+          toast({
+            title: 'Payment Failed',
+            description: 'Your payment could not be processed. Please try again.',
+            variant: 'destructive',
+          })
         }
       }
     } catch (error) {
-      console.error('Failed to check order status:', error)
+      console.error('[Payment] Failed to check order status:', error)
     }
-  }, [orderId, router])
+  }, [orderId, router, toast])
 
   // Check payment status when user returns to page (tab becomes visible)
   useEffect(() => {

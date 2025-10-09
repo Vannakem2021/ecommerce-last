@@ -24,8 +24,8 @@ export async function GET(
 
     await connectToDatabase()
 
-    // Get only the payment status fields
-    const order = await Order.findById(id).select('isPaid paymentMethod').lean()
+    // Get payment status fields including payment result for failure detection
+    const order = await Order.findById(id).select('isPaid paymentMethod paymentResult').lean()
 
     if (!order) {
       return NextResponse.json(
@@ -37,6 +37,7 @@ export async function GET(
     return NextResponse.json({
       isPaid: order.isPaid || false,
       paymentMethod: order.paymentMethod,
+      paymentResult: order.paymentResult || null,
     })
   } catch (error) {
     console.error('Error checking order status:', error)
