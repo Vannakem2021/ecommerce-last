@@ -321,7 +321,7 @@ const products: IProductInput[] = [
     configurations: [],
     sku: "APPLE-SMARTPHONES-001",
     category: "Smartphones",
-    images: ["/images/iPhone16pro max.png"],
+    images: ["/images/iPhone16ProMax.png"],
 
     isPublished: true,
     price: 1299,
@@ -379,7 +379,7 @@ const products: IProductInput[] = [
     configurations: [],
     sku: "APPLE-SMARTPHONES-003",
     category: "Smartphones",
-    images: ["/images/iPhone15Pro Max.png"],
+    images: ["/images/iPhone15ProMax.png"],
 
     isPublished: true,
     price: 1199,
@@ -675,7 +675,7 @@ const products: IProductInput[] = [
     configurations: [],
     sku: "OPPO-SMARTPHONES-003",
     category: "Smartphones",
-    images: ["/images/OppoReno13 Pro5G.png"],
+    images: ["/images/OppoReno13Pro5G.png"],
 
     isPublished: true,
     price: 649,
