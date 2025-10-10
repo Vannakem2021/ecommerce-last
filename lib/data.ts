@@ -344,11 +344,41 @@ const products: IProductInput[] = [
     secondHand: false,
   },
   {
+    name: "Apple iPhone 16 Pro",
+    slug: toSlug("Apple iPhone 16 Pro"),
+    productType: "simple" as const,
+    configurations: [],
+    sku: "APPLE-SMARTPHONES-002",
+    category: "Smartphones",
+    images: ["/images/iPhone16ProMax.png"], // Using Pro Max image temporarily
+
+    isPublished: true,
+    price: 999,
+    listPrice: 1099, // $100 off - HOT DEAL
+    brand: "Apple",
+    avgRating: 4.8,
+    numReviews: 122,
+    ratingDistribution: [
+      { rating: 1, count: 1 },
+      { rating: 2, count: 2 },
+      { rating: 3, count: 6 },
+      { rating: 4, count: 28 },
+      { rating: 5, count: 85 },
+    ],
+    numSales: 350,
+    countInStock: 40,
+    description: "iPhone 16 Pro with A18 Pro chip, ProMotion display, advanced camera system with 3x telephoto zoom, and Action Button.",
+    sizes: ["128GB", "256GB", "512GB", "1TB"],
+    colors: ["Natural Titanium", "Blue Titanium", "White Titanium", "Black Titanium"],
+    reviews: [],
+    secondHand: false,
+  },
+  {
     name: "Apple iPhone 16",
     slug: toSlug("Apple iPhone 16"),
     productType: "simple" as const,
     configurations: [],
-    sku: "APPLE-SMARTPHONES-002",
+    sku: "APPLE-SMARTPHONES-003",
     category: "Smartphones",
     images: ["/images/iPhone16.png"],
 
@@ -377,12 +407,13 @@ const products: IProductInput[] = [
     slug: toSlug("Apple iPhone 15 Pro Max"),
     productType: "simple" as const,
     configurations: [],
-    sku: "APPLE-SMARTPHONES-003",
+    sku: "APPLE-SMARTPHONES-004",
     category: "Smartphones",
     images: ["/images/iPhone15ProMax.png"],
 
     isPublished: true,
-    price: 1199,
+    price: 1099,
+    listPrice: 1199, // $100 off - HOT DEAL
     brand: "Apple",
     avgRating: 4.8,
     numReviews: 220,
@@ -442,7 +473,8 @@ const products: IProductInput[] = [
     images: ["/images/GalaxyS25Ultra.png"],
 
     isPublished: true,
-    price: 1299,
+    price: 1199,
+    listPrice: 1299, // $100 off - HOT DEAL
     brand: "Samsung",
     avgRating: 4.8,
     numReviews: 89,
@@ -530,7 +562,8 @@ const products: IProductInput[] = [
     images: ["/images/GalaxyZFold6.png"],
 
     isPublished: true,
-    price: 1899,
+    price: 1799,
+    listPrice: 1899, // $100 off - HOT DEAL
     brand: "Samsung",
     avgRating: 4.5,
     numReviews: 67,
@@ -619,7 +652,8 @@ const products: IProductInput[] = [
     images: ["/images/OppoFindX8Pro.png"],
 
     isPublished: true,
-    price: 1199,
+    price: 1099,
+    listPrice: 1199, // $100 off - HOT DEAL
     brand: "Oppo",
     avgRating: 4.6,
     numReviews: 56,
