@@ -181,7 +181,7 @@ const main = async () => {
         await generateOrder(
           i,
           createdUser.map((x) => x._id),
-          createdProducts.map((x) => x._id)
+          createdProducts  // Pass product objects, not just IDs
         )
       )
     }
@@ -230,22 +230,20 @@ const generateOrder = async (
   users: any,
   products: any
 ): Promise<IOrderInput> => {
-  const product1 = await Product.findById(products[i % products.length])
+  // Use products directly (already loaded from database)
+  const product1 = products[i % products.length]
 
-  const product2 = await Product.findById(
-    products[
-      i % products.length >= products.length - 1
-        ? (i % products.length) - 1
-        : (i % products.length) + 1
-    ]
-  )
-  const product3 = await Product.findById(
-    products[
-      i % products.length >= products.length - 2
-        ? (i % products.length) - 2
-        : (i % products.length) + 2
-    ]
-  )
+  const product2 = products[
+    i % products.length >= products.length - 1
+      ? (i % products.length) - 1
+      : (i % products.length) + 1
+  ]
+  
+  const product3 = products[
+    i % products.length >= products.length - 2
+      ? (i % products.length) - 2
+      : (i % products.length) + 2
+  ]
 
   if (!product1 || !product2 || !product3) throw new Error('Product not found')
 
@@ -293,6 +291,7 @@ const generateOrder = async (
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const order: any = {
+    orderId: i + 1, // Generate sequential order ID
     user: users[i % users.length],
     items: mappedItems,
     shippingAddress: data.users[i % users.length].address,
