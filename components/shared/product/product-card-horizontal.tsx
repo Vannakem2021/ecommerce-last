@@ -74,9 +74,9 @@ const ProductCardHorizontal = ({
         <div className='flex-1 min-w-0 flex flex-col justify-center gap-1 md:gap-1.5'>
           {/* Brand */}
           <p className='text-xs text-muted-foreground uppercase tracking-wide'>
-            {typeof product.brand === 'object'
+            {typeof product.brand === 'object' && product.brand !== null
               ? (product.brand as unknown as { name: string }).name
-              : product.brand}
+              : product.brand || 'Unknown'}
           </p>
 
           {/* Product Name */}

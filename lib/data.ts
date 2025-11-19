@@ -317,8 +317,6 @@ const products: IProductInput[] = [
   {
     name: "Apple iPhone 16 Pro Max",
     slug: toSlug("Apple iPhone 16 Pro Max"),
-    productType: "simple" as const,
-    configurations: [],
     sku: "APPLE-SMARTPHONES-001",
     category: "Smartphones",
     images: ["/images/iPhone16ProMax.png"],
@@ -346,8 +344,6 @@ const products: IProductInput[] = [
   {
     name: "Apple iPhone 16 Pro",
     slug: toSlug("Apple iPhone 16 Pro"),
-    productType: "simple" as const,
-    configurations: [],
     sku: "APPLE-SMARTPHONES-002",
     category: "Smartphones",
     images: ["/images/iPhone16ProMax.png"], // Using Pro Max image temporarily
@@ -376,8 +372,6 @@ const products: IProductInput[] = [
   {
     name: "Apple iPhone 16",
     slug: toSlug("Apple iPhone 16"),
-    productType: "simple" as const,
-    configurations: [],
     sku: "APPLE-SMARTPHONES-003",
     category: "Smartphones",
     images: ["/images/iPhone16.png"],
@@ -405,8 +399,6 @@ const products: IProductInput[] = [
   {
     name: "Apple iPhone 15 Pro Max",
     slug: toSlug("Apple iPhone 15 Pro Max"),
-    productType: "simple" as const,
-    configurations: [],
     sku: "APPLE-SMARTPHONES-004",
     category: "Smartphones",
     images: ["/images/iPhone15ProMax.png"],
@@ -436,8 +428,6 @@ const products: IProductInput[] = [
   {
     name: "Apple iPhone 15",
     slug: toSlug("Apple iPhone 15"),
-    productType: "simple" as const,
-    configurations: [],
     sku: "APPLE-SMARTPHONES-004",
     category: "Smartphones",
     images: ["/images/iPhone15.png"],
@@ -466,8 +456,6 @@ const products: IProductInput[] = [
   {
     name: "Samsung Galaxy S25 Ultra",
     slug: toSlug("Samsung Galaxy S25 Ultra"),
-    productType: "simple" as const,
-    configurations: [],
     sku: "SAMSUNG-SMARTPHONES-001",
     category: "Smartphones",
     images: ["/images/GalaxyS25Ultra.png"],
@@ -496,8 +484,6 @@ const products: IProductInput[] = [
   {
     name: "Samsung Galaxy S25 Plus",
     slug: toSlug("Samsung Galaxy S25 Plus"),
-    productType: "simple" as const,
-    configurations: [],
     sku: "SAMSUNG-SMARTPHONES-002",
     category: "Smartphones",
     images: ["/images/GalaxyS25plus.png"],
@@ -526,8 +512,6 @@ const products: IProductInput[] = [
   {
     name: "Samsung Galaxy S25",
     slug: toSlug("Samsung Galaxy S25"),
-    productType: "simple" as const,
-    configurations: [],
     sku: "SAMSUNG-SMARTPHONES-003",
     category: "Smartphones",
     images: ["/images/GalaxyS25.png"],
@@ -555,8 +539,6 @@ const products: IProductInput[] = [
   {
     name: "Samsung Galaxy Z Fold6",
     slug: toSlug("Samsung Galaxy Z Fold6"),
-    productType: "simple" as const,
-    configurations: [],
     sku: "SAMSUNG-SMARTPHONES-004",
     category: "Smartphones",
     images: ["/images/GalaxyZFold6.png"],
@@ -585,8 +567,6 @@ const products: IProductInput[] = [
   {
     name: "Samsung Galaxy Z Flip6",
     slug: toSlug("Samsung Galaxy Z Flip6"),
-    productType: "simple" as const,
-    configurations: [],
     sku: "SAMSUNG-SMARTPHONES-005",
     category: "Smartphones",
     images: ["/images/GalaxyZFlip6.png"],
@@ -615,8 +595,6 @@ const products: IProductInput[] = [
   {
     name: "Samsung Galaxy S24 FE",
     slug: toSlug("Samsung Galaxy S24 FE"),
-    productType: "simple" as const,
-    configurations: [],
     sku: "SAMSUNG-SMARTPHONES-006",
     category: "Smartphones",
     images: ["/images/GalaxyS24FE.png"],
@@ -645,8 +623,6 @@ const products: IProductInput[] = [
   {
     name: "Oppo Find X8 Pro",
     slug: toSlug("Oppo Find X8 Pro"),
-    productType: "simple" as const,
-    configurations: [],
     sku: "OPPO-SMARTPHONES-001",
     category: "Smartphones",
     images: ["/images/OppoFindX8Pro.png"],
@@ -676,8 +652,6 @@ const products: IProductInput[] = [
   {
     name: "Oppo Find X8",
     slug: toSlug("Oppo Find X8"),
-    productType: "simple" as const,
-    configurations: [],
     sku: "OPPO-SMARTPHONES-002",
     category: "Smartphones",
     images: ["/images/OppoFindX8.png"],
@@ -705,8 +679,6 @@ const products: IProductInput[] = [
   {
     name: "Oppo Reno13 Pro 5G",
     slug: toSlug("Oppo Reno13 Pro 5G"),
-    productType: "simple" as const,
-    configurations: [],
     sku: "OPPO-SMARTPHONES-003",
     category: "Smartphones",
     images: ["/images/OppoReno13Pro5G.png"],
@@ -735,8 +707,6 @@ const products: IProductInput[] = [
   {
     name: "MacBook Pro 16-inch M3 Max",
     slug: toSlug("MacBook Pro 16-inch M3 Max"),
-    productType: "simple" as const,
-    configurations: [],
     sku: "APPLE-LAPTOPS-001",
     category: "Laptops",
     images: ["/images/macbook1.png"],
@@ -764,8 +734,6 @@ const products: IProductInput[] = [
   {
     name: "MacBook Pro 14-inch M3 Pro",
     slug: toSlug("MacBook Pro 14-inch M3 Pro"),
-    productType: "simple" as const,
-    configurations: [],
     sku: "APPLE-LAPTOPS-002",
     category: "Laptops",
     images: ["/images/macbook2.png"],
@@ -794,8 +762,6 @@ const products: IProductInput[] = [
   {
     name: "MacBook Air 15-inch M3",
     slug: toSlug("MacBook Air 15-inch M3"),
-    productType: "simple" as const,
-    configurations: [],
     sku: "APPLE-LAPTOPS-003",
     category: "Laptops",
     images: ["/images/macbook3.png"],
@@ -823,8 +789,6 @@ const products: IProductInput[] = [
   {
     name: "MacBook Air 13-inch M3",
     slug: toSlug("MacBook Air 13-inch M3"),
-    productType: "simple" as const,
-    configurations: [],
     sku: "APPLE-LAPTOPS-004",
     category: "Laptops",
     images: ["/images/macbook4.png"],
@@ -854,8 +818,6 @@ const products: IProductInput[] = [
   {
     name: "iPad Pro 12.9-inch M4",
     slug: toSlug("iPad Pro 12.9-inch M4"),
-    productType: "simple" as const,
-    configurations: [],
     sku: "APPLE-TABLETS-001",
     category: "Tablets",
     images: ["/images/ipad1.png"],
@@ -884,8 +846,6 @@ const products: IProductInput[] = [
   {
     name: "iPad Pro 11-inch M4",
     slug: toSlug("iPad Pro 11-inch M4"),
-    productType: "simple" as const,
-    configurations: [],
     sku: "APPLE-TABLETS-002",
     category: "Tablets",
     images: ["/images/ipad2.png"],
@@ -913,8 +873,6 @@ const products: IProductInput[] = [
   {
     name: "iPad Air 11-inch M2",
     slug: toSlug("iPad Air 11-inch M2"),
-    productType: "simple" as const,
-    configurations: [],
     sku: "APPLE-TABLETS-003",
     category: "Tablets",
     images: ["/images/ipad3.png"],

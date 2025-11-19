@@ -57,7 +57,7 @@ export default async function ProductDetails(props: {
   const product = await getProductBySlug(slug)
 
   const relatedProducts = await getRelatedProductsByCategory({
-    category: typeof product.category === 'object' ? (product.category as unknown as { _id: string })._id : product.category,
+    category: typeof product.category === 'object' && product.category !== null ? (product.category as unknown as { _id: string })._id : product.category,
     productId: product._id,
     page: Number(page || '1'),
   })
@@ -65,7 +65,7 @@ export default async function ProductDetails(props: {
   const t = await getTranslations()
   
   // Prepare breadcrumb items
-  const categoryName = typeof product.category === 'object' 
+  const categoryName = typeof product.category === 'object' && product.category !== null 
     ? (product.category as unknown as { name: string }).name 
     : product.category
   
@@ -96,8 +96,8 @@ export default async function ProductDetails(props: {
               <div className='flex-1'>
                 <h1 className='font-bold text-2xl lg:text-3xl mb-2'>{product.name}</h1>
                 <p className='text-sm text-muted-foreground'>
-                  {t('Product.Brand')}: {typeof product.brand === 'object' ? (product.brand as unknown as { name: string }).name : product.brand} | 
-                  {' '}{typeof product.category === 'object' ? (product.category as unknown as { name: string }).name : product.category}
+                  {t('Product.Brand')}: {typeof product.brand === 'object' && product.brand !== null ? (product.brand as unknown as { name: string }).name : product.brand || 'N/A'} | 
+                  {' '}{typeof product.category === 'object' && product.category !== null ? (product.category as unknown as { name: string }).name : product.category || 'N/A'}
                 </p>
               </div>
               <FavoriteButton productId={product._id} />
@@ -114,7 +114,7 @@ export default async function ProductDetails(props: {
             {/* Promotion Badges */}
             <PromotionBadge
               productId={product._id}
-              categoryId={typeof product.category === 'object' ? (product.category as unknown as { _id: string })._id : product.category}
+              categoryId={typeof product.category === 'object' && product.category !== null ? (product.category as unknown as { _id: string })._id : product.category}
               size='lg'
             />
             
@@ -186,8 +186,8 @@ export default async function ProductDetails(props: {
                     {
                       title: 'General',
                       specs: [
-                        { label: 'Brand', value: typeof product.brand === 'object' ? (product.brand as unknown as { name: string }).name : product.brand },
-                        { label: 'Category', value: typeof product.category === 'object' ? (product.category as unknown as { name: string }).name : product.category },
+                        { label: 'Brand', value: typeof product.brand === 'object' && product.brand !== null ? (product.brand as unknown as { name: string }).name : (product.brand || 'N/A') },
+                        { label: 'Category', value: typeof product.category === 'object' && product.category !== null ? (product.category as unknown as { name: string }).name : (product.category || 'N/A') },
                         { label: 'Condition', value: product.secondHand ? t('Condition.Second Hand') : t('Condition.New') },
                       ],
                     },
@@ -210,7 +210,7 @@ export default async function ProductDetails(props: {
       <section className='mt-10'>
         <ProductSlider
           products={relatedProducts.data}
-          title={t('Product.Best Sellers in', { name: typeof product.category === 'object' ? (product.category as unknown as { name: string }).name : product.category })}
+          title={t('Product.Best Sellers in', { name: typeof product.category === 'object' && product.category !== null ? (product.category as unknown as { name: string }).name : (product.category || 'Unknown') })}
         />
       </section>
       <section>

@@ -1,23 +1,6 @@
 import { Document, Model, model, models, Schema } from 'mongoose'
 import { getEffectivePrice as getEffectivePriceUtil } from '@/lib/utils'
 
-// Configuration interface - pre-defined product configurations
-export interface IProductConfiguration {
-  sku: string
-  name: string
-  price: number
-  stock?: number
-  isDefault: boolean
-  attributes: {
-    storage?: string
-    ram?: string
-    color?: string
-    [key: string]: string | undefined
-  }
-  images?: string[]
-  disabled?: boolean
-}
-
 export interface IProduct extends Document {
   _id: string
   name: string
@@ -32,15 +15,6 @@ export interface IProduct extends Document {
   countInStock: number
   colors: string[]
   sizes: string[]
-  // Product type and configurations
-  productType: 'simple' | 'variant'
-  configurations?: IProductConfiguration[]
-  // Legacy variant system (optional for backward compatibility)
-  variants?: {
-    storage?: string[]
-    ram?: string[]
-    colors?: string[]
-  }
   avgRating: number
   numReviews: number
   ratingDistribution: { rating: number; count: number }[]
@@ -158,29 +132,6 @@ const productSchema = new Schema<IProduct>(
       type: String,
       required: false,
       enum: ['Like New', 'Good', 'Fair', 'Poor'],
-    },
-    // Product type
-    productType: {
-      type: String,
-      enum: ['simple', 'variant'],
-      required: true,
-      default: 'simple',
-    },
-    configurations: {
-      type: [{
-        _id: false, // Disable auto _id for subdocuments
-        sku: { type: String, required: true },
-        name: { type: String, required: true },
-        price: { type: Number, required: true },
-        isDefault: { type: Boolean, required: true, default: false },
-        attributes: {
-          type: Schema.Types.Mixed,
-          required: true,
-        },
-        images: [String],
-        disabled: { type: Boolean, default: false },
-      }],
-      default: []
     },
   },
   {

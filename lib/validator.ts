@@ -51,18 +51,6 @@ export const ReviewInputSchema = z.object({
     .max(5, "Rating must be at most 5"),
 });
 
-// Product Configuration Schema
-export const ProductConfigurationSchema = z.object({
-  _id: z.string().optional(), // Allow _id for existing configurations (updates)
-  sku: z.string().min(3, "Configuration SKU must be at least 3 characters").toUpperCase(),
-  name: z.string().min(1, "Configuration name is required"),
-  price: Price("Configuration price"),
-  isDefault: z.boolean(),
-  attributes: z.record(z.string(), z.string().optional()),
-  images: z.array(z.string()).optional(),
-  disabled: z.boolean().optional().default(false),
-});
-
 const ProductBaseSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters"),
   slug: z.string().min(3, "Slug must be at least 3 characters"),
@@ -83,9 +71,6 @@ const ProductBaseSchema = z.object({
     .nonnegative("count in stock must be a non-negative number"),
   sizes: z.array(z.string()).optional().default([]),
   colors: z.array(z.string()).optional().default([]),
-  // Product type and configurations
-  productType: z.enum(['simple', 'variant']).default('simple'),
-  configurations: z.array(ProductConfigurationSchema).optional().default([]),
   avgRating: z.coerce
     .number()
     .min(0, "Average rating must be at least 0")
@@ -109,51 +94,6 @@ const ProductBaseSchema = z.object({
 });
 
 export const ProductInputSchema = ProductBaseSchema.superRefine((data, ctx) => {
-  // Configuration validation
-  if (data.productType === 'variant') {
-    // Variant products must have at least one configuration
-    if (!data.configurations || data.configurations.length === 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Variant products must have at least one configuration",
-        path: ["configurations"],
-      });
-    }
-  }
-  
-  if (data.configurations && data.configurations.length > 0) {
-    // Ensure at least one configuration is marked as default
-    const hasDefault = data.configurations.some(config => config.isDefault);
-    if (!hasDefault) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "At least one configuration must be marked as default",
-        path: ["configurations"],
-      });
-    }
-
-    // Ensure configuration SKUs are unique
-    const skus = data.configurations.map(c => c.sku);
-    const uniqueSkus = new Set(skus);
-    if (skus.length !== uniqueSkus.size) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Configuration SKUs must be unique",
-        path: ["configurations"],
-      });
-    }
-
-    // Ensure only one default configuration
-    const defaultCount = data.configurations.filter(c => c.isDefault).length;
-    if (defaultCount > 1) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Only one configuration can be marked as default",
-        path: ["configurations"],
-      });
-    }
-  }
-
   // Both-or-none validation for sale dates
   const hasStartDate = !!data.saleStartDate;
   const hasEndDate = !!data.saleEndDate;
@@ -199,51 +139,6 @@ export const ProductInputSchema = ProductBaseSchema.superRefine((data, ctx) => {
 export const ProductUpdateSchema = ProductBaseSchema.extend({
   _id: z.string(),
 }).superRefine((data, ctx) => {
-  // Configuration validation
-  if (data.productType === 'variant') {
-    // Variant products must have at least one configuration
-    if (!data.configurations || data.configurations.length === 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Variant products must have at least one configuration",
-        path: ["configurations"],
-      });
-    }
-  }
-  
-  if (data.configurations && data.configurations.length > 0) {
-    // Ensure at least one configuration is marked as default
-    const hasDefault = data.configurations.some(config => config.isDefault);
-    if (!hasDefault) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "At least one configuration must be marked as default",
-        path: ["configurations"],
-      });
-    }
-
-    // Ensure configuration SKUs are unique
-    const skus = data.configurations.map(c => c.sku);
-    const uniqueSkus = new Set(skus);
-    if (skus.length !== uniqueSkus.size) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Configuration SKUs must be unique",
-        path: ["configurations"],
-      });
-    }
-
-    // Ensure only one default configuration
-    const defaultCount = data.configurations.filter(c => c.isDefault).length;
-    if (defaultCount > 1) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Only one configuration can be marked as default",
-        path: ["configurations"],
-      });
-    }
-  }
-
   // Both-or-none validation for sale dates
   const hasStartDate = !!data.saleStartDate;
   const hasEndDate = !!data.saleEndDate;

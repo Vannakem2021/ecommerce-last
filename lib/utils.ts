@@ -257,88 +257,19 @@ export function calculateVariantPrice(
 }
 
 /**
- * Calculate price range for products with variants
+ * Get product price (simple products only)
  */
 export function getProductPriceRange(product: any): {
   min: number
   max: number
   hasRange: boolean
 } {
-  const basePrice = product?.price
-  
-  // Safety check: ensure basePrice is valid
-  if (!basePrice || isNaN(basePrice) || basePrice <= 0) {
-    return {
-      min: product?.price || 0,
-      max: product?.price || 0,
-      hasRange: false
-    }
-  }
-  
-  // Check if product has price-modifying variants
-  const hasVariants = product.variants && (
-    (product.variants.storage && product.variants.storage.length > 0) ||
-    (product.variants.ram && product.variants.ram.length > 0)
-  )
-  
-  if (!hasVariants) {
-    return {
-      min: basePrice,
-      max: basePrice,
-      hasRange: false
-    }
-  }
-  
-  // Calculate all possible variant combinations
-  const storageModifiers = product.variants?.storage?.map((s: any) => {
-    const modifier = s?.priceModifier
-    return (typeof modifier === 'number' && !isNaN(modifier)) ? modifier : 0
-  }) || [0]
-  
-  const ramModifiers = product.variants?.ram?.map((r: any) => {
-    const modifier = r?.priceModifier
-    return (typeof modifier === 'number' && !isNaN(modifier)) ? modifier : 0
-  }) || [0]
-  
-  // Get all combinations of modifiers
-  const allModifiers: number[] = []
-  for (const storage of storageModifiers) {
-    for (const ram of ramModifiers) {
-      const combined = storage + ram
-      if (!isNaN(combined)) {
-        allModifiers.push(combined)
-      }
-    }
-  }
-  
-  // Safety check: if no valid modifiers, return base price
-  if (allModifiers.length === 0) {
-    return {
-      min: basePrice,
-      max: basePrice,
-      hasRange: false
-    }
-  }
-  
-  const minModifier = Math.min(...allModifiers)
-  const maxModifier = Math.max(...allModifiers)
-  
-  const minPrice = round2(basePrice + minModifier)
-  const maxPrice = round2(basePrice + maxModifier)
-  
-  // Final validation
-  if (isNaN(minPrice) || isNaN(maxPrice)) {
-    return {
-      min: basePrice,
-      max: basePrice,
-      hasRange: false
-    }
-  }
+  const basePrice = product?.price || 0
   
   return {
-    min: minPrice,
-    max: maxPrice,
-    hasRange: minModifier !== maxModifier
+    min: basePrice,
+    max: basePrice,
+    hasRange: false
   }
 }
 

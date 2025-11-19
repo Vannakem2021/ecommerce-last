@@ -177,7 +177,7 @@ const ProductList = () => {
               const productSKU = generateProductSKU(
                 product._id,
                 product.name,
-                typeof product.category === 'object' ? (product.category as unknown as { name: string }).name : product.category
+                typeof product.category === 'object' && product.category !== null ? (product.category as unknown as { name: string }).name : product.category
               )
 
               return (
@@ -209,7 +209,7 @@ const ProductList = () => {
                   {/* Category */}
                   <TableCell>
                     <Badge variant="outline">
-                      {typeof product.category === 'object' ? (product.category as unknown as { name: string }).name : product.category}
+                      {typeof product.category === 'object' && product.category !== null ? (product.category as unknown as { name: string }).name : product.category}
                     </Badge>
                   </TableCell>
 

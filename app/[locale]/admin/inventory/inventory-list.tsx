@@ -129,14 +129,14 @@ export default function InventoryList({
                 {/* Brand */}
                 <TableCell>
                   <Badge variant="outline">
-                    {typeof product.brand === 'object' ? (product.brand as unknown as { name: string }).name : product.brand}
+                    {typeof product.brand === 'object' && product.brand !== null ? (product.brand as unknown as { name: string }).name : product.brand}
                   </Badge>
                 </TableCell>
 
                 {/* Category */}
                 <TableCell>
                   <Badge variant="outline">
-                    {typeof product.category === 'object' ? (product.category as unknown as { name: string }).name : product.category}
+                    {typeof product.category === 'object' && product.category !== null ? (product.category as unknown as { name: string }).name : product.category}
                   </Badge>
                 </TableCell>
 

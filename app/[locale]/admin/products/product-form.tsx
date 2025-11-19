@@ -491,8 +491,6 @@ const productDefaultValues: IProductInput = {
   saleEndDate: undefined,
   secondHand: false,
   condition: undefined,
-  productType: 'simple' as 'simple' | 'variant',
-  configurations: [],
 }
 
 const ProductForm = ({
@@ -508,7 +506,6 @@ const ProductForm = ({
   const [brands, setBrands] = useState<IBrand[]>([])
   const [categories, setCategories] = useState<ICategory[]>([])
   const [loading, setLoading] = useState(true)
-  const [variantsCollapsed, setVariantsCollapsed] = useState(false)
 
   const form = useForm<IProductInput>({
     resolver:
@@ -530,8 +527,6 @@ const ProductForm = ({
             listPrice: product.listPrice,
             colors: product.colors || [],
             sizes: product.sizes || [],
-            productType: product.productType || 'simple',
-            configurations: product.configurations || [],
             avgRating: product.avgRating || 0,
             numReviews: product.numReviews || 0,
             ratingDistribution: product.ratingDistribution || [],
@@ -620,20 +615,8 @@ const ProductForm = ({
 
   // Calculate form completion percentage
   const calculateProgress = () => {
-    const productType = watchedFields.productType || 'simple'
-    
-    // Required fields based on product type
-    const requiredFields = ['name', 'category', 'brand', 'images', 'description', 'sku']
-    
-    // For simple products, add price and stock
-    if (productType === 'simple') {
-      requiredFields.push('price', 'countInStock')
-    }
-    
-    // For variant products, configurations must exist
-    if (productType === 'variant') {
-      requiredFields.push('configurations')
-    }
+    // Required fields for all products
+    const requiredFields = ['name', 'category', 'brand', 'images', 'description', 'sku', 'price', 'countInStock']
     
     const fieldStatus: Record<string, boolean> = {}
     
@@ -642,8 +625,6 @@ const ProductForm = ({
       let isComplete = false
       
       if (field === 'images') {
-        isComplete = Array.isArray(value) && value.length > 0
-      } else if (field === 'configurations') {
         isComplete = Array.isArray(value) && value.length > 0
       } else if (field === 'price' || field === 'countInStock') {
         // Allow 0 as valid value, just check it's defined
@@ -707,67 +688,6 @@ const ProductForm = ({
                 </div>
 
                 <div className="space-y-4">
-                  {/* Product Type Selector */}
-                  <FormField
-                    control={form.control}
-                    name='productType'
-                    render={({ field }) => (
-                      <FormItem className="space-y-3">
-                        <FormLabel className="text-sm font-medium">Product Type *</FormLabel>
-                        <FormControl>
-                          <RadioGroup
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                            className="grid grid-cols-2 gap-4"
-                          >
-                            <div>
-                              <RadioGroupItem
-                                value="simple"
-                                id="simple"
-                                className="peer sr-only"
-                              />
-                              <Label
-                                htmlFor="simple"
-                                className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
-                              >
-                                <Package className="mb-3 h-6 w-6" />
-                                <div className="text-center">
-                                  <p className="font-semibold">Simple Product</p>
-                                  <p className="text-xs text-muted-foreground mt-1">
-                                    Single item with one price and stock
-                                  </p>
-                                </div>
-                              </Label>
-                            </div>
-                            <div>
-                              <RadioGroupItem
-                                value="variant"
-                                id="variant"
-                                className="peer sr-only"
-                              />
-                              <Label
-                                htmlFor="variant"
-                                className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
-                              >
-                                <Settings className="mb-3 h-6 w-6" />
-                                <div className="text-center">
-                                  <p className="font-semibold">Product with Variants</p>
-                                  <p className="text-xs text-muted-foreground mt-1">
-                                    Multiple options (e.g., sizes, colors, storage)
-                                  </p>
-                                </div>
-                              </Label>
-                            </div>
-                          </RadioGroup>
-                        </FormControl>
-                        <FormDescription>
-                          Choose how this product will be sold
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
@@ -917,9 +837,8 @@ const ProductForm = ({
               </CardContent>
             </Card>
             
-            {/* Pricing & Inventory - Only for Simple Products */}
-            {form.watch('productType') === 'simple' && (
-              <Card>
+            {/* Pricing & Inventory */}
+            <Card>
                 <CardContent className="p-6">
                   <div className="flex items-center gap-2 mb-4">
                     <DollarSign className="h-5 w-5 text-primary" />
@@ -1002,7 +921,6 @@ const ProductForm = ({
                 </div>
               </CardContent>
             </Card>
-            )}
 
           </div>
 
@@ -1109,61 +1027,6 @@ const ProductForm = ({
                 />
               </CardContent>
             </Card>
-
-            {/* Product Variants - Only for Variant Products */}
-            {form.watch('productType') === 'variant' && (
-              <Card>
-                <CardContent className="p-6">
-                  <div 
-                    className="flex items-center gap-2 mb-4 cursor-pointer select-none"
-                    onClick={() => setVariantsCollapsed(!variantsCollapsed)}
-                  >
-                    <Settings className="h-5 w-5 text-primary" />
-                    <h3 className="text-lg font-semibold">Product Variants</h3>
-                    <Badge variant="destructive" className="ml-auto">Required</Badge>
-                    {variantsCollapsed ? (
-                      <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                    ) : (
-                      <ChevronUp className="h-5 w-5 text-muted-foreground" />
-                    )}
-                  </div>
-
-                  {!variantsCollapsed && (
-                    <div className="space-y-3">
-                      <div className="rounded border p-2 bg-blue-50/50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
-                        <p className="text-[10px] font-medium text-blue-900 dark:text-blue-100">
-                          💡 Each variant has its own price. Stock is tracked at product level.
-                        </p>
-                      </div>
-                      
-                      {/* Configuration Manager */}
-                      <FormField
-                        control={form.control}
-                        name='configurations'
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <ConfigurationManager
-                                value={field.value || []}
-                                onChange={field.onChange}
-                                baseSku={form.watch('sku') || 'PROD'}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  )}
-
-                  {!variantsCollapsed && (
-                    <FormDescription className="mt-4 text-xs">
-                      Define at least one variant with its own price. Manage stock at product level.
-                    </FormDescription>
-                  )}
-                </CardContent>
-              </Card>
-            )}
 
             {/* Advanced Settings */}
             <Card>

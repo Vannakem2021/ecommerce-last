@@ -96,7 +96,7 @@ const ProductCard = ({
     <div className='flex-1 space-y-3'>
       {/* Brand - smaller, muted */}
       <p className='text-xs text-muted-foreground uppercase tracking-wide'>
-        {typeof product.brand === 'object' ? (product.brand as unknown as { name: string }).name : product.brand}
+        {typeof product.brand === 'object' && product.brand !== null ? (product.brand as unknown as { name: string }).name : product.brand || 'Unknown'}
       </p>
 
       {/* Product Name - larger, bold */}
@@ -155,7 +155,7 @@ const ProductCard = ({
             countInStock: product.countInStock,
             name: product.name,
             slug: product.slug,
-            category: typeof product.category === 'object' ? (product.category as unknown as { name: string }).name : product.category,
+            category: typeof product.category === 'object' && product.category !== null ? (product.category as unknown as { name: string }).name : product.category,
             price: round2(product.price),
             listPrice: product.listPrice,
             quantity: 1,
